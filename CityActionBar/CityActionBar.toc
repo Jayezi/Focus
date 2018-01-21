@@ -6,6 +6,5 @@
 config.lua
 lib.lua
 actionbars.lua
-bagbar.lua
 microbar.lua
 vehicle.lua
