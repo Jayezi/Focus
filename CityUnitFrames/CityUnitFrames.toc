@@ -1,0 +1,9 @@
+## Interface: 70100
+## Author: CityPunch
+## Title: CityUnitFrames
+## RequiredDeps: oUF, oUF_Experience, CityCore
+
+config.lua
+tags.lua
+lib.lua
+core.lua

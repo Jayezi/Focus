@@ -1,0 +1,6 @@
+## Interface: 70100
+## Author: CityPunch
+## Title: CityBinds
+## SavedVariables: CityBindLayouts
+
+core.lua

@@ -1,0 +1,6 @@
+## Interface: 70100
+## Author: CityPunch
+## Title: CityMinimap
+## RequiredDeps: CityCore
+
+core.lua

@@ -1,0 +1,7 @@
+## Interface: 70100
+## Author: CityPunch
+## Title: CityBuffs
+## RequiredDeps: CityCore
+
+config.lua
+core.lua

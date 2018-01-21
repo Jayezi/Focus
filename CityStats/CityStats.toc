@@ -1,0 +1,7 @@
+## Interface: 70100
+## Author: CityPunch
+## Title: CityStats
+## SavedVariables: CityRealmGold
+## RequiredDeps: CityCore
+
+core.lua

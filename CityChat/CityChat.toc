@@ -1,0 +1,8 @@
+## Interface: 70100
+## Author: CityPunch
+## Title: CityChat
+## RequiredDeps: CityCore
+
+config.lua
+core.lua
+links.lua
