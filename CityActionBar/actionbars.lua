@@ -4,8 +4,28 @@ local lib = ns.lib
 local CityUi = CityUi
 
 MainMenuBar:ClearAllPoints()
-MainMenuBar:SetPoint(unpack(cfg.bars.main.pos))
-MainMenuBar:SetScale(cfg.bars.main.scale)
+
+MainMenuBarArtFrameBackground:Hide()
+MainMenuBarArtFrame.LeftEndCap:Hide()
+MainMenuBarArtFrame.RightEndCap:Hide()
+MainMenuBarArtFrame.PageNumber:Hide()
+StatusTrackingBarManager:Hide()
+ActionBarUpButton:Hide()
+ActionBarDownButton:Hide()
+MicroButtonAndBagsBar.MicroBagBar:Hide()
+
+-- CharacterMicroButton:ClearAllPoints()
+-- CharacterMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
+-- SpellbookMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
+-- TalentMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
+-- AchievementMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
+-- QuestLogMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
+-- GuildMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
+-- LFDMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
+-- CollectionsMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
+-- EJMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
+-- StoreMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
+-- MainMenuMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
 
 ExtraActionBarFrame:SetParent(UIParent)
 ExtraActionBarFrame:ClearAllPoints()
@@ -118,7 +138,7 @@ do
 	for _, button in pairs(bags) do
 		if (prev) then
 			button:ClearAllPoints();
-			button:SetPoint("LEFT", prev, "RIGHT", 2, 0)
+			button:SetPoint("BOTTOMLEFT", prev, "BOTTOMRIGHT", 2, 0)
 		end
 		prev = button
 		button:SetScale(1 / cfg.bars.main.scale)

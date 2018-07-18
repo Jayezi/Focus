@@ -149,7 +149,7 @@ oUF.Tags.Methods["city:ppdefault"] = function(unit)
 	local shortmin = numFormat(min)
 	return shortmin.."-"..per.."%"
 end
-oUF.Tags.Events["city:ppdefault"] = "UNIT_POWER"
+oUF.Tags.Events["city:ppdefault"] = "UNIT_POWER_UPDATE"
 
 oUF.Tags.Methods["city:pplongfrequent"] = function(unit)
 	local min, max = UnitPower(unit), UnitPowerMax(unit)
@@ -176,7 +176,7 @@ oUF.Tags.Events["city:bosspp"] = "UNIT_POWER_FREQUENT"
 oUF.Tags.Methods["city:shortpp"] = function(unit)
 	return numFormat(UnitPower(unit))
 end
-oUF.Tags.Events["city:shortpp"] = "UNIT_POWER"
+oUF.Tags.Events["city:shortpp"] = "UNIT_POWER_UPDATE"
 
 oUF.Tags.Methods["city:shortppfrequent"] = function(unit)
 	return numFormat(UnitPower(unit))
@@ -192,7 +192,7 @@ oUF.Tags.Methods['city:altpower'] = function(unit)
 		return ""
 	end
 end
-oUF.Tags.Events['city:altpower'] = 'UNIT_POWER'
+oUF.Tags.Events['city:altpower'] = 'UNIT_POWER_UPDATE'
 
 oUF.Tags.Methods["city:hpraid"] = function(unit)
 	if not UnitIsConnected(unit) then

@@ -41,8 +41,8 @@ clockTime:Show()
 MiniMapInstanceDifficulty:ClearAllPoints()
 MiniMapInstanceDifficulty:SetPoint("TOP", Minimap)
 
-MiniMapVoiceChatFrame:ClearAllPoints()
-MiniMapVoiceChatFrame:SetPoint("RIGHT", Minimap)
+--MiniMapVoiceChatFrame:ClearAllPoints()
+--MiniMapVoiceChatFrame:SetPoint("RIGHT", Minimap)
 
 MinimapBorder:Hide()
 MinimapBorderTop:Hide()

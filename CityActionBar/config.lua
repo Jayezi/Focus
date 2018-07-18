@@ -10,7 +10,7 @@ cfg.color = {
 
 cfg.bars = {
 	main = {
-		scale = .5,
+		scale = 1,
 		pos = {"TOP", UIParent, "BOTTOM", 0, -200}
 	},
 	vehicle = {
