@@ -90,7 +90,7 @@ cfg.bars = {
 			size = 30,
 			margin = 5,
 		},
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 85},
+		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 125},
     },
     menu = {
 		enable = false,

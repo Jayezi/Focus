@@ -20,6 +20,7 @@ Minimap:SetSize(175, 175)
 Minimap:SetArchBlobRingScalar(0);
 Minimap:SetQuestBlobRingScalar(0);
 Minimap:SetMaskTexture(CityUi.media.textures.blank)
+MinimapBackdrop:SetAllPoints(Minimap)
 function GetMinimapShape() return "SQUARE" end
 
 TimeManagerClockButton:SetSize(50, 30)
@@ -45,7 +46,6 @@ MiniMapVoiceChatFrame:SetPoint("RIGHT", Minimap)
 
 MinimapBorder:Hide()
 MinimapBorderTop:Hide()
-MinimapBackdrop:Hide()
 MinimapZoomIn:Hide()
 MinimapZoomOut:Hide()
 MinimapNorthTag:SetTexture(nil)

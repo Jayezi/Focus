@@ -12,8 +12,8 @@ config.cast_interrupt_color = {.2, .5, .2, 1}
 
 config.role = CityFrameRole[CityUi.player.realm][CityUi.player.name]
 
--- Non-movable primary unitframes (player, target mirrored across center).
-config.primary_health_w, config.primary_health_h = 350, 25
+-- Primary unitframes (player, target mirrored across center).
+config.primary_health_w, config.primary_health_h = 350, 35
 
 -- Player castbar top relative to bottom, size.
 config.player_cast_x, config.player_cast_y = 0, 480
@@ -24,10 +24,10 @@ config.target_cast_x, config.target_cast_y = 0, 150
 config.target_cast_w, config.target_cast_h = 500, 32
 
 -- Non-movable secondary unitframes (pet, target of target mirrored across center)
-config.secondary_health_w, config.secondary_health_h = 150, 22
+config.secondary_health_w, config.secondary_health_h = 150, 25
 
 -- Nameplates
-config.nameplate_health_w, config.nameplate_health_h = 300, 15
+config.nameplate_health_w, config.nameplate_health_h = 200, 15
 config.nameplate_cast_h = 15
 
 -- Experience bar top relative to top.
@@ -43,12 +43,14 @@ config.oor_alpha = .4
 
 -- Size of the unit's healthbar.
 config.frame_sizes = {
+	primary = {350, 35},
+	secondary = {150, 25},
 	focus = {300, 25},
 	boss = {250, 25},
 	tank = {110, 60},
 	party = {110, 60},
 	damager = {80, 50},
-	healer = {110, 60},
+	healer = {105, 55},
 }
 
 config.frame_anchors = CityFrameList
@@ -108,15 +110,15 @@ config.nameplate_config = {
 	["nameplateLargeTopInset"] = .03,
 	["nameplateOtherBottomInset"] = -.01,
 	["nameplateOtherTopInset"] = .03,
-	["nameplateOverlapH"] = .8,
-    ["nameplateOverlapV"] = .9,
+	["nameplateOverlapH"] = .5,
+    ["nameplateOverlapV"] = .8,
 	["nameplateSelectedAlpha"] = 1,
 	["nameplateSelectedScale"] = 1,
 	["nameplateSelfAlpha"] = 1,
 	["nameplateSelfScale"] = 1,
 	["nameplateSelfTopInset"] = 0,
 	["nameplateSelfBottomInset"] = .4,
-	["nameplateMaxDistance"] = 100,
+	["nameplateMaxDistance"] = 60,
     ["nameplateHorizontalScale"] = 1,
     ["nameplateVerticalScale"] = 1
 }
@@ -140,13 +142,13 @@ config.player_power_config = power_config[CityUi.player.class]
 local indicators = {
 	--  ["xx"] = {spellId, {color}, "state/cd/count", castByPlayer, size}
 	["PALADIN"] = {
-		-- Forbearance
-		["tr"] = {25771, {1, .5, .5}, "cd", false, 15},
+		-- Beacon of Virtue
+		["tr"] = {200025, {1, 1, .5}, "cd", true, 15},
 		-- Beacon of Light
-		["tl"] = {53563, {1, 1, .5}, "state", true, 11},
+		["tl"] = {53563, {1, 1, .5}, "state", true, 12},
 		-- Beacon of Faith
 		["bl"] = {156910, {.5, .5, 1}, "state", true, 12},
-		-- Blessign of Sacrifice
+		-- Blessing of Sacrifice
 		["br"] = {6940, {1, .5, 1}, "cd", true, 15},
 	}
 }
@@ -168,6 +170,7 @@ config.buff_whitelist = {
 	[242584] = true,		--Concordance of the Legionfall
 	[208052] = true,		--Sephuz's Secret
 	[234143] = true,		--Temptation
+	[188024] = true,		--Skystep Potion
 
 	-- Paladin
 	[132403] = true,		--Shield of the Righteous
@@ -178,8 +181,15 @@ config.buff_whitelist = {
 	[31842] = true,			--Avenging Wrath (Holy)
 	[31884] = true,			--Avenging Wrath (Ret, Prot)
 	[31821] = true,			--Aura Mastery
+	[105809] = true,		--Holy Avenger
+	[642] = true,			--Divine Shield
+	[498] = true,			--Divine Protection
+	[211422] = true,		--Knight of the Silver Hand
+	[207589] = true,		--Ilterendi, Crown Jewel of Silvermoon
+	[234862] = true,		--Maraad's Dying Breath
 
 	-- Hunter
+	[35079] = true,			--Misdirect
 	[193526] = true,		--Trueshot
 	[204090] = true,		--Bullseye
 	[193530] = true,		--Aspect of the Wild
@@ -189,6 +199,15 @@ config.buff_whitelist = {
 	[186265] = true,		--Aspect of the Turtle
 	[208913] = true,		--Sentinels Sight
 	[235712] = true,		--Gyroscopic Stabilization
+	[190515] = true,		--Survival of the Fittest
+
+	-- Monk
+	[137639] = true, 		--Storm, Earth, and Fire
+	[215479] = true,		--Ironskin Brew
+	[119085] = true,		--Chi Torpedo
+	[235054] = true,		--The Emperor's Capacitor
+	[129914] = true,		--Power Strikes
+	[196741] = true,		--Hit Combo
 
 	-- Pet
 	[118455] = true,		--Beast Cleave
@@ -201,6 +220,13 @@ config.buff_whitelist = {
 	[55233] = true,			--Vampiric Blood
 	[48707] = true,			--Anti-Magic Shell
 	[116888] = true,		--Shroud of Purgatory
+	[235559] = true,		--Haemostasis
+	[48792] = true,			--Icebound Fortitude
+	[194679] = true,		--Rune Tap
+	[207256] = true,		--Obliteration
+	[196770] = true,		--Remorseless Winter
+	[51271] = true,			--Pillar of Frost
+	[53365] = true,			--Unholy Strength
 }
 
 -- A debuff whitelist mainly useful for showing only select auras on small frames.
@@ -347,6 +373,15 @@ config.debuff_whitelist = {
 	[244094] = true,		--Necrotic Embrace
 
 	[247079] = true,		--Empowered Flame Rend
+
+	[257911] = true,		--Unleashed Rage
+	[257930] = true,		--Crushing Fear
+	[257931] = true,		--Sargeras' Fear
+	[257911] = true,		--Unleashed Rage
+	[257966] = true,		--Sentence of Sargeras
+	[248396] = true,		--Soulblight
+	[250669] = true,		--Soulburst
+	[251570] = true,		--Soulbomb
 }
 
 -- A debuff blacklist useful for keeping larger frames from getting too crowded but still generally showing all auras.
@@ -359,7 +394,6 @@ config.debuff_blacklist = {
 	[25771] = true,			--Forbearance
 	[87024] = true,			--Cauterized
 	[41425] = true,			--Hypothermia
-	[36893] = true,			--Transporter Malfunction
 	[108095] = true,		--Recently Shapeshifted
 	[11196] = true,			--Recently Bandaged
 	[95223] = true,			--Recently Mass Resurrected
@@ -376,4 +410,26 @@ config.debuff_blacklist = {
 	[182496] = true,		--Unbreakable Will
 	[226802] = true,		--Lord of Flames
 
+	[253752] = true,		--Sense of Dread
+	[253753] = true,		--Sense of Dread
+
+	[243968] = true,		--Torment of Flames
+	[243980] = true,		--Torment of Fel
+	[243977] = true,		--Torment of Frost
+
+	[257215] = true,		--Titanforged
+
+	[195776] = true,		--Moonfeather Fever
+
+	[36893] = true,			--Transporter Malfunction
+	[36895] = true,			--Transporter Malfunction
+	[36897] = true,			--Transporter Malfunction
+	[36899] = true,			--Transporter Malfunction
+
+	[188409] = true,		--Felflame Campfire
+
+	[23445] = true,			--Evil Twin
+	[36900] = true,			--Soul Split: Evil!
+
+	[249224] = true,		--Chaotic Flames
 }

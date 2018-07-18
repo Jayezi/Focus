@@ -79,21 +79,16 @@ for i = 1, 23 do
 	CHAT_FONT_HEIGHTS[i] = i + 7
 end
 
-QuickJoinToastButton:Hide()
-QuickJoinToastButton.Show = function() end
--- CityUi.util.gen_backdrop(QuickJoinToastButton)
--- print(QuickJoinToastButton.FriendsButton:GetDrawLayer())
--- QuickJoinToastButton.FriendsButton:SetDrawLayer("BORDER", 7)
--- QuickJoinToastButton.FriendsButton:SetTexCoord(.2, .75, .15, .9)
--- QuickJoinToastButton.FriendsButton:SetTexture(CityUi.media.textures.blank)
-
 ChatFrameMenuButton:ClearAllPoints()
 ChatFrameMenuButton:SetPoint("TOPRIGHT", ChatFrame1, "TOPRIGHT", 0, 0)
--- CityUi.util.gen_backdrop(ChatFrameMenuButton)
--- ChatFrameMenuButton:GetRegions():SetTexCoord(.2, .8, .1, .85)
+
+QuickJoinToastButton:ClearAllPoints()
+QuickJoinToastButton:SetPoint("BOTTOMRIGHT", ChatFrame1EditBox, "TOPLEFT", -5, 5)
 
 BNToastFrame:SetClampedToScreen(true)
 BNToastFrame:SetClampRectInsets(-15, 15, 15, -15)
+BNToastFrame:ClearAllPoints()
+BNToastFrame:SetPoint("BOTTOMLEFT", QuickJoinToastButton, "TOPLEFT", 0, 5)
 
 ChatFontNormal:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
 ChatFontNormal:SetShadowOffset(0, 0)

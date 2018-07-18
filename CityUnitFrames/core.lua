@@ -53,7 +53,7 @@ local function create_player_style(base)
 	base.AdditionalPower.colorPower = true
 
 	lib.gen_altp_bar(base, cfg.xp_w, cfg.xp_h)
-	base.AlternativePower:SetPoint("TOP", UIParent, "TOP", cfg.xp_x, cfg.xp_y)
+	base.AlternativePower:SetPoint("TOP", UIParent, "TOP", cfg.xp_x, cfg.xp_y - cfg.xp_h - 5)
 
 	local altp_string = CityUi.util.gen_string(base.AlternativePower, CityUi.config.font_size_med, nil, nil, "BOTTOM", "CENTER")
 	altp_string:SetPoint("BOTTOM", 0, 1)
@@ -654,9 +654,9 @@ oUF:Factory(function(self)
 			"xoffset",            -1,
 			"columnSpacing",      -1,
 			"columnAnchorPoint",  "TOP",
-			"groupFilter",        "1,2,3,4,5,6,7,8",
+			"groupFilter",        "1,2,3,4,5,6",
 			"groupBy",            "GROUP",
-			"groupingOrder",      "1,2,3,4,5,6,7,8",
+			"groupingOrder",      "1,2,3,4,5,6",
 			"sortMethod",         "INDEX",
 			"maxColumns",         8,
 			"unitsPerColumn",     5,

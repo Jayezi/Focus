@@ -68,20 +68,20 @@ lib.gen_heal_bar = function(base, w)
 	absorbs:SetStatusBarColor(.75, .75, .75, .75)
 	absorbs:SetFrameLevel(base.Health:GetFrameLevel())
 	
-	local heal_absorbs = CreateFrame("StatusBar", nil, base.Health)
-	heal_absorbs:SetStatusBarTexture(CityUi.media.textures.blank)
-	heal_absorbs:SetPoint("LEFT", absorbs:GetStatusBarTexture(), "RIGHT")
-	heal_absorbs:SetPoint("TOP")
-	heal_absorbs:SetPoint("BOTTOM")
-	heal_absorbs:SetWidth(w)
-	heal_absorbs:SetStatusBarColor(.25, .25, .25, .75)
-	heal_absorbs:SetFrameLevel(base.Health:GetFrameLevel())
+	-- local heal_absorbs = CreateFrame("StatusBar", nil, base.Health)
+	-- heal_absorbs:SetStatusBarTexture(CityUi.media.textures.blank)
+	-- heal_absorbs:SetPoint("LEFT", absorbs:GetStatusBarTexture(), "RIGHT")
+	-- heal_absorbs:SetPoint("TOP")
+	-- heal_absorbs:SetPoint("BOTTOM")
+	-- heal_absorbs:SetWidth(w)
+	-- heal_absorbs:SetStatusBarColor(.25, .25, .25, .75)
+	-- heal_absorbs:SetFrameLevel(base.Health:GetFrameLevel())
 	
 	base.HealthPrediction = {
 		myBar = my_heals,
 		otherBar = other_heals,
 		absorbBar = absorbs,
-		healAbsorbBar = heal_absorbs,
+		--healAbsorbBar = heal_absorbs,
 		maxOverflow = 1,
 	}
 end
@@ -332,28 +332,20 @@ lib.gen_indicators = function(base)
 	base.AuraWatch = indicators
 end
 
-local classpower_postupdate = function(self, cur, max, hasMaxChanged, powerType)
-
-	if (hasMaxChanged or event == "ClassPowerEnable") then
-		local icon_w = self:GetWidth() / max
-
+lib.post_update_classpower = function(classpower, curr, max, max_changed, power_type)
+	if max_changed then
+		local icon_w = (classpower:GetWidth() - max - 1) / max
+	
 		for i = 1, max do
-			local icon = class_icons[i]
-			icon:SetWidth(icon_w)
-			
-			if i == 1 then
-				icon:SetPoint("TOPLEFT")
-			else
-				icon:SetPoint("TOPLEFT", class_icons[i - 1], "TOPRIGHT", -1, 0)
-			end
+			local icon = classpower[i]
+			icon:SetSize(icon_w, classpower:GetHeight())
 		end
 	end
 end
 
+lib.gen_classpower = function(base, w, h)
 
-lib.gen_classpower = function(base, w, h, power_type)
-	
-    local max = UnitPowerMax(base.unit, power_type)
+	local max = 10
 
 	local classpower = CreateFrame("Frame", nil, base)
 	classpower:SetSize(w, h)
@@ -373,8 +365,8 @@ lib.gen_classpower = function(base, w, h, power_type)
         classpower[i] = icon
 	end
 	
+	classpower.PostUpdate = lib.post_update_classpower
 	base.ClassPower = classpower
-	base.ClassPower.PostUpdate = classpower_postupdate
 
     return classpower
 end
@@ -406,11 +398,11 @@ lib.gen_rune_bar = function(base, w, h)
 	return runes
 end
 
--- Each returns their base frame.
 lib.resource_gens = {
 	["DEATHKNIGHT"] = lib.gen_rune_bar,
-	["PALADIN"] = function(base, w, h) return lib.gen_classpower(base, w, h, SPELL_POWER_HOLY_POWER) end,
+	["PALADIN"] = lib.gen_classpower,
 	["ROGUE"] = lib.gen_classpower,
+	["MONK"] = lib.gen_classpower,
 	["DRUID"] = lib.gen_classpower,
 }
 
@@ -441,7 +433,7 @@ lib.gen_ready_check = function(base)
 	base.ReadyCheckIndicator = ready
 end
 
--- icons, unit, icon, name, rank, texture, count, dispelType, duration, expiration, caster, isStealable, 
+-- icons, unit, icon, name, rank, texture, count, dispelType, duration, expiration, caster, isStealable,
 -- nameplateShowSelf, spellID, canApply, isBossDebuff, casterIsPlayer, nameplateShowAll, timeMod, effect1, effect2, effect3
 
 lib.custom_whitelist = function(_, _, _, _, _, _, _, _, _, _, _, _, _, spellID, _, _)

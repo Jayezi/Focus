@@ -18,7 +18,9 @@ CityUi.player = {
 CityUi.media = {
 	fonts = {
 		pixel_10 = [[Interface\Addons\CityCore\media\fonts\pixel_10.ttf]],
-		role_symbols = [[Interface\Addons\CityCore\media\fonts\role_symbols.ttf]]
+		role_symbols = [[Interface\Addons\CityCore\media\fonts\role_symbols.ttf]],
+		gotham_ultra = [[Interface\Addons\CityCore\media\fonts\gotham_ultra.ttf]],
+		gotham_narrow_bold = [[Interface\Addons\CityCore\media\fonts\gotham_narrow_bold.ttf]]
 	},
 
 	textures = {
@@ -507,6 +509,7 @@ CityUi:register_event("PLAYER_LOGIN", function()
 	WorldFrame:SetScale(CityUi.config.ui_scale)
 	SetSortBagsRightToLeft(true)
 	SetInsertItemsLeftToRight(true)
+	SetCVar("Sound_NumChannels", 128)
 
 	if LibStub and LibStub("LibSharedMedia-3.0") then
 		LibStub("LibSharedMedia-3.0"):Register("font", "Pixel10", CityUi.media.fonts.pixel_10)
@@ -527,5 +530,5 @@ CityUi:register_event("PLAYER_LOGIN", function()
     end
 
 	set_chat()
-	set_trade()
+	dock_trade()
 end)
