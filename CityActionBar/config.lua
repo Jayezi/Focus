@@ -33,15 +33,6 @@ cfg.bars = {
 		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 5},
 	},
 	MultiBarBottomLeftButton = {
-		rows = 2,
-		scale = 1,
-		buttons = {
-			size = 50,
-			margin = 2,
-		},
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 300},
-	},
-	MultiBarBottomRightButton = {
 		rows = 1,
 		scale = 1,
 		buttons = {
@@ -50,7 +41,16 @@ cfg.bars = {
 		},
 		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 45},
 	},
-	MultiBarRightButton = {
+	MultiBarBottomRightButton = {
+		rows = 1,
+		scale = 1,
+		buttons = {
+			size = 35,
+			margin = 5,
+		},
+		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 85},
+	},
+	MultiBarLeftButton = {
 		rows = 2,
 		scale = 1,
 		buttons = {
@@ -59,14 +59,14 @@ cfg.bars = {
 		},
 		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 196},
 	},
-	MultiBarLeftButton = {
-		rows = 1,
+	MultiBarRightButton = {
+		rows = 2,
 		scale = 1,
 		buttons = {
-			size = 35,
-			margin = 5,
+			size = 50,
+			margin = 2,
 		},
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 85},
+		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 300},
 	},
 	stance = {
 		scale = 1,
@@ -85,12 +85,13 @@ cfg.bars = {
 		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 160},
 	},
 	pet = {
+		rows = 2,
 		scale = 1,
 		buttons = {
 			size = 30,
 			margin = 5,
 		},
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 125},
+		pos = {"BOTTOMLEFT", "UIParent", "BOTTOM", 300, 5},
     },
     menu = {
 		enable = false,

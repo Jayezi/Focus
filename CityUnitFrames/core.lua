@@ -17,7 +17,8 @@ local function create_player_style(base)
 	lib.push_bar(base, base.Health)
 	
 	local hp_string = CityUi.util.gen_string(base, CityUi.config.font_size_med, nil, nil, "LEFT", "BOTTOM")
-	hp_string:SetPoint("BOTTOMLEFT", base.Health, "TOPLEFT", 1, 2)
+	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 2, 1)
+	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -2, 1)
 	base:Tag(hp_string, "[city:color][city:hplong]")
 	
 	lib.gen_cast_bar(base, cfg.player_cast_w, cfg.player_cast_h, CityUi.config.font_size_med, true, false, cfg.player_color)
@@ -72,6 +73,7 @@ local function create_player_style(base)
 	
 	local name_string = CityUi.util.gen_string(base, CityUi.config.font_size_med, nil, nil, "RIGHT", "TOP")
 	name_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 1, 1)
+	name_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", -1, 1)
 	base:Tag(name_string, "[city:color][city:info][name]")
 	
 	lib.gen_xp_bar(base, cfg.xp_w, cfg.xp_h)
@@ -187,7 +189,7 @@ end
 
 local function create_tot_style(base)
 
-	lib.common_init(base, "TOPLEFT", "BOTTOMLEFT", 0, -(CityUi.config.font_size_med + 1), cfg.secondary_health_w, oUF_CityTarget)
+	lib.common_init(base, "TOPLEFT", "BOTTOMLEFT", 0, -(CityUi.config.font_size_med + 2), cfg.secondary_health_w, _G["oUF_CityTarget"])
 	
 	lib.gen_hp_bar(base, cfg.secondary_health_w, cfg.secondary_health_h, true)
 	base.Health.colorClass = true
@@ -203,7 +205,7 @@ end
 
 local function create_pet_style(base)
 
-	lib.common_init(base, "TOPLEFT", "BOTTOMLEFT", 0, -(CityUi.config.font_size_med + 1), cfg.secondary_health_w, oUF_CityPlayer)
+	lib.common_init(base, "TOPRIGHT", "BOTTOMRIGHT", 0, -(CityUi.config.font_size_med + 2), cfg.secondary_health_w, _G["oUF_CityPlayer"])
 	
 	lib.gen_hp_bar(base, cfg.secondary_health_w, cfg.secondary_health_h, true)
 	base.Health.colorDisconnected = true
@@ -211,12 +213,12 @@ local function create_pet_style(base)
 	base.Health.frequentUpdates = true
 	lib.push_bar(base, base.Health)
 	
-	local hp_string = CityUi.util.gen_string(base, CityUi.config.font_size_med, nil, nil, "LEFT", "BOTTOM")
-	hp_string:SetPoint("BOTTOMLEFT", base.Health, "TOPLEFT", 1, 1)
+	local hp_string = CityUi.util.gen_string(base, CityUi.config.font_size_med, nil, nil, "RIGHT", "TOP")
+	hp_string:SetPoint("TOPRIGHT", base, "TOPLEFT", -1, 1)
 	base:Tag(hp_string, "[city:color][city:currhp]")
 
 	local name_string = CityUi.util.gen_string(base, CityUi.config.font_size_med, nil, nil, "RIGHT", "TOP")
-	name_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 1, 1)
+	name_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 0, 0)
 	base:Tag(name_string, "[city:color][name]")
 	
 	lib.gen_power_bar(base, cfg.secondary_health_w, cfg.power_h)
@@ -227,15 +229,15 @@ local function create_pet_style(base)
 	base:SetHeight(0 - base.stack_bottom)
 	
 	local power_string = CityUi.util.gen_string(base.Health, CityUi.config.font_size_med, nil, nil, "RIGHT", "BOTTOM")
-	power_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", 1, 1)
+	power_string:SetPoint("BOTTOMRIGHT", base, "BOTTOMLEFT", -1, 1)
 	base:Tag(power_string, "[city:color][city:shortppfrequent]")
 	
 	lib.gen_debuffs(base, cfg.secondary_health_w, cfg.raid_auras["pet"])
 	base.Debuffs:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 0, -(CityUi.config.font_size_med + 4))
 	
-	lib.gen_buffs(base, cfg.secondary_health_w, cfg.raid_auras["pet"])
+	lib.gen_pet_buffs(base, cfg.primary_health_w, cfg.raid_auras["pet"])
 	base.Buffs:SetPoint("TOPRIGHT", base.Debuffs, "BOTTOMRIGHT", 0, -1)
-	base.Buffs.CustomFilter = lib.custom_buff_whitelist
+	base.Buffs.CustomFilter = lib.custom_pet_whitelist
 end
 
 local function create_focus_style(base)

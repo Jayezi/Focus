@@ -17,7 +17,11 @@ local skin_textures = function(button, icon, normal)
 	checked:SetAllPoints(icon)
 	checked:SetTexture(blank)
 	checked:SetVertexColor(unpack(cfg.color.checked))
-	checked.SetAlpha = function() return end
+	hooksecurefunc(checked, "SetAlpha", function(self, a)
+		if a ~= 0.5 then
+			self:SetAlpha(0.5)
+		end
+	end)
 	
 	local pushed = button:GetPushedTexture()
 	pushed:SetDrawLayer("OVERLAY", -6)
@@ -28,7 +32,11 @@ local skin_textures = function(button, icon, normal)
 	button:SetNormalTexture("")
 	if normal then
 		normal.SetTexCoord = function() return end
-		button.SetNormalTexture = function() return end
+		hooksecurefunc(button, "SetNormalTexture", function(self, tex)
+			if tex ~= "" then
+				self:SetNormalTexture("")
+			end
+		end)
 	end
 
 	local highlight = button:GetHighlightTexture()
@@ -54,6 +62,8 @@ lib.style_action = function(button)
 	local border  = _G[name.."Border"]
 	local hotkey  = _G[name.."HotKey"]
 	local cooldown = _G[name.."Cooldown"]
+	local auto = button.AutoCastable
+	local shine = _G[name.."Shine"]
 	
 	local macro  = _G[name.."Name"]
 	local flash  = _G[name.."Flash"]
@@ -112,6 +122,14 @@ lib.style_action = function(button)
 	cooldown:SetDrawEdge(false)
 	cooldown:GetRegions():SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_lrg, CityUi.config.font_flags)
 	cooldown:GetRegions():SetShadowOffset(0, 0)
+
+	auto:SetParent(text_overlay)
+	auto:SetTexCoord(.18, .82, .16, .82)
+	auto:SetPoint("TOPLEFT", icon, -5, 5)
+	auto:SetPoint("BOTTOMRIGHT", icon, 5, -5)
+
+	shine:SetPoint("TOPLEFT", icon, 1, -1)
+	shine:SetPoint("BOTTOMRIGHT", icon, -1, 1)
 end
 
 lib.style_vehicle = function(button)
@@ -142,8 +160,8 @@ end
 
 
 lib.style_pet = function(button)
-	if not button or button.styled then return end
-	button.styled = true
+	if not button or button.city_styled then return end
+	button.city_styled = true
 	
 	CityUi.util.gen_backdrop(button)
 	
@@ -154,6 +172,7 @@ lib.style_pet = function(button)
 	local auto = _G[name.."AutoCastable"]
 	local shine = _G[name.."Shine"]
 	local cooldown = _G[name.."Cooldown"]
+	local flash = _G[name.."Flash"]
 
 	skin_textures(button, icon, normal2)
 	
@@ -180,6 +199,11 @@ lib.style_pet = function(button)
 	cooldown:SetDrawEdge(false)
 	cooldown:GetRegions():SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
 	cooldown:GetRegions():SetShadowOffset(0, 0)
+
+	flash.oldShow = flash.Show
+	flash.Show = function(self)
+		self:Hide()
+	end
 end
 
 lib.style_stance = function(button)

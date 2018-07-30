@@ -3,7 +3,7 @@ local cfg = ns.cfg
 local lib = ns.lib
 local CityUi = CityUi
 
-MainMenuBar:ClearAllPoints()
+MainMenuBar:EnableMouse(false)
 
 MainMenuBarArtFrameBackground:Hide()
 MainMenuBarArtFrame.LeftEndCap:Hide()
@@ -31,13 +31,13 @@ ExtraActionBarFrame:SetParent(UIParent)
 ExtraActionBarFrame:ClearAllPoints()
 ExtraActionBarFrame:SetPoint(unpack(cfg.bars.extra.pos))
 ExtraActionBarFrame.ignoreFramePositionManager = true
-ExtraActionBarFrame:SetAttribute("ignoreFramePositionManager", true);
+ExtraActionBarFrame:SetAttribute("ignoreFramePositionManager", true)
 
 ZoneAbilityFrame:SetParent(UIParent)
 ZoneAbilityFrame:ClearAllPoints()
 ZoneAbilityFrame:SetPoint(unpack(cfg.bars.zone.pos))
 ZoneAbilityFrame.ignoreFramePositionManager = true
-ZoneAbilityFrame:SetAttribute("ignoreFramePositionManager", true);
+ZoneAbilityFrame:SetAttribute("ignoreFramePositionManager", true)
 
 do
 	local num = NUM_POSSESS_SLOTS
@@ -68,30 +68,34 @@ end
 do
 	local num = NUM_PET_ACTION_SLOTS
 	local bar_cfg = cfg.bars.pet
-	PetActionBarFrame.ignoreFramePositionManager = true
-	PetActionBarFrame:SetAttribute("ignoreFramePositionManager", true);
-	PetActionBarFrame.oldSetPoint = PetActionBarFrame.SetPoint
-	PetActionBarFrame.is_set = false
-	PetActionBarFrame.SetPoint = function(self, ...)
-		if not self.is_set then
-			self:oldSetPoint(unpack(bar_cfg.pos))
-			self.is_set = true
-		end
-	end
+	local per_row = num / bar_cfg.rows
+	--PetActionBarFrame.ignoreFramePositionManager = true
+	--PetActionBarFrame:SetAttribute("ignoreFramePositionManager", true);
+	--PetActionBarFrame.oldSetPoint = PetActionBarFrame.SetPoint
+	--PetActionBarFrame.is_set = false
+	--PetActionBarFrame.SetPoint = function(self, ...)
+		--if not self.is_set then
+			--self:oldSetPoint(unpack(bar_cfg.pos))
+			--self.is_set = true
+		--end
+	--end
 
-	PetActionBarFrame:SetParent(UIParent)
-	PetActionBarFrame:ClearAllPoints()
-	PetActionBarFrame:SetPoint(unpack(bar_cfg.pos))
-	PetActionBarFrame:SetWidth((bar_cfg.buttons.size + bar_cfg.buttons.margin) * num - bar_cfg.buttons.margin)
-	PetActionBarFrame:SetHeight(bar_cfg.buttons.size)
+	--:SetParent(UIParent)
+	--PetActionBarFrame:ClearAllPoints()
+	--PetActionBarFrame:SetPoint(unpack(bar_cfg.pos))
+	--PetActionBarFrame:SetWidth((bar_cfg.buttons.size + bar_cfg.buttons.margin) * num - bar_cfg.buttons.margin)
+	--PetActionBarFrame:SetHeight(bar_cfg.buttons.size)
 
 	for i = 1, num do
 		local button = _G["PetActionButton"..i]
 		lib.style_pet(button)
 		button:ClearAllPoints()
 		button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.size)
+
 		if i == 1 then
-			button:SetPoint("TOPLEFT", PetActionBarFrame)
+			button:SetPoint(unpack(bar_cfg.pos))
+		elseif i % per_row == 1 then
+			button:SetPoint("BOTTOMLEFT", _G["PetActionButton"..(i - per_row)], "TOPLEFT", 0, bar_cfg.buttons.margin)
 		else
 			button:SetPoint("TOPLEFT", _G["PetActionButton"..(i - 1)], "TOPRIGHT", bar_cfg.buttons.margin, 0)
 		end
@@ -162,8 +166,8 @@ do
 		"ActionButton",
 		"MultiBarBottomLeftButton",
 		"MultiBarBottomRightButton",
+		"MultiBarLeftButton",
 		"MultiBarRightButton",
-		"MultiBarLeftButton"
 	}
 
 	for _, name in ipairs(bars) do
@@ -177,6 +181,7 @@ do
 
 		for i = 1, num do
 			local button = _G[name..i]
+
 			if name == "ActionButton" then
 				button:SetScale(1 / cfg.bars.main.scale)
 			end
@@ -193,6 +198,13 @@ do
 			end
 			
 			lib.style_action(button)
+
+			if bar_cfg.limit and i > bar_cfg.limit then
+				button.oldShow = button.Show
+				button.Show = function(self)
+					self:Hide()
+				end
+			end
 		end
 	end
 end

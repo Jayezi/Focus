@@ -373,7 +373,7 @@ end
 
 lib.gen_rune_bar = function(base, w, h)
 	
-    local max = UnitPowerMax(base.unit, SPELL_POWER_RUNES)
+    local max = 6
 
 	local runes = CreateFrame("Frame", nil, base)
 	runes:SetSize(w, h)
@@ -433,10 +433,10 @@ lib.gen_ready_check = function(base)
 	base.ReadyCheckIndicator = ready
 end
 
--- icons, unit, icon, name, rank, texture, count, dispelType, duration, expiration, caster, isStealable,
+-- element, unit, button, name, texture, count, debuffType, duration, expiration, caster, isStealable, 
 -- nameplateShowSelf, spellID, canApply, isBossDebuff, casterIsPlayer, nameplateShowAll, timeMod, effect1, effect2, effect3
 
-lib.custom_whitelist = function(_, _, _, _, _, _, _, _, _, _, _, _, _, spellID, _, _)
+lib.custom_whitelist = function(_, _, _, _, _, _, _, _, _, _, _, _, spellID)
 	if cfg.debuff_whitelist[spellID] then
 		return true
 	else
@@ -444,7 +444,15 @@ lib.custom_whitelist = function(_, _, _, _, _, _, _, _, _, _, _, _, _, spellID, 
 	end
 end
 
-lib.custom_blacklist = function(_, _, _, _, _, _, _, _, _, _, _, _, _, spellID, _, _)
+lib.custom_pet_whitelist = function(_, _, _, _, _, _, _, _, _, _, _, _, spellID)
+	if cfg.buff_whitelist_pet[spellID] then
+		return true
+	else
+		return false
+	end
+end
+
+lib.custom_blacklist = function(_, _, _, _, _, _, _, _, _, _, _, _, spellID)
 	if cfg.debuff_blacklist[spellID] then
 		return false
 	else
@@ -452,7 +460,7 @@ lib.custom_blacklist = function(_, _, _, _, _, _, _, _, _, _, _, _, _, spellID, 
 	end
 end
 
-lib.custom_buff_whitelist = function(_, _, _, _, _, _, _, _, _, _, _, _, _, spellID, _, _)
+lib.custom_buff_whitelist = function(_, _, _, _, _, _, _, _, _, _, _, _, spellID)
 	if cfg.buff_whitelist[spellID] then
 		return true
 	else
@@ -508,7 +516,7 @@ lib.post_create_nameplate_icon = function(buffs, button)
     button.overlay:SetPoint("BOTTOMRIGHT")
 	button.overlay:SetTexCoord(0, 1, 0, 1)
 	button.overlay.Hide = function(self) self:SetVertexColor(0, 0, 0) end
-	button.count:SetPoint("BOTTOMRIGHT", button, 3, 0)
+	button.count:SetPoint("BOTTOMRIGHT", button, 3, -3)
 	button.count:SetJustifyH("RIGHT")
 	button.count:SetJustifyV("BOTTOM")
 	button.count:SetFont(CityUi.media.fonts.pixel_10, buffs.countsize, "MONOCHROMETHINOUTLINE")
@@ -521,7 +529,6 @@ end
 lib.post_update_nameplate_icon = function(self, unit, icon, index, offset)
 	icon:SetHeight(icon:GetWidth() / 2)
 	icon.overlay:SetVertexColor(0, 0, 0)
-	icon:EnableMouse(false)
 end
 
 lib.gen_buffs = function(base, w, config)
@@ -551,6 +558,52 @@ lib.gen_buffs = function(base, w, config)
 	buffs.bg = bg
 
     base.Buffs = buffs
+end
+
+lib.gen_pet_debuffs = function(base, w, config)
+
+	local buffs = CreateFrame("Frame", base:GetName().."Debuffs", base)
+	
+	buffs.size = config[1]
+	buffs.spacing = 1
+	local num_per_row = math.floor(w / (buffs.size + buffs.spacing))
+	buffs.num = config[2] * num_per_row
+	
+	buffs:SetSize(num_per_row * (buffs.size + 1) - 1, buffs.size / 2 * config[2] + config[2] - 1)
+	
+	buffs.initialAnchor = config[3]
+	buffs["growth-x"] = config[4]
+	buffs["growth-y"] = config[5]
+	buffs.countsize = config[7]
+	buffs.cdsize = config[8]
+	
+	buffs.PostCreateIcon = lib.post_create_nameplate_icon
+	buffs.PostUpdateIcon = lib.post_update_nameplate_icon
+	
+	base.Debuffs = buffs
+end
+
+lib.gen_pet_buffs = function(base, w, config)
+
+	local buffs = CreateFrame("Frame", base:GetName().."Buffs", base)
+	
+	buffs.size = config[1]
+	buffs.spacing = 1
+	local num_per_row = math.floor(w / (buffs.size + buffs.spacing))
+	buffs.num = config[2] * num_per_row
+	
+	buffs:SetSize(num_per_row * (buffs.size + 1) - 1, buffs.size / 2 * config[2] + config[2] - 1)
+	
+	buffs.initialAnchor = config[3]
+	buffs["growth-x"] = config[4]
+	buffs["growth-y"] = config[5]
+	buffs.countsize = config[7]
+	buffs.cdsize = config[8]
+	
+	buffs.PostCreateIcon = lib.post_create_nameplate_icon
+	buffs.PostUpdateIcon = lib.post_update_nameplate_icon
+	
+	base.Buffs = buffs
 end
 
 lib.gen_nameplate_debuffs = function(base, config)

@@ -350,85 +350,11 @@ CityUi.util.gen_panel({
 	parent = UIParent,
 	w = 460,
 	h = 25,
-	point1 = {"BOTTOMLEFT", "UIParent", "BOTTOMLEFT", 5, 5},
+	point1 = {"BOTTOMLEFT", "UIParent", "BOTTOMLEFT", 2, 2},
 	backdrop = CityUi.config.frame_backdrop,
 	bgcolor = {.15, .15, .15, .7},
 	bordercolor = {0, 0, 0, 1},
 })
-
-CityUi.util.gen_panel({
-	name = "ChatPanel",
-	strata = "BACKGROUND",
-	parent = UIParent,
-	w = 460,
-	h = 260,
-	point1 = {"BOTTOMLEFT", "CityDataPanel", "TOPLEFT", 0, 5},
-	backdrop = CityUi.config.frame_backdrop,
-	bgcolor = {.15, .15, .15, .7},
-	bordercolor = {0, 0, 0, 1},
-})
-
-CityUi.util.gen_panel({
-	name = "TradePanel",
-	strata = "BACKGROUND",
-	parent = UIParent,
-	w = 460,
-	h = 260,
-	point1 = {"BOTTOMLEFT", "CityChatPanel", "TOPLEFT", 0, 60},
-	backdrop = CityUi.config.frame_backdrop,
-	bgcolor = {.15, .15, .15, .7},
-	bordercolor = {0, 0, 0, 1},
-})
-
-local set_chat = function()
-	local panel = CityChatPanel
-	local frame = ChatFrame1
-	if panel and frame then
-		FCF_SetLocked(frame, nil)
-		frame:SetMovable(1)
-		frame:ClearAllPoints()
-		frame:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 3, 3)
-		frame:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -3, -3)
-		frame:SetUserPlaced(true)
-		FCF_SavePositionAndDimensions(frame)
-		FCF_SetLocked(frame, 1)
-	end
-end
-
-local set_trade = function()
-	local panel = CityTradePanel
-	local frame = ChatFrame3
-	if panel and frame then
-		panel:Show()
-		FCF_SetLocked(frame, nil)
-		FCF_UnDockFrame(frame)
-		frame:SetMovable(1)
-		frame:ClearAllPoints()
-		frame:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 3, 3)
-		frame:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -3, -3)
-		frame:SetUserPlaced(true)
-		FCF_SavePositionAndDimensions(frame)
-		FCF_SetLocked(frame, 1)
-	end
-end
-
-local dock_trade = function()
-	local panel = CityTradePanel
-	local frame = ChatFrame3
-	if panel and frame then
-		FCF_DockFrame(frame, #FCFDock_GetChatFrames(GENERAL_CHAT_DOCK) + 1, false)
-		panel:Hide()
-	end
-end
-
-SLASH_SETCHAT1 = "/setchat"
-SlashCmdList.SETCHAT = set_chat
-
-SLASH_SETTRADE1 = "/settrade"
-SlashCmdList.SETTRADE = set_trade
-
-SLASH_DOCKTRADE1 = "/docktrade"
-SlashCmdList.DOCKTRADE = dock_trade
 
 SLASH_ALTPBAR1 = "/testaltp"
 SlashCmdList.ALTPBAR = function(input)
@@ -493,9 +419,9 @@ end
 
 --GameFontNormal:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
 --GameFontNormal:SetShadowOffset(0, 0)
-GameFontNormalHuge:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
-GameFontNormalHuge:SetShadowOffset(0, 0)
-MailTextFontNormal:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med)
+-- GameFontNormalHuge:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+-- GameFontNormalHuge:SetShadowOffset(0, 0)
+-- MailTextFontNormal:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med)
 
 UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = CityUi.config.font_size_med
 
@@ -509,26 +435,10 @@ CityUi:register_event("PLAYER_LOGIN", function()
 	WorldFrame:SetScale(CityUi.config.ui_scale)
 	SetSortBagsRightToLeft(true)
 	SetInsertItemsLeftToRight(true)
-	SetCVar("Sound_NumChannels", 128)
 
 	if LibStub and LibStub("LibSharedMedia-3.0") then
 		LibStub("LibSharedMedia-3.0"):Register("font", "Pixel10", CityUi.media.fonts.pixel_10)
 		LibStub("LibSharedMedia-3.0"):Register("statusbar", "Blank", CityUi.media.textures.blank)
 		LibStub("LibSharedMedia-3.0"):Register("border", "Blank", CityUi.media.textures.blank)
 	end
-
-	if DBM and DBT then
-        local skin = DBT:RegisterSkin("CityCore")
-
-	    skin.defaults = {
-	        Template = "CityUiSkinTemplate",
-	    }
-
-	    if (DBM.Bars.options.Template ~= skin.defaults.Template) then
-	        DBM.Bars:SetSkin("CityCore")
-	    end
-    end
-
-	set_chat()
-	dock_trade()
 end)

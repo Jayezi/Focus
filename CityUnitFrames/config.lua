@@ -24,7 +24,7 @@ config.target_cast_x, config.target_cast_y = 0, 150
 config.target_cast_w, config.target_cast_h = 500, 32
 
 -- Non-movable secondary unitframes (pet, target of target mirrored across center)
-config.secondary_health_w, config.secondary_health_h = 150, 25
+config.secondary_health_w, config.secondary_health_h = 200, 25
 
 -- Nameplates
 config.nameplate_health_w, config.nameplate_health_h = 200, 15
@@ -59,7 +59,7 @@ config.raid_auras = {
 --	frame =				{size,	rows,	anchor, 		x-direction,	y-direction,	rowlimit,	countsize,	cdsize}
 	player = 			{48,	1,		"BOTTOMRIGHT",	"LEFT",			"UP", 			false,		15,			20},
 	boss = 				{50,	2, 		"TOPRIGHT", 	"LEFT", 		"DOWN",			2, 			15,			20},
-	pet = 				{25,	1, 		"TOPRIGHT", 	"LEFT",			"DOWN", 		false, 		10,			10},
+	pet = 				{48,	1, 		"BOTTOMRIGHT", 	"LEFT",			"UP", 			false, 		15,			20},
 	target_buff = 		{25,	2, 		"BOTTOMLEFT", 	"RIGHT",		"UP", 			false,		10,			10},
 	target_debuff = 	{48,	1, 		"BOTTOMLEFT", 	"RIGHT", 		"UP", 			false,		15,			20},
 	nameplate = 		{40,	2, 		"TOPLEFT", 		"RIGHT", 		"DOWN", 		3,			15,			20},
@@ -154,6 +154,11 @@ local indicators = {
 }
 config.indicators = indicators[CityUi.player.class]
 
+config.buff_whitelist_pet = {
+	[118455] = true,		--Beast Cleave
+	[136] = true,			--Mend Pet
+}
+
 -- A Buff whitelist mainly usefull for tracking cd durations on the player frame.
 config.buff_whitelist = {
 
@@ -212,7 +217,6 @@ config.buff_whitelist = {
 	-- Pet
 	[118455] = true,		--Beast Cleave
 	[136] = true,			--Mend Pet
-	[53478] = true,			--Last Stand
 
 	-- Death Knight
 	[195181] = true,		--Bone Shield
