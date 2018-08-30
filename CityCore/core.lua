@@ -28,14 +28,19 @@ CityUi.media = {
 	}
 }
 
+local frame_background_color = CreateColor(.15, .15, .15, 1)
+local frame_border_color = CreateColor(0, 0, 0, 1)
+local tooltip_frame_border_color = CreateColor(.5, .5, .5, 1)
+local azerite_frame_border_color = CreateColor(.5, .5, 0, 1)
+
 CityUi.config = {
 	font_size_sml = 10,
 	font_size_med = 15,
 	font_size_lrg = 20,
 	font_size_big = 30,
 	font_flags = "THINOUTLINE,MONOCHROME",
-	frame_background = {.15, .15, .15},
-    frame_background_light = {.3, .3, .3},
+	frame_background = {.15, .15, .15, 1},
+    frame_background_light = {.3, .3, .3, 1},
 	frame_border = {0, 0, 0, 1},
 	frame_backdrop = {
 		bgFile = CityUi.media.textures.blank,
@@ -43,7 +48,10 @@ CityUi.config = {
 		tile = false,
 		tileSize = 0,
 		edgeSize = 1,
-		insets = {left = 0, right = 0, top = 0, bottom = 0}
+		insets = {left = 0, right = 0, top = 0, bottom = 0},
+
+		backdropBorderColor = frame_border_color,
+		backdropColor = frame_background_color
 	},
 
 	-- Adjusts scaling for pixel perfect measurements.
@@ -339,6 +347,22 @@ combatlog_checker:SetScript("OnClick", function(self, button)
 		end
 	end
 end)
+
+---------------------------------------------------
+-- Tooltips ---------------------------------------
+---------------------------------------------------
+
+GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT = CityUi.config.frame_backdrop
+GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT.backdropBorderColor = tooltip_frame_border_color
+
+for k, v in pairs(CityUi.config.frame_backdrop) do
+	GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM[k] = v
+end
+
+GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM.overlayAtlasTopScale = 1
+GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM.backdropBorderColor = azerite_frame_border_color
+
+GameTooltipStatusBar:SetStatusBarTexture(CityUi.media.textures.blank)
 
 ---------------------------------------------------
 -- Panels -----------------------------------------

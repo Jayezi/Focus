@@ -1,11 +1,20 @@
 local CityUi = CityUi
 
 local function strip_textures(object)
-	for i = 1, object:GetNumRegions() do
-		local region = select(i, object:GetRegions())
+	local regions = {object:GetRegions()}
+	for i = 1, #regions do
+		local region = regions[i]
 		if region:GetObjectType() == "Texture" then
 			region:SetTexture(nil)
 		end
+	end
+end
+
+local function style_children(object)
+	strip_textures(object)
+	local children = {object:GetChildren()}
+	for _, child in pairs(children) do
+		style_children(child)
 	end
 end
 
@@ -14,9 +23,12 @@ if not IsAddOnLoaded("Blizzard_TimeManager") then
 end
 
 CityUi.util.gen_backdrop(Minimap)
+MinimapCluster:SetSize(270, 270)
+
+Minimap:SetSize(250, 250)
 Minimap:ClearAllPoints()
-Minimap:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
-Minimap:SetSize(175, 175)
+Minimap:SetPoint("TOPLEFT", 10, -10)
+Minimap:SetPoint("BOTTOMRIGHT", -10, 10)
 Minimap:SetArchBlobRingScalar(0);
 Minimap:SetQuestBlobRingScalar(0);
 Minimap:SetMaskTexture(CityUi.media.textures.blank)
@@ -41,15 +53,18 @@ clockTime:Show()
 MiniMapInstanceDifficulty:ClearAllPoints()
 MiniMapInstanceDifficulty:SetPoint("TOP", Minimap)
 
---MiniMapVoiceChatFrame:ClearAllPoints()
---MiniMapVoiceChatFrame:SetPoint("RIGHT", Minimap)
+MinimapZoneTextButton:ClearAllPoints()
+MinimapZoneTextButton:SetPoint("TOP", Minimap)
+MinimapZoneTextButton:SetSize(200, 20)
+MinimapZoneText:SetAllPoints()
+MinimapZoneText:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+MinimapZoneText:SetShadowOffset(0, 0)
 
 MinimapBorder:Hide()
 MinimapBorderTop:Hide()
 MinimapZoomIn:Hide()
 MinimapZoomOut:Hide()
 MinimapNorthTag:SetTexture(nil)
-MinimapZoneTextButton:Hide()
 MiniMapWorldMapButton:Hide()
 
 GameTimeFrame:ClearAllPoints()
@@ -67,27 +82,47 @@ game_time_string:SetAllPoints(GameTimeFrame)
 game_time_string:SetJustifyH("CENTER")
 game_time_string:SetJustifyV("MIDDLE")
 
-MiniMapMailFrame:SetSize(30, 30)
+MiniMapMailFrame:SetSize(45, 45)
 MiniMapMailFrame:ClearAllPoints()
-MiniMapMailFrame:SetPoint("TOPLEFT", Minimap)
+MiniMapMailFrame:SetPoint("TOPLEFT")
 strip_textures(MiniMapMailFrame)
 MiniMapMailIcon:SetTexture("Interface\\Minimap\\TRACKING\\Mailbox")
 
-GarrisonLandingPageMinimapButton:SetSize(40, 40)
+GarrisonLandingPageMinimapButton:SetSize(45, 45)
 GarrisonLandingPageMinimapButton:ClearAllPoints()
 GarrisonLandingPageMinimapButton:SetParent(Minimap)
-GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", Minimap)
+GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT")
 GarrisonLandingPageMinimapButton:SetHitRectInsets(0, 0, 0, 0)
 
 QueueStatusMinimapButton:ClearAllPoints()
 QueueStatusMinimapButton:SetPoint("LEFT", Minimap)
 QueueStatusMinimapButtonBorder:Hide()
 
-MiniMapTracking:SetSize(30, 30)
 MiniMapTracking:ClearAllPoints()
-MiniMapTracking:SetPoint("TOPRIGHT", Minimap)
-MiniMapTrackingButton:SetHitRectInsets(0, 0, 0, 0)
+MiniMapTracking:SetPoint("TOPRIGHT", -10, -10)
+MiniMapTracking:SetSize(25, 25)
+
+MiniMapTrackingButton:SetAllPoints(MiniMapTracking)
+MiniMapTrackingIcon:SetAllPoints(MiniMapTracking)
+MiniMapTrackingIcon.oldSetPoint = MiniMapTrackingIcon.SetPoint
+MiniMapTrackingIcon.SetPoint = function(self) return end
+MiniMapTrackingBackground:Hide()
+MiniMapTrackingIconOverlay:Hide()
+MiniMapTrackingButtonBorder:Hide()
+MiniMapTrackingIconOverlay.oldShow = MiniMapTrackingIconOverlay.Show
+MiniMapTrackingIconOverlay.Show = function(self) return end
+
 strip_textures(MiniMapTrackingButton)
+
+ObjectiveTrackerFrame:ClearAllPoints()
+ObjectiveTrackerFrame.oldSetPoint = ObjectiveTrackerFrame.SetPoint
+ObjectiveTrackerFrame.SetPoint = function(self)
+	self:oldSetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -10)
+	self:oldSetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", 0, -10)
+end
+ObjectiveTrackerFrame:SetHeight(500)
+
+style_children(ObjectiveTrackerBlocksFrame)
 
 Minimap:EnableMouseWheel(true)
 Minimap:SetScript("OnMouseWheel", function(self, delta)
@@ -95,189 +130,5 @@ Minimap:SetScript("OnMouseWheel", function(self, delta)
 		MinimapZoomIn:Click()
 	elseif delta < 0 then
 		MinimapZoomOut:Click()
-	end
-end)
-
-local menu_frame = CreateFrame("Frame", "CityUiMapMenu", UIParent, "UIDropDownMenuTemplate")
-local menu_list = {
-	{
-		text = "Micro Menu",
-		isTitle = true,
-		notCheckable = true
-	},
-	{
-		text = CHARACTER,
-		icon = 'Interface\\PaperDollInfoFrame\\UI-EquipmentManager-Toggle',
-		func = function()
-			securecall(ToggleCharacter, 'PaperDollFrame')
-		end,
-		notCheckable = true
-	},
-	{
-		text = SPELLBOOK,
-		icon = 'Interface\\MINIMAP\\TRACKING\\Class',
-		func = function()
-			securecall(ToggleSpellBook, BOOKTYPE_SPELL)
-		end,
-		notCheckable = true,
-	},
-	{
-		text = TALENTS,
-		icon = 'Interface\\MINIMAP\\TRACKING\\Ammunition',
-		func = function()
-			if (not PlayerTalentFrame) then
-				LoadAddOn('Blizzard_TalentUI')
-			end
-
-			if (not GlyphFrame) then
-				LoadAddOn('Blizzard_GlyphUI')
-			end
-
-			securecall(ToggleTalentFrame)
-		end,
-		notCheckable = true,
-	},
-	{
-		text = INVENTORY_TOOLTIP,
-		icon = 'Interface\\MINIMAP\\TRACKING\\Banker',
-		func = function()
-			securecall(ToggleAllBags)
-		end,
-		notCheckable = true,
-	},
-	{
-		text = ACHIEVEMENTS,
-		icon = 'Interface\\ACHIEVEMENTFRAME\\UI-Achievement-Shield',
-		func = function()
-			securecall(ToggleAchievementFrame)
-		end,
-		notCheckable = true,
-	},
-	{
-		text = QUESTLOG_BUTTON,
-		icon = 'Interface\\GossipFrame\\ActiveQuestIcon',
-		func = function()
-			securecall(ToggleFrame, WorldMapFrame)
-		end,
-		tooltipTitle = securecall(MicroButtonTooltipText, QUESTLOG_BUTTON, 'TOGGLEQUESTLOG'),
-		tooltipText = NEWBIE_TOOLTIP_QUESTLOG,
-		notCheckable = true,
-	},
-	{
-		text = FRIENDS,
-		icon = 'Interface\\FriendsFrame\\PlusManz-BattleNet',
-		func = function()
-			securecall(ToggleFriendsFrame, 1)
-		end,
-		notCheckable = true,
-	},
-	{
-		text = GUILD,
-		icon = 'Interface\\GossipFrame\\TabardGossipIcon',
-		arg1 = IsInGuild('player'),
-		func = function()
-			if (IsTrialAccount()) then
-				UIErrorsFrame:AddMessage(ERR_RESTRICTED_ACCOUNT, 1, 0, 0)
-			else
-				securecall(ToggleGuildFrame)
-			end
-		end,
-		notCheckable = true,
-	},
-	{
-		text = GROUP_FINDER,
-		icon = 'Interface\\LFGFRAME\\BattleNetWorking0',
-		func = function()
-			securecall(PVEFrame_ToggleFrame, 'GroupFinderFrame', LFDParentFrame)
-		end,
-		notCheckable = true,
-	},
-	{
-		text = PLAYER_V_PLAYER,
-		icon = 'Interface\\MINIMAP\\TRACKING\\BattleMaster',
-		func = function()
-			securecall(PVEFrame_ToggleFrame, 'PVPUIFrame', HonorFrame)
-		end,
-		tooltipTitle = securecall(MicroButtonTooltipText, PLAYER_V_PLAYER, 'TOGGLECHARACTER4'),
-		tooltipText = NEWBIE_TOOLTIP_PVP,
-		notCheckable = true,
-	},
-	{
-		text = ENCOUNTER_JOURNAL,
-		icon = 'Interface\\MINIMAP\\TRACKING\\Profession',
-		func = function()
-			securecall(ToggleEncounterJournal)
-		end,
-		notCheckable = true,
-	},
-	{
-		text = MOUNTS,
-		icon = 'Interface\\MINIMAP\\TRACKING\\StableMaster',
-		func = function()
-			securecall(ToggleCollectionsJournal, 1)
-		end,
-		tooltipTitle = securecall(MicroButtonTooltipText, MOUNTS_AND_PETS, 'TOGGLEPETJOURNAL'),
-		notCheckable = true,
-	},
-	{
-		text = PETS,
-		icon = 'Interface\\MINIMAP\\TRACKING\\StableMaster',
-		func = function()
-			securecall(ToggleCollectionsJournal, 2)
-		end,
-		tooltipTitle = securecall(MicroButtonTooltipText, MOUNTS_AND_PETS, 'TOGGLEPETJOURNAL'),
-		notCheckable = true,
-	},
-	{
-		text = TOY_BOX,
-		icon = 'Interface\\MINIMAP\\TRACKING\\Reagents',
-		func = function()
-			securecall(ToggleCollectionsJournal, 3)
-		end,
-		tooltipTitle = securecall(MicroButtonTooltipText, TOY_BOX, 'TOGGLETOYBOX'),
-		notCheckable = true,
-	},
-	{
-		text = "Heirlooms",
-		icon = 'Interface\\MINIMAP\\TRACKING\\Reagents',
-		func = function()
-			securecall(ToggleCollectionsJournal, 4)
-		end,
-		tooltipTitle = securecall(MicroButtonTooltipText, TOY_BOX, 'TOGGLETOYBOX'),
-		notCheckable = true,
-	},
-	{
-		text = BLIZZARD_STORE,
-		icon = 'Interface\\MINIMAP\\TRACKING\\BattleMaster',
-		func = function()
-			if (not StoreFrame) then
-				LoadAddOn('Blizzard_StoreUI')
-			end
-			securecall(ToggleStoreUI)
-		end,
-		notCheckable = true,
-	},
-	{
-		text = GAMEMENU_HELP,
-		icon = 'Interface\\CHATFRAME\\UI-ChatIcon-Blizz',
-		func = function()
-			securecall(ToggleHelpFrame)
-		end,
-		notCheckable = true,
-	},
-	{
-		text = BATTLEFIELD_MINIMAP,
-		func = function()
-			securecall(ToggleBattlefieldMinimap)
-		end,
-		notCheckable = true,
-	},
-}
-
-Minimap:SetScript("OnMouseUp", function(self, button)
-	if button == "RightButton" then
-		securecall(EasyMenu, menu_list, menu_frame, self, 27, 190, "MENU", 8)
-	else
-		Minimap_OnClick(self)
 	end
 end)

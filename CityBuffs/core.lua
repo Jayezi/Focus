@@ -97,14 +97,27 @@ local update_buffs = function()
 	local height = (cfg.button_size + cfg.row_gap) * ceil(buff_count / cfg.buttons_per_row) - cfg.row_gap
 	local width = (cfg.button_size + cfg.col_gap) * min(cfg.buttons_per_row, num_buffs) - cfg.col_gap
 	BuffFrame:SetSize(width, height)
-	
-	if DebuffButton1 then
-		update_debuffs("DebuffButton", 1)
-	end
 end
+
+local oldBuffFrame_SetPoint = BuffFrame.SetPoint
+hooksecurefunc(BuffFrame, "SetPoint", function(self)
+	self:ClearAllPoints()
+	oldBuffFrame_SetPoint(self, "TOPRIGHT", Minimap, "TOPLEFT", -15, 0)
+end)
+
+hooksecurefunc(GameTooltip, "SetUnitAura", function(self, unit, index, filter)
+	local _, id, _, _, _, _, caster = UnitAura(unit, index, filter)
+	
+	local name = caster and UnitName(caster)
+	if name then
+		self:AddLine(" ")
+		self:AddDoubleLine(name, id, .3, 1, .3, 1, .3, .3)
+		self:Show()
+	end
+end)
 
 hooksecurefunc("BuffFrame_UpdateAllBuffAnchors", update_buffs)
 hooksecurefunc("DebuffButton_UpdateAnchors", update_debuffs)
 
-TemporaryEnchantFrame.Show = TemporaryEnchantFrame.Hide
-TemporaryEnchantFrame:Hide()
+--TemporaryEnchantFrame.Show = TemporaryEnchantFrame.Hide
+--TemporaryEnchantFrame:Hide()

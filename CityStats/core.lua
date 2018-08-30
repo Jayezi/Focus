@@ -281,3 +281,42 @@ gold_frame:SetScript("OnClick", function(self, button)
 		ToggleCharacter"TokenFrame"
 	end
 end)
+
+
+-- azerite -----------------
+
+local azerite_text = CityUi.util.gen_string(data_parent, CityUi.config.font_size_med)
+azerite_text:SetPoint("BOTTOMRIGHT", gold_text, "BOTTOMLEFT", -20, 0)
+
+local azerite_frame = CreateFrame("Frame", "CityAzerite", UIParent)
+azerite_frame:SetAllPoints(azerite_text)
+
+azerite_frame:RegisterEvent"PLAYER_ENTERING_WORLD"
+azerite_frame:RegisterEvent"AZERITE_ITEM_EXPERIENCE_CHANGED"
+
+azerite_frame:SetScript("OnEvent", function(self, event)
+	local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem()
+	
+	if (not azeriteItemLocation) then
+		return
+	end
+	
+	self.xp, self.totalLevelXP = C_AzeriteItem.GetAzeriteItemXPInfo(azeriteItemLocation)
+	self.currentLevel = C_AzeriteItem.GetPowerLevel(azeriteItemLocation)
+	self.xpToNextLevel = self.totalLevelXP - self.xp;
+	
+	azerite_text:SetText(format("%s - %d|c%s%s|r", self.currentLevel, floor(100 * self.xp / self.totalLevelXP), CityUi.player.color_str, "%"))
+end)
+
+azerite_frame:SetScript("OnEnter", function(self)
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	GameTooltip:ClearLines()
+	GameTooltip:AddLine(format("Level |c%s%d|r", CityUi.player.color_str, self.currentLevel), 1, 1, 1)
+	GameTooltip:AddLine""
+	GameTooltip:AddLine(format("%d / %d", self.xp, self.totalLevelXP), 1, 1, 1)
+	GameTooltip:AddLine""
+	GameTooltip:AddLine(format("|c%s%d|r to next level", CityUi.player.color_str, self.xpToNextLevel), 1, 1, 1)
+	GameTooltip:Show()
+end)
+
+azerite_frame:SetScript("OnLeave", function(self) GameTooltip:Hide() end)

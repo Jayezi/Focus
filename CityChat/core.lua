@@ -144,26 +144,24 @@ local skin_chat_frame = function(frame)
 		_G[frame.CombatLogQuickButtonFrame:GetName().."ProgressBar"]:SetStatusBarTexture(CityUi.media.textures.blank)
 		frame_bg:SetPoint("TOPLEFT", -5, 5 + frame.CombatLogQuickButtonFrame:GetHeight())
 		frame.CombatLogQuickButtonFrame:ClearAllPoints()
-		frame.CombatLogQuickButtonFrame:SetPoint("BOTTOMLEFT", frame, "TOPLEFT")
-		frame.CombatLogQuickButtonFrame:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT")
 		frame.CombatLogQuickButtonFrame.oldSetPoint = frame.CombatLogQuickButtonFrame.SetPoint
 		frame.CombatLogQuickButtonFrame.SetPoint = function(self)
 			self:oldSetPoint("BOTTOMLEFT", frame, "TOPLEFT")
-			self:oldSetPoint("BOTTOMLEFT", frame, "TOPRIGHT")
+			self:oldSetPoint("BOTTOMRIGHT", frame, "TOPRIGHT")
 		end
+		frame.CombatLogQuickButtonFrame:SetPoint()
 	end
 
 	local resize_button = _G[name.."ResizeButton"]
 	resize_button:SetPoint("BOTTOMRIGHT")
 
 	frame.ScrollBar:ClearAllPoints()
-	frame.ScrollBar:SetPoint("BOTTOMRIGHT", frame.ScrollToBottomButton, "TOPRIGHT", -1, 0)
-	frame.ScrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, 0)
 	frame.ScrollBar.oldSetPoint = frame.ScrollBar.SetPoint
 	frame.ScrollBar.SetPoint = function(self)
 		self:oldSetPoint("BOTTOMRIGHT", frame.ScrollToBottomButton, "TOPRIGHT", -1, 0)
 		self:oldSetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, 0)
 	end
+	frame.ScrollBar:SetPoint()
 
 	for _, tex_name in pairs(button_frame_textures) do
 		_G[name..tex_name]:SetTexture(nil)
@@ -267,7 +265,7 @@ local dock_chat = function()
 		frame:ClearAllPoints()
 		frame:SetPoint("BOTTOMLEFT", panel, "TOPLEFT", 5, 10)
 		frame:SetPoint("BOTTOMRIGHT", panel, "TOPRIGHT", -5, 10)
-		frame:SetHeight(300)
+		frame:SetHeight(298)
 	end
 end
 

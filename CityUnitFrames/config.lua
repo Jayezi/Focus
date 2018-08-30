@@ -5,6 +5,8 @@ ns.config = config
 local CityUi = CityUi
 
 oUF.colors.power['MANA'] = {46/255, 130/255, 215/255}
+--oUF.colors.power['MANA'] = {46/255, 130/255, 215/255}
+
 config.player_color = oUF.colors.class[CityUi.player.class]
 config.altp_color = {.5, .5, .5, 1}
 config.cast_non_interrupt_color = {.5, .2, .2, 1}
@@ -55,19 +57,20 @@ config.frame_sizes = {
 
 config.frame_anchors = CityFrameList
 
-config.raid_auras = {
---	frame =				{size,	rows,	anchor, 		x-direction,	y-direction,	rowlimit,	countsize,	cdsize}
-	player = 			{48,	1,		"BOTTOMRIGHT",	"LEFT",			"UP", 			false,		15,			20},
-	boss = 				{50,	2, 		"TOPRIGHT", 	"LEFT", 		"DOWN",			2, 			15,			20},
-	pet = 				{48,	1, 		"BOTTOMRIGHT", 	"LEFT",			"UP", 			false, 		15,			20},
-	target_buff = 		{25,	2, 		"BOTTOMLEFT", 	"RIGHT",		"UP", 			false,		10,			10},
-	target_debuff = 	{48,	1, 		"BOTTOMLEFT", 	"RIGHT", 		"UP", 			false,		15,			20},
-	nameplate = 		{40,	2, 		"TOPLEFT", 		"RIGHT", 		"DOWN", 		3,			15,			20},
-	tank = 				{22, 	1, 		"BOTTOMLEFT",	"RIGHT",		"DOWN", 		3,			10, 		10},
-	focus = 			{25, 	1, 		"BOTTOMRIGHT",	"LEFT", 		"UP", 			false, 		10, 		10},
-	party = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		3, 			10, 		10},
-	healer = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		3, 			10, 		10},
-	damager = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		2, 			10, 		10},
+config.aura_config = {
+--	frame =				{size,	rows,	anchor, 		x-direction,	y-direction,	rowlimit,	countsize,	cdsize,	squashed}
+	player = 			{48,	1,		"BOTTOMRIGHT",	"LEFT",			"UP", 			false,		15,			20,		false},
+	boss = 				{50,	2, 		"TOPRIGHT", 	"LEFT", 		"DOWN",			2, 			15,			20,		true},
+	pet = 				{48,	1, 		"BOTTOMRIGHT", 	"LEFT",			"UP", 			false, 		15,			20,		true},
+	target_buff = 		{50,	3, 		"BOTTOMLEFT", 	"RIGHT",		"UP", 			false,		15,			15,		true},
+	target_debuff = 	{50,	1, 		"BOTTOMLEFT", 	"RIGHT", 		"UP", 			false,		15,			20,		false},
+	nameplate_debuff =	{40,	2, 		"TOPLEFT", 		"RIGHT", 		"DOWN", 		3,			15,			20,		true},
+	nameplate_buff =	{60,	2, 		"TOPRIGHT", 	"LEFT",			"DOWN", 		3,			15,			20,		true},
+	tank = 				{22, 	1, 		"BOTTOMLEFT",	"RIGHT",		"DOWN", 		3,			10, 		10,		false},
+	focus = 			{25, 	1, 		"BOTTOMRIGHT",	"LEFT", 		"UP", 			false, 		10, 		10,		false},
+	party = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		3, 			10, 		10,		false},
+	healer = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		3, 			10, 		10,		false},
+	damager = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		2, 			10, 		10,		false},
 }
 
 config.raid_marks = {
@@ -205,6 +208,7 @@ config.buff_whitelist = {
 	[208913] = true,		--Sentinels Sight
 	[235712] = true,		--Gyroscopic Stabilization
 	[190515] = true,		--Survival of the Fittest
+	[266779] = true,		--Coordinated Assault
 
 	-- Monk
 	[137639] = true, 		--Storm, Earth, and Fire
@@ -239,153 +243,8 @@ config.debuff_whitelist = {
 	[116888] = true,		--Shroud of Purgatory
 	[225080] = true,		--Reincarnation
 	[255234] = true,		--Totemic Revival
-	[188030] = true,		--Leytorrent Potion
 	[221837] = true,		--Solitude
 	[87023] = true,			--Cauterize
-
-	-- Emerald Nightmare
-	[204463] = true,		--Volatile Rot
-	[204504] = true,		--Infested
-	[203646] = true,		--Burst of Corruption
-	[203096] = true,		--Rot
-	[205043] = true,		--Infested Mind
-
-	[210228] = true,		--Dripping Fangs
-	[215449] = true,		--Necrotic Venom (warning)
-	[218831] = true,		--Necrotic Venom (pools)
-	[210863] = true,		--Twisting Shadows (warning)
-	[215288] = true,		--Web of Pain
-	[218144] = true,		--Violent Winds
-	[218519] = true,		--Wind Burn
-
-	[198108] = true,		--Momentum
-	[198006] = true,		--Focused Gaze
-	[197943] = true,		--Overwhelm
-	[204859] = true,		--Rend Flesh
-
-	[210099] = true,		--Fixate
-	[208697] = true,		--Mind Flay
-	[209469] = true,		--Touch of Corruption
-	[208929] = true,		--Spew Corruption
-	[215128] = true,		--Cursed Blood
-
-	[203770] = true,		--Defiled Vines
-	[223697] = true,		--Volatile Infection
-	[205341] = true,		--Sleeping Fog
-
-	[210279] = true,		--Creeping Nightmares
-	[211802] = true,		--Nightmare Blades
-
-	-- Trial of Valor
-	[228744] = true,		--Flaming Volatile Foam
-	[228810] = true,		--Briney Volatile Foam
-	[228818] = true,		--Shadowy Volatile Foam
-
-	-- The Nighthold
-	[204766] = true,		--Energy Surge
-	[204284] = true,		--Broken Shard
-	[204483] = true,		--Focused Blast
-	[204531] = true,		--Arcane Tether
-	[204744] = true,		--Toxic Chitin
-
-	[212099] = true,		--Temporal Charge
-	[206617] = true,		--Time Bomb
-	[219964] = true,		--Time Release (green)
-	[219965] = true,		--Time Release (yellow)
-	[219966] = true,		--Time Release (red)
-	[206607] = true,		--Chronometric Particles
-
-	[206488] = true,		--Arcane Seepage
-	[206641] = true,		--Arcane Slash
-	[206798] = true,		--Toxic Slice
-	[208910] = true,		--Arcing Bonds
-	[211615] = true,		--Sterilize (warning)
-	[208499] = true,		--Sterilize (pulse)
-	[206838] = true,		--Succulent Feast
-	[214573] = true,		--Stuffed
-
-	[212494] = true,		--Annihilated
-	[212531] = true,		--Mark of Frost (warning)
-	[212587] = true,		--Mark of Frost (pulse)
-	[212647] = true,		--Frostbitten
-	[212736] = true,		--Pool of Frost
-	[213621] = true,		--Entombed in Ice
-	[213148] = true,		--Searing Brand (warning)
-	[213181] = true,		--Searing Brand (fear)
-	[213166] = true,		--Searing Brand (dot)
-	[213278] = true,		--Burning Ground
-	[213504] = true,		--Arcane Fog
-
-	[206464] = true,		--Coronal Ejection
-	[205984] = true,		--Gravitational Pull
-	[206585] = true,		--Absolute Zero
-	[206589] = true,		--Chilled
-	[206603] = true,		--Frozen Solid
-	[206936] = true,		--Icy Ejection
-	[205649] = true,		--Fel Ejection
-	[206398] = true,		--Felflame
-	[206388] = true,		--Felburst
-	[206965] = true,		--Voidburst
-	[207143] = true,		--Void Ejection
-
-	[218304] = true,		--Parasitic Fetter
-	[218342] = true,		--Parasitic Fixate
-	[218503] = true,		--Recursive Strikes
-	[218780] = true,		--Plasma Explosion
-	[218809] = true,		--Call of Night
-	[219235] = true,		--Toxic Spores
-
-	[205344] = true,		--Orb of Destruction
-	[206677] = true,		--Searing Brand
-	[206480] = true,		--Carrion Plague
-	[208230] = true,		--Feast of Blood
-	[215988] = true,		--Carrion Nightmare
-	[206466] = true,		--Essence of Night
-	[216024] = true,		--Volatile Wound
-	[216027] = true,		--Nether Zone
-	[216040] = true,		--Burning Soul
-	[212794] = true,		--Brand of Argus
-
-	[209598] = true,		--Conflexive Burst
-	[211259] = true,		--Permeliative Torment
-	[211887] = true,		--Ablated
-	[213716] = true,		--Delphuric Beam
-	[209165] = true,		--Slow Time
-	[209166] = true,		--Fast Time
-	[209615] = true,		--Ablation
-	[209433] = true,		--Spanning Singularity
-
-	-- Tomb of Sargeras
-	[234310] = true,		--Armageddon Rain
-
-	-- Antorus, the Burning Throne
-	[244055] = true,		--Shadowtouched
-	[244054] = true,		--Flametouched
-
-	[244172] = true,		--Psychic Assault
-	[253306] = true,		--Psychic Scarring (Mythic)
-	[244388] = true,		--Psychic Scarring (Heroic)
-
-	[244849] = true,		--Caustic Slime
-	[244613] = true,		--Everburning Flames
-
-	[255029] = true,		--Sleep Canister
-	[247565] = true,		--Slumber Gas
-	[247641] = true,		--Stasis Trap
-	[250006] = true,		--Empowered Pulse Grenade
-
-	[244094] = true,		--Necrotic Embrace
-
-	[247079] = true,		--Empowered Flame Rend
-
-	[257911] = true,		--Unleashed Rage
-	[257930] = true,		--Crushing Fear
-	[257931] = true,		--Sargeras' Fear
-	[257911] = true,		--Unleashed Rage
-	[257966] = true,		--Sentence of Sargeras
-	[248396] = true,		--Soulblight
-	[250669] = true,		--Soulburst
-	[251570] = true,		--Soulbomb
 }
 
 -- A debuff blacklist useful for keeping larger frames from getting too crowded but still generally showing all auras.

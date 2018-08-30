@@ -83,13 +83,12 @@ local function create_player_style(base)
 	xp_string:SetPoint("BOTTOM", 0, 1)
 	base:Tag(xp_string, "[experience:cur] / [experience:max] - [experience:per]%")
 	
-	lib.gen_debuffs(base, cfg.primary_health_w, cfg.raid_auras["player"])
-	lib.gen_buffs(base, cfg.primary_health_w, cfg.raid_auras["player"])
-	lib.enable_test(base)
+	lib.gen_debuffs(base, cfg.primary_health_w, cfg.aura_config["player"])
+	lib.gen_buffs(base, cfg.primary_health_w, cfg.aura_config["player"])
 	
 	base.Debuffs:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", 0, CityUi.config.font_size_med + 2)
 	base.Buffs:SetPoint("BOTTOMRIGHT", base.Debuffs, "TOPRIGHT", 0, 1)
-	base.Buffs.CustomFilter = lib.custom_buff_whitelist
+	lib.apply_whitelist_to(base.Buffs, cfg.buff_whitelist)
 	
 	lib.gen_raid_mark(base, cfg.raid_marks["primary"])
 end
@@ -136,12 +135,10 @@ local function create_target_style(base)
 	name_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, 1)
 	base:Tag(name_string, "[city:color][city:info][name]")
 	
-	lib.gen_buffs(base, cfg.primary_health_w, cfg.raid_auras["target_buff"])
-	lib.gen_debuffs(base, cfg.primary_health_w, cfg.raid_auras["target_debuff"])
-	lib.enable_test(base)
+	lib.gen_buffs(base, cfg.primary_health_w, cfg.aura_config["target_buff"])
+	lib.gen_debuffs(base, cfg.primary_health_w, cfg.aura_config["target_debuff"])
 	
 	base.Debuffs:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 0, CityUi.config.font_size_med + 2)
-	base.Debuffs.PostUpdateIcon = lib.post_update_icon
 	base.Buffs:SetPoint("BOTTOMLEFT", base.Debuffs, "TOPLEFT", 0, 1)
 	
 	lib.gen_raid_mark(base, cfg.raid_marks["primary"])
@@ -177,12 +174,22 @@ local function create_nameplate_style(base)
 	base.name_string:SetJustifyV("BOTTOM")
 	base.name_string:SetPoint("BOTTOMLEFT", base.Health, "TOPLEFT", 0, 3)
 	
-	lib.gen_nameplate_debuffs(base, cfg.raid_auras["nameplate"])
-	base.Debuffs.CustomFilter = lib.player_only_whitelist
-	base.Debuffs:SetPoint("TOPLEFT", base.Health, "TOPRIGHT", 1, 0)
+	lib.gen_debuffs(base, w, cfg.aura_config["nameplate_debuff"])
+	lib.apply_whitelist_to(base.Debuffs, nil, {player = true, pet = true})
+	base.Debuffs:SetPoint("TOPLEFT", base.Health, "TOPRIGHT", 1, 1)
 	
 	lib.gen_nameplate_cast_bar(base, w, cfg.nameplate_cast_h, CityUi.config.font_size_med)
 	base.Castbar:SetPoint("TOP", base.Health, "BOTTOM", 0, -1)
+
+	lib.gen_buffs(base, w, cfg.aura_config["nameplate_buff"])
+	base.Buffs:SetPoint("TOPRIGHT", base.Castbar.Icon, "TOPLEFT", -2, 1)
+	base.Buffs.CustomFilter = function(element, _, _, _, _, _, debuffType, _, _, caster, _, _, spellID)
+		if debuffType == "" or debuffType == "Magic" then
+			return true
+		end
+	
+		return false
+	end
 	
 	lib.gen_raid_mark(base, cfg.raid_marks["nameplate"])
 end
@@ -232,12 +239,12 @@ local function create_pet_style(base)
 	power_string:SetPoint("BOTTOMRIGHT", base, "BOTTOMLEFT", -1, 1)
 	base:Tag(power_string, "[city:color][city:shortppfrequent]")
 	
-	lib.gen_debuffs(base, cfg.secondary_health_w, cfg.raid_auras["pet"])
+	lib.gen_debuffs(base, cfg.secondary_health_w, cfg.aura_config["pet"])
 	base.Debuffs:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 0, -(CityUi.config.font_size_med + 4))
 	
-	lib.gen_pet_buffs(base, cfg.primary_health_w, cfg.raid_auras["pet"])
+	lib.gen_buffs(base, cfg.primary_health_w, cfg.aura_config["pet"])
 	base.Buffs:SetPoint("TOPRIGHT", base.Debuffs, "BOTTOMRIGHT", 0, -1)
-	base.Buffs.CustomFilter = lib.custom_pet_whitelist
+	lib.apply_whitelist_to(base.Buffs, cfg.buff_whitelist_pet)
 end
 
 local function create_focus_style(base)
@@ -260,10 +267,9 @@ local function create_focus_style(base)
 	name_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 1, 1)
 	base:Tag(name_string, "[city:color][name]")
 
-	lib.gen_debuffs(base, w, cfg.raid_auras["focus"])
-	base.Debuffs.CustomFilter = lib.custom_blacklist
+	lib.gen_debuffs(base, w, cfg.aura_config["focus"])
+	lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
 	base.Debuffs:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", 0, 1)
-	lib.enable_test(base)
 	
 	lib.gen_cast_bar(base, w, cfg.cast_h, CityUi.config.font_size_med)
 	base.Castbar:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 0, -(CityUi.config.font_size_med + 2))
@@ -311,9 +317,9 @@ local function create_boss_style(base)
 	name_string:SetPoint("TOPRIGHT", altp_string, "TOPLEFT", -5, 0)
 	base:Tag(name_string, "[city:color][name]")
 	
-	lib.gen_nameplate_debuffs(base, cfg.raid_auras["boss"])
+	lib.gen_debuffs(base, w, cfg.aura_config["boss"])
 	base.Debuffs:SetPoint("TOPRIGHT", base, "TOPLEFT", -1, 0)
-	base.Debuffs.CustomFilter = lib.player_only_whitelist
+	base.Debuffs.onlyShowPlayer = true
 	
 	lib.gen_raid_mark(base, cfg.raid_marks["boss"])
 end
@@ -344,9 +350,9 @@ local function create_tank_style(base)
 	base.Power.colorDisconnected = true
 	lib.push_bar(base, base.Power)
 	
-	lib.gen_debuffs(base, w, cfg.raid_auras["tank"])
+	lib.gen_debuffs(base, w, cfg.aura_config["tank"])
 	base.Debuffs:SetPoint("BOTTOM", base.Health, "BOTTOM", 0, -5)
-	base.Debuffs.CustomFilter = lib.custom_blacklist
+	lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
 	
 	base:SetHeight(0 - base.stack_bottom)
 	
@@ -394,9 +400,9 @@ local function create_party_style(base)
 	base.Power.colorDisconnected = true
 	lib.push_bar(base, base.Power)
 	
-	lib.gen_debuffs(base, w, cfg.raid_auras["party"])
+	lib.gen_debuffs(base, w, cfg.aura_config["party"])
 	base.Debuffs:SetPoint("BOTTOM", base.Health, "BOTTOM", 0, -5)
-	base.Debuffs.CustomFilter = lib.custom_blacklist
+	lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
 	
 	base:SetHeight(0 - base.stack_bottom)
 	
@@ -446,9 +452,9 @@ if cfg.role == "DAMAGER" or cfg.role == "TANK" then
 		base.Power.altPowerColor = cfg.altp_color
 		lib.push_bar(base, base.Power)
 		
-		lib.gen_debuffs(base, w, cfg.raid_auras["damager"])
+		lib.gen_debuffs(base, w, cfg.aura_config["damager"])
 		base.Debuffs:SetPoint("BOTTOM", base.Health, "BOTTOM", 0, -5)
-		base.Debuffs.CustomFilter = lib.custom_whitelist
+		lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
 		
 		base:SetHeight(0 - base.stack_bottom)
 		
@@ -500,9 +506,9 @@ else
 		base.Power.colorDisconnected = true
 		lib.push_bar(base, base.Power)
 		
-		lib.gen_debuffs(base, w, cfg.raid_auras["healer"])
+		lib.gen_debuffs(base, w, cfg.aura_config["healer"])
 		base.Debuffs:SetPoint("BOTTOM", base.Health, "BOTTOM", 0, -5)
-		base.Debuffs.CustomFilter = lib.custom_blacklist
+		lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
 		
 		base:SetHeight(0 - base.stack_bottom)
 		

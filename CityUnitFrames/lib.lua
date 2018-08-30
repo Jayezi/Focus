@@ -432,47 +432,43 @@ lib.gen_ready_check = function(base)
     ready:SetPoint('CENTER')
 	base.ReadyCheckIndicator = ready
 end
-
--- element, unit, button, name, texture, count, debuffType, duration, expiration, caster, isStealable, 
--- nameplateShowSelf, spellID, canApply, isBossDebuff, casterIsPlayer, nameplateShowAll, timeMod, effect1, effect2, effect3
-
-lib.custom_whitelist = function(_, _, _, _, _, _, _, _, _, _, _, _, spellID)
-	if cfg.debuff_whitelist[spellID] then
-		return true
-	else
+--[[
+	(element, unit, button, name, texture, count, debuffType, duration, 
+	expiration, caster, isStealable, nameplateShowSelf, spellID, canApply, 
+	isBossDebuff, casterIsPlayer, nameplateShowAll,timeMod, effect1, effect2, effect3)
+]]
+local aura_filter = function(element, _, _, _, _, _, debuffType, _, _, caster, _, _, spellID)
+	if element.sources and not element.sources[caster] then
 		return false
 	end
-end
 
-lib.custom_pet_whitelist = function(_, _, _, _, _, _, _, _, _, _, _, _, spellID)
-	if cfg.buff_whitelist_pet[spellID] then
-		return true
-	else
-		return false
+	local spells = element.whitelist or element.blacklist
+
+	if spells then
+		local found = spells[spellID]
+		if element.whitelist then
+			return found
+		else
+			return not found
+		end
 	end
+
+	return true
 end
 
-lib.custom_blacklist = function(_, _, _, _, _, _, _, _, _, _, _, _, spellID)
-	if cfg.debuff_blacklist[spellID] then
-		return false
-	else
-		return true
-	end
+lib.apply_whitelist_to = function(element, spells, units)
+	element.whitelist = spells
+	element.sources = units
+	element.CustomFilter = aura_filter
 end
 
-lib.custom_buff_whitelist = function(_, _, _, _, _, _, _, _, _, _, _, _, spellID)
-	if cfg.buff_whitelist[spellID] then
-		return true
-	else
-		return false
-	end
+lib.apply_blacklist_to = function(element, spells, units)
+	element.blacklist = spells
+	element.sources = units
+	element.CustomFilter = aura_filter
 end
 
-lib.player_only_whitelist = function(_, _, icon)
-	return icon.isPlayer
-end
-
-lib.post_create_icon = function(buffs, button)
+local post_create_aura = function(buffs, button)
 
 	button.cd:SetReverse(true)
 	button.cd:SetFrameLevel(button:GetFrameLevel())
@@ -481,7 +477,11 @@ lib.post_create_icon = function(buffs, button)
 	button.cd:GetRegions():SetShadowOffset(0, 0)
 	button.cd:SetDrawEdge(false)
 	
-	button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+	if buffs.squashed then
+		button.icon:SetTexCoord(0.1, 0.9, 0.3, 0.7)
+	else
+		button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+	end
 	button.icon:SetPoint("TOPLEFT", 1, -1)
 	button.icon:SetPoint("BOTTOMRIGHT", -1, 1)
 	
@@ -490,199 +490,83 @@ lib.post_create_icon = function(buffs, button)
 	button.overlay:SetPoint("TOPLEFT")
     button.overlay:SetPoint("BOTTOMRIGHT")
 	button.overlay:SetTexCoord(0, 1, 0, 1)
-	button.overlay.Hide = function(self) self:SetVertexColor(.3, .3, .3) end
-	button.count:SetPoint("BOTTOMRIGHT", button, 3, 0)
+
+	button.overlay.oldHide = button.overlay.Hide
+	button.overlay.Hide = function(self) self:SetVertexColor(0.5, 0.5, 0.5) end
+	
+	button.count:SetPoint("TOPRIGHT", button, 3, 3)
 	button.count:SetJustifyH("RIGHT")
-	button.count:SetJustifyV("BOTTOM")
+	button.count:SetJustifyV("TOP")
 	button.count:SetFont(CityUi.media.fonts.pixel_10, buffs.countsize, "MONOCHROMETHINOUTLINE")
 end
 
-lib.post_create_nameplate_icon = function(buffs, button)
-
-	button.cd:SetReverse(true)
-	button.cd:SetFrameLevel(button:GetFrameLevel())
-	button.cd:SetHideCountdownNumbers(false)
-	button.cd:GetRegions():SetFont(CityUi.media.fonts.pixel_10, buffs.cdsize, "MONOCHROMETHINOUTLINE")
-	button.cd:GetRegions():SetShadowOffset(0, 0)
-	button.cd:SetDrawEdge(false)
-	
-	button.icon:SetTexCoord(0.1, 0.9, 0.3, 0.7)
-	button.icon:SetPoint("TOPLEFT", 1, -1)
-	button.icon:SetPoint("BOTTOMRIGHT", -1, 1)
-	
-	button.overlay:SetDrawLayer("BACKGROUND")
-	button.overlay:SetTexture(CityUi.media.textures.blank)
-	button.overlay:SetPoint("TOPLEFT")
-    button.overlay:SetPoint("BOTTOMRIGHT")
-	button.overlay:SetTexCoord(0, 1, 0, 1)
-	button.overlay.Hide = function(self) self:SetVertexColor(0, 0, 0) end
-	button.count:SetPoint("BOTTOMRIGHT", button, 3, -3)
-	button.count:SetJustifyH("RIGHT")
-	button.count:SetJustifyV("BOTTOM")
-	button.count:SetFont(CityUi.media.fonts.pixel_10, buffs.countsize, "MONOCHROMETHINOUTLINE")
+local post_update_aura = function(self, unit, button, _, _, _, _, debuffType)
+	if not button.isDebuff and debuffType == nil then
+		button.overlay:Hide()
+	end
+	if button.isDebuff and unit == "target" then
+		button.icon:SetDesaturated(not button.isPlayer)
+	end
+	if self.squashed then button:SetHeight(button:GetWidth() / 2) end
 end
 
-lib.post_update_icon = function(self, unit, icon, index, offset)
-	icon.icon:SetDesaturated(not icon.isPlayer)
-end
+--[[
+	config = {
+		[1] = size,
+		[2] = rows,
+		[3] = anchor,
+		[4] = x-direction,
+		[5] = y-direction,
+		[6] = rowlimit,
+		[7] = countsize,
+		[8] = cdsize,
+		[9] = squashed
+	}
+]]
+local gen_auras = function(base, w, config, isBuffs)
 
-lib.post_update_nameplate_icon = function(self, unit, icon, index, offset)
-	icon:SetHeight(icon:GetWidth() / 2)
-	icon.overlay:SetVertexColor(0, 0, 0)
-end
+	local auras = CreateFrame("Frame", base:GetName().."Buffs", base.Health)
+	
+	auras.size = config[1]
+	auras.spacing = 1
 
-lib.gen_buffs = function(base, w, config)
-
-	local buffs = CreateFrame("Frame", base:GetName().."Buffs", base.Health)
-	
-	buffs.size = config[1]
-	buffs.spacing = 1
-	local num_per_row = math.floor(w / (buffs.size + buffs.spacing))
-	buffs.num = config[2] * num_per_row
-	
-    buffs:SetSize(num_per_row * (buffs.size + 1) - 1, buffs.size * config[2] + config[2] - 1)
-	
-    buffs.initialAnchor = config[3]
-	buffs["growth-x"] = config[4]
-	buffs["growth-y"] = config[5]
-	buffs.countsize = config[7]
-	buffs.cdsize = config[8]
-	
-    buffs.PostCreateIcon = lib.post_create_icon
-	
-	local bg = buffs:CreateTexture(nil, "BACKGROUND")
-	bg:SetAllPoints(buffs)
-	bg:SetTexture(CityUi.media.textures.blank)
-	bg:SetVertexColor(0, 0, 0)
-	bg:Hide()
-	buffs.bg = bg
-
-    base.Buffs = buffs
-end
-
-lib.gen_pet_debuffs = function(base, w, config)
-
-	local buffs = CreateFrame("Frame", base:GetName().."Debuffs", base)
-	
-	buffs.size = config[1]
-	buffs.spacing = 1
-	local num_per_row = math.floor(w / (buffs.size + buffs.spacing))
-	buffs.num = config[2] * num_per_row
-	
-	buffs:SetSize(num_per_row * (buffs.size + 1) - 1, buffs.size / 2 * config[2] + config[2] - 1)
-	
-	buffs.initialAnchor = config[3]
-	buffs["growth-x"] = config[4]
-	buffs["growth-y"] = config[5]
-	buffs.countsize = config[7]
-	buffs.cdsize = config[8]
-	
-	buffs.PostCreateIcon = lib.post_create_nameplate_icon
-	buffs.PostUpdateIcon = lib.post_update_nameplate_icon
-	
-	base.Debuffs = buffs
-end
-
-lib.gen_pet_buffs = function(base, w, config)
-
-	local buffs = CreateFrame("Frame", base:GetName().."Buffs", base)
-	
-	buffs.size = config[1]
-	buffs.spacing = 1
-	local num_per_row = math.floor(w / (buffs.size + buffs.spacing))
-	buffs.num = config[2] * num_per_row
-	
-	buffs:SetSize(num_per_row * (buffs.size + 1) - 1, buffs.size / 2 * config[2] + config[2] - 1)
-	
-	buffs.initialAnchor = config[3]
-	buffs["growth-x"] = config[4]
-	buffs["growth-y"] = config[5]
-	buffs.countsize = config[7]
-	buffs.cdsize = config[8]
-	
-	buffs.PostCreateIcon = lib.post_create_nameplate_icon
-	buffs.PostUpdateIcon = lib.post_update_nameplate_icon
-	
-	base.Buffs = buffs
-end
-
-lib.gen_nameplate_debuffs = function(base, config)
-
-	local debuffs = CreateFrame("Frame", base:GetName().."Debuffs", base)
-	
-	debuffs.size = config[1]
-	debuffs.spacing = 1
-	debuffs.countsize = config[7]
-	debuffs.cdsize = config[8]
-	
-	local num_per_row = config[6]
-	
-	debuffs.num = config[2] * num_per_row
-	
-	debuffs:SetSize(num_per_row * debuffs.size + num_per_row - 1, debuffs.size / 2 * config[2] + config[2] - 1)
-	
-	debuffs.initialAnchor = config[3]
-	debuffs["growth-x"] = config[4]
-	debuffs["growth-y"] = config[5]
-	
-	debuffs["spacing-y"] = -debuffs.size / 2 + 1
-	debuffs.showDebuffType = true
-	
-	debuffs.PostCreateIcon = lib.post_create_nameplate_icon
-	debuffs.PostUpdateIcon = lib.post_update_nameplate_icon
-	
-	base.Debuffs = debuffs
-end
-
-lib.gen_debuffs = function(base, w, config)
-
-	local debuffs = CreateFrame("Frame", base:GetName().."Debuffs", base.Health)
-	
-	debuffs.size = config[1]
-	debuffs.spacing = 1
-	debuffs.countsize = config[7]
-	debuffs.cdsize = config[8]
-	
 	local num_per_row
-	
 	if (config[6]) then
 		num_per_row = config[6]
 	else
-		num_per_row = math.floor(w / (debuffs.size + debuffs.spacing))
-		if (num_per_row * (debuffs.size + 1) + debuffs.size <= w) then
-			num_per_row = num_per_row + 1
-		end
+		num_per_row = math.floor(w / (auras.size + auras.spacing))
+	end
+
+	auras.num = config[2] * num_per_row
+	
+    auras:SetSize(num_per_row * (auras.size + 1) - 1, auras.size * config[2] + config[2] - 1)
+	
+    auras.initialAnchor = config[3]
+	auras["growth-x"] = config[4]
+	auras["growth-y"] = config[5]
+	auras.countsize = config[7]
+	auras.cdsize = config[8]
+	auras.showType = true
+	
+	auras.squashed = config[9]
+	if auras.squashed then
+		auras["spacing-y"] = -debuffs.size / 2 + 1
 	end
 	
-	debuffs.num = config[2] * num_per_row
-	
-	debuffs:SetSize(num_per_row * (debuffs.size + 1) - 1, debuffs.size * config[2] + config[2] - 1)
-	
-	debuffs.initialAnchor = config[3]
-	debuffs["growth-x"] = config[4]
-	debuffs["growth-y"] = config[5]
-	debuffs.showDebuffType = true
-	
-	debuffs.PostCreateIcon = lib.post_create_icon
-	
-	local bg = debuffs:CreateTexture(nil, "BACKGROUND")
-	bg:SetAllPoints(debuffs)
-	bg:SetTexture(CityUi.media.textures.blank)
-	bg:SetVertexColor(0, 0, 0)
-	bg:Hide()
-	debuffs.bg = bg
-	
-	base.Debuffs = debuffs
+	auras.PostCreateIcon = post_create_aura
+	auras.PostUpdateIcon = post_update_aura
+
+	if (isBuffs) then
+		base.Buffs = auras
+	else
+		base.Debuffs = auras
+	end
 end
 
-lib.enable_test = function(base)
-	base.test_frame = function(on)
-		if on then
-			if base.Buffs then base.Buffs.bg:Show() end
-			if base.Debuffs then base.Debuffs.bg:Show() end
-		else
-			if base.Buffs then base.Buffs.bg:Hide() end
-			if base.Debuffs then base.Debuffs.bg:Hide() end
-		end
-	end
+lib.gen_buffs = function(base, w, config)
+	gen_auras(base, w, config, true)
+end
+
+lib.gen_debuffs = function(base, w, config)
+	gen_auras(base, w, config, false)
 end

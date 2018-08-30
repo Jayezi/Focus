@@ -5,20 +5,17 @@ local lib = ns.lib
 -- Leaving both ways here for now just to see how they go
 
 -- Reuse the default button
-
-MainMenuBarVehicleLeaveButton.ignoreFramePositionManager = true
-MainMenuBarVehicleLeaveButton:SetAttribute("ignoreFramePositionManager", true);
-MainMenuBarVehicleLeaveButton:HookScript("OnShow", function(self)
-	lib.style_vehicle(self)
-	self:SetPoint(unpack(cfg.bars.vehicle.pos))
-	self:SetSize(50, 50)
-	self:SetScale(1 / cfg.bars.main.scale)
-end)
 MainMenuBarVehicleLeaveButton.oldSetPoint = MainMenuBarVehicleLeaveButton.SetPoint
-MainMenuBarVehicleLeaveButton.SetPoint = function(self, ...)
-	self:ClearAllPoints()
+MainMenuBarVehicleLeaveButton.SetPoint = function(self)
 	self:oldSetPoint(unpack(cfg.bars.vehicle.pos))
 end
+
+MainMenuBarVehicleLeaveButton:HookScript("OnShow", function(self)
+	lib.style_vehicle(self)
+	self:SetSize(50, 50)
+	self:SetScale(1 / cfg.bars.main.scale)
+	self:SetPoint()
+end)
 
 -- Make my own
 
@@ -35,7 +32,7 @@ end
 function vehicle:VehicleOnClick()
     if (UnitOnTaxi("player")) then
         TaxiRequestEarlyLanding()
-		print("Requested early landing from flightpath.")
+		print("Requested early landing from flight path.")
     else
         VehicleExit()
 		print("Exiting vehicle.")

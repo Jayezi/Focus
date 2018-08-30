@@ -14,19 +14,6 @@ ActionBarUpButton:Hide()
 ActionBarDownButton:Hide()
 MicroButtonAndBagsBar.MicroBagBar:Hide()
 
--- CharacterMicroButton:ClearAllPoints()
--- CharacterMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
--- SpellbookMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
--- TalentMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
--- AchievementMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
--- QuestLogMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
--- GuildMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
--- LFDMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
--- CollectionsMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
--- EJMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
--- StoreMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
--- MainMenuMicroButton:SetPoint("TOP", UIParent, "BOTTOM")
-
 ExtraActionBarFrame:SetParent(UIParent)
 ExtraActionBarFrame:ClearAllPoints()
 ExtraActionBarFrame:SetPoint(unpack(cfg.bars.extra.pos))
@@ -69,22 +56,6 @@ do
 	local num = NUM_PET_ACTION_SLOTS
 	local bar_cfg = cfg.bars.pet
 	local per_row = num / bar_cfg.rows
-	--PetActionBarFrame.ignoreFramePositionManager = true
-	--PetActionBarFrame:SetAttribute("ignoreFramePositionManager", true);
-	--PetActionBarFrame.oldSetPoint = PetActionBarFrame.SetPoint
-	--PetActionBarFrame.is_set = false
-	--PetActionBarFrame.SetPoint = function(self, ...)
-		--if not self.is_set then
-			--self:oldSetPoint(unpack(bar_cfg.pos))
-			--self.is_set = true
-		--end
-	--end
-
-	--:SetParent(UIParent)
-	--PetActionBarFrame:ClearAllPoints()
-	--PetActionBarFrame:SetPoint(unpack(bar_cfg.pos))
-	--PetActionBarFrame:SetWidth((bar_cfg.buttons.size + bar_cfg.buttons.margin) * num - bar_cfg.buttons.margin)
-	--PetActionBarFrame:SetHeight(bar_cfg.buttons.size)
 
 	for i = 1, num do
 		local button = _G["PetActionButton"..i]
