@@ -501,7 +501,9 @@ local post_create_aura = function(buffs, button)
 end
 
 local post_update_aura = function(self, unit, button, _, _, _, _, debuffType)
-	if not button.isDebuff and debuffType == nil then
+	
+	button:SetMouseClickEnabled(false)
+	if (not button.isDebuff or string.find(unit, "nameplate")) and debuffType == nil then
 		button.overlay:Hide()
 	end
 	if button.isDebuff and unit == "target" then
@@ -550,7 +552,7 @@ local gen_auras = function(base, w, config, isBuffs)
 	
 	auras.squashed = config[9]
 	if auras.squashed then
-		auras["spacing-y"] = -debuffs.size / 2 + 1
+		auras["spacing-y"] = -auras.size / 2 + 1
 	end
 	
 	auras.PostCreateIcon = post_create_aura

@@ -128,6 +128,11 @@ CityUi.util = {
 		end
 	end,
 
+	fix_string = function(fs, size, flags, font)
+		fs:SetFont(font or CityUi.media.fonts.pixel_10, size, flags or CityUi.config.font_flags)
+		fs:SetShadowOffset(0, 0)
+	end,
+
 	gen_string = function(parent, size, flags, font, h_justify, v_justify)
 		local string = parent:CreateFontString(nil, "OVERLAY")
 		string:SetFont(font or CityUi.media.fonts.pixel_10, size, flags or CityUi.config.font_flags)
@@ -437,15 +442,14 @@ SlashCmdList.EXTRAB = function(input)
 	end
 end
 
+-- local character_frame = CreateFrame("PlayerModel", "CityPlayerModel", UiParent)
+-- character_frame:SetSize(500, 750)
+-- character_frame:SetPoint("CENTER")
+-- character_frame:SetUnit("player")
+
 ---------------------------------------------------
 -- UI Setup ---------------------------------------
 ---------------------------------------------------
-
---GameFontNormal:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
---GameFontNormal:SetShadowOffset(0, 0)
--- GameFontNormalHuge:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
--- GameFontNormalHuge:SetShadowOffset(0, 0)
--- MailTextFontNormal:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med)
 
 UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = CityUi.config.font_size_med
 
@@ -457,8 +461,6 @@ PVPArenaTextString:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_
 CityUi:register_event("PLAYER_LOGIN", function()
 	UIParent:SetScale(CityUi.config.ui_scale)
 	WorldFrame:SetScale(CityUi.config.ui_scale)
-	SetSortBagsRightToLeft(true)
-	SetInsertItemsLeftToRight(true)
 
 	if LibStub and LibStub("LibSharedMedia-3.0") then
 		LibStub("LibSharedMedia-3.0"):Register("font", "Pixel10", CityUi.media.fonts.pixel_10)

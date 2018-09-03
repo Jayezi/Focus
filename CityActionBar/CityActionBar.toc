@@ -1,6 +1,6 @@
 ## Interface: 70100
-## Author: CityPunch
 ## Title: CityActionBar
+## Author: CityPunch
 ## RequiredDeps: CityCore
 
 config.lua

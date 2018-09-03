@@ -177,6 +177,7 @@ local function create_nameplate_style(base)
 	lib.gen_debuffs(base, w, cfg.aura_config["nameplate_debuff"])
 	lib.apply_whitelist_to(base.Debuffs, nil, {player = true, pet = true})
 	base.Debuffs:SetPoint("TOPLEFT", base.Health, "TOPRIGHT", 1, 1)
+	base.Debuffs.disableMouse = false
 	
 	lib.gen_nameplate_cast_bar(base, w, cfg.nameplate_cast_h, CityUi.config.font_size_med)
 	base.Castbar:SetPoint("TOP", base.Health, "BOTTOM", 0, -1)

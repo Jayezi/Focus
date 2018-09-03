@@ -43,7 +43,6 @@ local skin_textures = function(button, icon, normal)
 	highlight:SetAllPoints(icon)
 	highlight:SetTexture(blank)
 	highlight:SetVertexColor(unpack(cfg.color.highlight))
-
 end
 
 lib.style_action = function(button)
