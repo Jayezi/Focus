@@ -52,15 +52,15 @@ local bag_colors = {
 local function skin_colors(size, frame, bag_id)
 	local bag_type = select(2, GetContainerNumFreeSlots(bag_id - 1))
 	local bag_color
-	
+		
 	if (not bag_type) then
 		bag_type = 0
 	end
-	
+		
 	local bag_color = bag_colors[bag_type]
-    for i = 1, size do
+	for i = 1, size do
 		CityUi.util.gen_backdrop(_G[frame..i], bag_color)
-    end
+	end
 end
 
 local function skin_items(index, frame)
@@ -68,6 +68,7 @@ local function skin_items(index, frame)
         local item = _G[frame..i]
 		local icon = _G[frame..i.."IconTexture"]
 		local count = _G[frame..i.."Count"]
+		local cooldown = _G[frame..i.."Cooldown"]
 		local border = item.IconBorder
 
 		count:SetDrawLayer("OVERLAY")
@@ -81,6 +82,12 @@ local function skin_items(index, frame)
 		icon:SetTexCoord(.1, .9, .1, .9)
 		icon:SetPoint("TOPLEFT", item, "TOPLEFT", 1, -1)
 		icon:SetPoint("BOTTOMRIGHT", item, "BOTTOMRIGHT", -1, 1)
+
+		cooldown:SetAllPoints(icon)
+		cooldown:SetHideCountdownNumbers(false)
+		cooldown:SetDrawEdge(false)
+		cooldown:GetRegions():SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_lrg, CityUi.config.font_flags)
+		cooldown:GetRegions():SetShadowOffset(0, 0)
 
 		local blank = CityUi.media.textures.blank
 		
@@ -110,9 +117,9 @@ local function skin_items(index, frame)
 end
 
 local function make_movable(frame)
-    frame:SetClampedToScreen(true)
-    frame:SetMovable(true)
-    frame:SetUserPlaced(true)
+	frame:SetClampedToScreen(true)
+	frame:SetMovable(true)
+	frame:SetUserPlaced(true)
 	frame:EnableMouse(true)
 	frame:RegisterForDrag("LeftButton")
 end
