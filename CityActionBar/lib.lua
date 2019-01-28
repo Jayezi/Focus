@@ -7,7 +7,13 @@ local CityUi = CityUi
 local skin_textures = function(button, icon, normal)
 
 	icon:SetDrawLayer("OVERLAY", -8)
-	icon:SetTexCoord(.1, .9, .1, .9)
+	
+	if button.short then
+		icon:SetTexCoord(0.1, 0.9, 0.23, 0.77)
+	else
+		icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+	end
+
 	icon:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
 	icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
 
@@ -86,10 +92,10 @@ lib.style_action = function(button)
 	text_overlay:SetFrameStrata("TOOLTIP")
 
 	count:SetDrawLayer("OVERLAY", 7)
-	count:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+	count:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_lrg, CityUi.config.font_flags)
 	count:ClearAllPoints()
 	count:SetParent(text_overlay)
-	count:SetPoint("TOPLEFT", -1, 3)
+	count:SetPoint("TOPLEFT", icon, "TOPLEFT", -3, 6)
 	count:SetJustifyH("LEFT")
 	count:SetJustifyV("TOP")
 
@@ -98,22 +104,23 @@ lib.style_action = function(button)
 		hotkey:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
 		hotkey:ClearAllPoints()
 		hotkey:SetParent(text_overlay)
-		hotkey:SetPoint("TOPRIGHT", 0, 1)
-		hotkey:SetPoint("TOPLEFT", count, "TOPRIGHT", 3, 0)
+		hotkey:SetPoint("BOTTOMLEFT", 3, -1)
+		hotkey:SetPoint("BOTTOMRIGHT", 4, -1)
 		hotkey:SetJustifyH("RIGHT")
-		hotkey:SetJustifyV("TOP")
+		hotkey:SetJustifyV("BOTTOM")
 	end
 
 	if macro then
-		macro:SetDrawLayer("OVERLAY", 7)
-		macro:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_sml, CityUi.config.font_flags)
-		macro:SetShadowOffset(0, 0)
-		macro:ClearAllPoints()
-		macro:SetParent(text_overlay)
-		macro:SetPoint("BOTTOMLEFT", 0, -1)
-		macro:SetPoint("BOTTOMRIGHT", 0, -1)
-		macro:SetJustifyH("LEFT")
-		macro:SetJustifyV("BOTTOM")
+		macro:Hide()
+		-- macro:SetDrawLayer("OVERLAY", 7)
+		-- macro:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_sml, CityUi.config.font_flags)
+		-- macro:SetShadowOffset(0, 0)
+		-- macro:ClearAllPoints()
+		-- macro:SetParent(text_overlay)
+		-- macro:SetPoint("BOTTOMLEFT", 0, -1)
+		-- macro:SetPoint("BOTTOMRIGHT", 0, -1)
+		-- macro:SetJustifyH("LEFT")
+		-- macro:SetJustifyV("BOTTOM")
 	end
 
 	cooldown:SetAllPoints(icon)

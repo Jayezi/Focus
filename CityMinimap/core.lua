@@ -122,6 +122,18 @@ ObjectiveTrackerFrame.SetPoint = function(self)
 end
 ObjectiveTrackerFrame:SetHeight(500)
 
+DurabilityFrame:ClearAllPoints()
+DurabilityFrame.oldSetPoint = DurabilityFrame.SetPoint
+DurabilityFrame.SetPoint = function(self) 
+	self:oldSetPoint("BOTTOMRIGHT", MinimapCluster, "BOTTOMLEFT", -20, 5)
+end
+
+VehicleSeatIndicator:ClearAllPoints()
+VehicleSeatIndicator.oldSetPoint = VehicleSeatIndicator.SetPoint
+VehicleSeatIndicator.SetPoint = function(self) 
+	self:oldSetPoint("TOPRIGHT", MinimapCluster, "BOTTOMLEFT", -20, -5)
+end
+
 style_children(ObjectiveTrackerBlocksFrame)
 
 Minimap:EnableMouseWheel(true)

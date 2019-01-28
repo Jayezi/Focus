@@ -188,6 +188,10 @@ local function create_nameplate_style(base)
 		if debuffType == "" or debuffType == "Magic" then
 			return true
 		end
+
+		if cfg.nameplate_buff_whitelist[spellID] then
+			return true
+		end
 	
 		return false
 	end

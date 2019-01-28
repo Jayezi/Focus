@@ -11,11 +11,13 @@ BACKPACK_HEIGHT = 22
 
 local config = {
 	size = 45,
+	bag_size = 30,
 	spacing = 5,
 	bpr = 12,
 	backdrop_color = {.1, .1, .1, .7},
 	pressed = {.3, .3, .3, .5},
 	highlight = {.6, .6, .6, .3},
+	quest = {1, 1, 0, 1},
 	backdrop = {
 		bgFile = "Interface\\Buttons\\WHITE8x8",
 		edgeFile = "Interface\\Buttons\\WHITE8x8", 
@@ -35,6 +37,14 @@ local function strip_textures(object, keep_strings)
 			region:Hide()
 		end
 	end
+end
+
+local function make_movable(frame)
+	frame:SetClampedToScreen(true)
+	frame:SetMovable(true)
+	frame:SetUserPlaced(true)
+	frame:EnableMouse(true)
+	frame:RegisterForDrag("LeftButton")
 end
 
 local bag_colors = {
@@ -70,6 +80,8 @@ local function skin_items(index, frame)
 		local count = _G[frame..i.."Count"]
 		local cooldown = _G[frame..i.."Cooldown"]
 		local border = item.IconBorder
+		local new = item.NewItemTexture
+		local quest = _G[frame..i.."IconQuestTexture"]
 
 		count:SetDrawLayer("OVERLAY")
 		CityUi.util.fix_string(count, CityUi.config.font_size_med)
@@ -91,6 +103,11 @@ local function skin_items(index, frame)
 
 		local blank = CityUi.media.textures.blank
 		
+		if new then
+			new.Show = function() return end
+			new:Hide()
+		end
+		
 		local pushed = item:GetPushedTexture()
 		pushed:SetDrawLayer("OVERLAY", -7)
 		pushed:SetAllPoints(icon)
@@ -102,32 +119,25 @@ local function skin_items(index, frame)
 		highlight:SetTexture(blank)
 		highlight:SetVertexColor(unpack(config.highlight))
 
-		hooksecurefunc(border, "SetTexture", function(self, tex)
-			if tex ~= blank then
-				self:SetTexture(blank)
-			end
-		end)
 		border:SetTexture(blank)
-
+		border.SetTexture = function() return end
 		border:SetAllPoints(item)
 		border:SetDrawLayer("BORDER", 7)
+
+		if (quest) then
+			quest:SetVertexColor(unpack(config.quest))
+			quest:SetAllPoints(icon)
+			quest:SetTexCoord(.1, .9, .1, .9)
+		end
 
         item:SetNormalTexture("")
     end
 end
 
-local function make_movable(frame)
-	frame:SetClampedToScreen(true)
-	frame:SetMovable(true)
-	frame:SetUserPlaced(true)
-	frame:EnableMouse(true)
-	frame:RegisterForDrag("LeftButton")
-end
-
 local function create(name, ...)
 
 	local frame = CreateFrame("Frame", "CityBag"..name, UIParent)
-	frame:SetWidth(((config.size + config.spacing) * config.bpr) + 30 - config.spacing)
+	frame:SetWidth(((config.size + config.spacing) * config.bpr) + 20 - config.spacing)
 	frame:SetPoint(...)
 	frame:SetFrameStrata("HIGH")
 	frame:SetFrameLevel(2)
@@ -142,12 +152,8 @@ local function create(name, ...)
 		local last_bag
 		for i = 1, 7 do
 			bag = BankSlotsFrame["Bag"..i]
-			local highlight = bag.HighlightFrame.HighlightTexture
-			local icon = bag.icon
-
-			bag:SetParent(frame)
 			bag:ClearAllPoints()
-			bag:SetSize(25, 25)
+			bag:SetSize(config.bag_size, config.bag_size)
 
 			if last_bag then
 				bag:SetPoint("LEFT", last_bag, "RIGHT", config.spacing, 0)
@@ -156,6 +162,7 @@ local function create(name, ...)
 			end
 			last_bag = bag
 
+			local icon = bag.icon
 			icon:SetTexCoord(.1, .9, .1, .9)
 			icon:SetPoint("TOPLEFT", bag, 1, -1)
 			icon:SetPoint("BOTTOMRIGHT", bag, -1, 1)
@@ -163,10 +170,7 @@ local function create(name, ...)
 			bag:SetNormalTexture("")
 			bag:SetPushedTexture("")
 			bag:SetHighlightTexture("")
-
-			if highlight then
-				highlight:SetTexture("")
-			end
+			bag:SetCheckedTexture("");
 			
 			local blank = CityUi.media.textures.blank
 			local border = bag.IconBorder
@@ -187,9 +191,6 @@ local function skin_edit_box(frame)
 	frame.Left:Hide()
 	frame.Middle:Hide()
 	frame.Right:Hide()
-	
-	frame:SetFrameStrata("HIGH")
-	frame:SetFrameLevel(2)
 	frame:SetSize(150, 20)
 	
 	CityUi.util.gen_backdrop(frame)
@@ -213,25 +214,21 @@ hooksecurefunc("ContainerFrame_Update", function(frame)
 	local id = frame:GetID()
 
 	if id == 1 then
-		BagItemSearchBox:SetParent(backpack)
 		BagItemSearchBox:ClearAllPoints()
-		BagItemSearchBox:SetPoint("TOPRIGHT", backpack, "TOPRIGHT", -5, -5)
+		BagItemSearchBox:SetPoint("TOPRIGHT", backpack, "TOPRIGHT", -10, -10)
 		
-		BagItemAutoSortButton:SetParent(backpack)
 		BagItemAutoSortButton:ClearAllPoints()
-		BagItemAutoSortButton:SetPoint("TOPLEFT", backpack, "TOPLEFT", 5, -5)
+		BagItemAutoSortButton:SetPoint("TOPLEFT", backpack, "TOPLEFT", 10, -10)
 
-		BankItemSearchBox:SetParent(bank)
 		BankItemSearchBox:ClearAllPoints()
-		BankItemSearchBox:SetPoint("TOPRIGHT", bank, "TOPRIGHT", -5, -5)
+		BankItemSearchBox:SetPoint("TOPRIGHT", bank, "TOPRIGHT", -10, -10)
 
-		BankItemAutoSortButton:SetParent(bank)
 		BankItemAutoSortButton:ClearAllPoints()
 		BankItemAutoSortButton:SetPoint("TOPRIGHT", BankItemSearchBox, "TOPLEFT", -5, 0)
 	end
 end)
 
-SetSortBagsRightToLeft(false)
+SetSortBagsRightToLeft(true)
 SetInsertItemsLeftToRight(false)
 
 skin_edit_box(BagItemSearchBox)
@@ -239,8 +236,6 @@ skin_edit_box(BankItemSearchBox)
 
 for i = 1, 3 do
 	local frame = _G["BackpackTokenFrameToken"..i]
-	frame:SetFrameStrata("HIGH")
-	frame:SetFrameLevel(5)
 	frame:SetSize(75, 20)
 
 	local icon = _G["BackpackTokenFrameToken"..i.."Icon"]
@@ -295,7 +290,7 @@ local function set_bank(show)
 			item:Show()
 			
 			if (not last_item) then
-				item:SetPoint("TOPLEFT", bank, "TOPLEFT", 15, -45)
+				item:SetPoint("TOPLEFT", bank, "TOPLEFT", 10, -45)
 				last_row_first_item = item
 				num_items = num_items + 1
 			elseif num_items == config.bpr then
@@ -334,6 +329,61 @@ local function set_bank(show)
 			end
 		end
 		bank:SetHeight(((config.size + config.spacing) * (num_rows + 1) + 100) - config.spacing)
+
+		BankFrame:EnableMouse(false)
+		BankFrame:SetFrameStrata("HIGH")
+		BankFrame:SetFrameLevel(3)
+		BankSlotsFrame:EnableMouse(false)
+
+		BankPortraitTexture:Hide()
+		BankFrameCloseButton:Hide()
+		BankFrameMoneyFrame:Hide()
+		BankFrameMoneyFrameInset:Hide()
+		BankFrameMoneyFrameBorder:Hide()
+		BankFrameMoneyFrame:Hide()
+		strip_textures(BankFrame)
+		strip_textures(BankSlotsFrame)
+		strip_textures(ReagentBankFrame)
+		BankFrame.NineSlice:Hide()
+		ReagentBankFrame:DisableDrawLayer("BACKGROUND")
+		ReagentBankFrame:DisableDrawLayer("ARTWORK")
+
+		BankFrameTab1Text:ClearAllPoints()
+		BankFrameTab2Text:ClearAllPoints()
+
+		BankFrameTab1:SetPoint("TOPLEFT", bank, "TOPLEFT", 10, -10)
+		BankFrameTab2:SetPoint("LEFT", BankFrameTab1Text, "RIGHT", 10, 0)
+
+		BankFrameTab1:SetSize(50, 20)
+		BankFrameTab2:SetSize(125, 20)
+
+		BankFrameTab1Text:SetJustifyH("CENTER")
+		BankFrameTab2Text:SetJustifyH("MIDDLE")
+		BankFrameTab1Text:SetJustifyV("CENTER")
+		BankFrameTab2Text:SetJustifyV("MIDDLE")
+
+		BankFrameTab1Text:SetAllPoints(BankFrameTab1)
+		BankFrameTab2Text:SetAllPoints(BankFrameTab2)
+
+		CityUi.util.fix_string(BankFrameTab1Text, CityUi.config.font_size_med)
+		CityUi.util.fix_string(BankFrameTab2Text, CityUi.config.font_size_med)
+
+		strip_textures(BankFrameTab1, true)
+		strip_textures(BankFrameTab2, true)
+
+		strip_textures(BankFramePurchaseInfo)
+		BankFrameDetailMoneyFrame:Hide()
+
+		BankFramePurchaseButton:SetSize(config.bag_size, config.bag_size)
+		BankFramePurchaseButton:ClearAllPoints()
+		BankFramePurchaseButton:SetPoint("LEFT", BankSlotsFrame["Bag7"], "RIGHT", 5, 0)
+		strip_textures(BankFramePurchaseButton, true)
+
+		CityUi.util.fix_string(BankFramePurchaseButtonText, CityUi.config.font_size_med)
+		BankFramePurchaseButtonText:SetAllPoints(BankFramePurchaseButton)
+		BankFramePurchaseButtonText:SetText("+")
+		BankFramePurchaseButtonText:SetJustifyH("CENTER")
+		BankFramePurchaseButtonText:SetJustifyV("MIDDLE")
 	else
 		for index = 1, 28 do
 			_G["BankFrameItem"..index]:Hide()
@@ -348,10 +398,6 @@ local function set_bank(show)
 			end
 		end
 	end
-	
-	if (show) then
-		ReagentBankFrame:SetFrameLevel(bank:GetFrameLevel() - 1)
-	end
 end
 
 local function set_reagents(show)
@@ -365,7 +411,7 @@ local function set_reagents(show)
 		item:Show()
 
 		if (not last_item) then
-			item:SetPoint("TOPLEFT", bank, "TOPLEFT", 15, -45)
+			item:SetPoint("TOPLEFT", bank, "TOPLEFT", 10, -45)
 			last_row_first_item = item
 			num_items = num_items + 1
 		elseif num_items == config.bpr then
@@ -385,19 +431,20 @@ local function set_reagents(show)
 	skin_items(98, "ReagentBankFrameItem")
 
 	local deposit = ReagentBankFrame:GetChildren()
+	deposit:SetSize(150, 20)
+	deposit:ClearAllPoints()
+	deposit:SetPoint("BOTTOMRIGHT", bank, "BOTTOMRIGHT", -10, 10)
+	--deposit:SetFrameStrata("HIGH")
+	--deposit:SetFrameLevel(3)
 	strip_textures(deposit, true)
-	ReagentBankFrameText:ClearAllPoints()
-	ReagentBankFrameText:SetPoint("BOTTOMRIGHT", bank, "BOTTOMRIGHT", -10, 10)
+	
 	CityUi.util.fix_string(ReagentBankFrameText, CityUi.config.font_size_med)
-	deposit:SetAllPoints(ReagentBankFrameText)
-	deposit:SetFrameStrata("HIGH")
-	deposit:SetFrameLevel(3)
+	ReagentBankFrameText:SetAllPoints(deposit)
+	ReagentBankFrameText:SetJustifyH("CENTER")
+	ReagentBankFrameText:SetJustifyV("MIDDLE")
 
 	if (show) then
 		bank:SetID(REAGENTBANK_CONTAINER)
-		ReagentBankFrame:SetFrameLevel(bank:GetFrameLevel() + 1)
-	else
-		ReagentBankFrame:SetFrameLevel(bank:GetFrameLevel() - 1)
 	end
 end
 
@@ -409,14 +456,14 @@ local function set_backpack()
 
 		skin_colors(slots, "ContainerFrame"..bag.."Item", bag)
 
-		for index = 1, slots do
+		for index = slots, 1, -1 do
 			local item = _G["ContainerFrame"..bag.."Item"..index]
 			item:ClearAllPoints()
 			item:SetWidth(config.size)
 			item:SetHeight(config.size)
 
 			if (not last_item) then
-				item:SetPoint("TOPLEFT", backpack, "TOPLEFT", 15, -50)
+				item:SetPoint("TOPLEFT", backpack, "TOPLEFT", 10, -50)
 				last_row_first_item = item
 				num_items = num_items + 1
 			elseif num_items == config.bpr then
@@ -437,17 +484,16 @@ local function set_backpack()
 end
 
 function BankFrame_ShowPanel(sidePanelName, selection)
-	local self = BankFrame;
 	local tabIndex;
 	
-	ShowUIPanel(self);
+	ShowUIPanel(BankFrame);
 	for index, data in pairs(BANK_PANELS) do
 		local panel = _G[data.name];
 
 		if data.name == sidePanelName then
 			panel:Show()
 			tabIndex = index;
-			self.activeTabIndex = tabIndex;
+			BankFrame.activeTabIndex = tabIndex;
 			
 			if data.name == "ReagentBankFrame" then
 				set_reagents(true)
@@ -474,60 +520,12 @@ function ContainerFrame_GenerateFrame(frame, size, id)
 	
 	if (id == 0) then
 		set_backpack()
-	elseif (id == 5) then
-		
-		set_bank(true)
-
-		BankFrame:EnableMouse(false)
-		BankSlotsFrame:EnableMouse(false)
-		BankSlotsFrame:SetParent(bank)
-		ReagentBankFrame:SetParent(bank)
-
-		BankPortraitTexture:Hide()
-		BankFrameCloseButton:Hide()
-		BankFrameMoneyFrame:Hide()
-		BankFrameMoneyFrameInset:Hide()
-		BankFrameMoneyFrameBorder:Hide()
-		BankFrameMoneyFrame:Hide()
-		strip_textures(BankFrame)
-		strip_textures(BankSlotsFrame)
-		strip_textures(ReagentBankFrame)
-		ReagentBankFrame:DisableDrawLayer("BACKGROUND")
-		ReagentBankFrame:DisableDrawLayer("ARTWORK")
-
-		BankFrameTab1:SetParent(bank)
-		BankFrameTab2:SetParent(bank)
-
-		BankFrameTab1Text:ClearAllPoints()
-		BankFrameTab2Text:ClearAllPoints()
-
-		BankFrameTab1Text:SetPoint("TOPLEFT", bank, "TOPLEFT", 10, -10)
-		BankFrameTab2Text:SetPoint("LEFT", BankFrameTab1Text, "RIGHT", 10, 0)
-
-		BankFrameTab1Text:SetSize(50, 20)
-		BankFrameTab2Text:SetSize(125, 20)
-
-		BankFrameTab1Text:SetJustifyH("LEFT")
-		BankFrameTab2Text:SetJustifyH("LEFT")
-		BankFrameTab1Text:SetJustifyV("TOP")
-		BankFrameTab2Text:SetJustifyV("TOP")
-
-		BankFrameTab1:SetAllPoints(BankFrameTab1Text)
-		BankFrameTab2:SetAllPoints(BankFrameTab2Text)
-
-		CityUi.util.fix_string(BankFrameTab1Text, CityUi.config.font_size_med)
-		CityUi.util.fix_string(BankFrameTab2Text, CityUi.config.font_size_med)
-
-		strip_textures(BankFrameTab1, true)
-		strip_textures(BankFrameTab2, true)
 	end
 
-	for i = 1, 12 do
-		local frame = _G['ContainerFrame'..i]
-		frame:SetFrameStrata("HIGH")
-		frame:SetFrameLevel(3)
-		frame:EnableMouse(false)
-	end
+	local frame = _G['ContainerFrame'..id+1]
+	frame:SetFrameStrata("HIGH")
+	frame:SetFrameLevel(3)
+	frame:EnableMouse(false)
 end
 
 ContainerFrame1Item1:HookScript("OnShow", function() backpack:Show() end)

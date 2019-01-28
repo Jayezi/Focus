@@ -54,19 +54,21 @@ cfg.bars = {
 		rows = 2,
 		scale = 1,
 		buttons = {
-			size = 50,
+			size = 60,
 			margin = 2,
 		},
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 196},
+		short = true,
+		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 200},
 	},
 	MultiBarRightButton = {
 		rows = 2,
 		scale = 1,
 		buttons = {
-			size = 50,
+			size = 60,
 			margin = 2,
 		},
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 300},
+		short = true,
+		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 284},
 	},
 	stance = {
 		scale = 1,

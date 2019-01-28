@@ -157,8 +157,9 @@ do
 				button:SetScale(1 / cfg.bars.main.scale)
 			end
 			
+			button.short = bar_cfg.short
 			button:ClearAllPoints()
-			button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.size)
+			button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.size * (button.short and (2 / 3) or 1))
 			
 			if i == 1 then
 				button:SetPoint("TOPLEFT", frame)
@@ -180,7 +181,41 @@ do
 	end
 end
 
-hooksecurefunc(getmetatable(ActionButton1Cooldown).__index, 'SetCooldown', function(self, start, duration)
+local old_ActionButton_SetTooltip = ActionButton_SetTooltip;
+
+ActionButton_SetTooltip = function(self)
+	old_ActionButton_SetTooltip(self)
+
+	local button_type = self.buttonType
+	local action = self.action
+	local id
+
+	if ( not button_type ) then
+        button_type = "ACTIONBUTTON";
+		id = self:GetID();
+	else
+		if ( button_type == "MULTICASTACTIONBUTTON" ) then
+			id = self.buttonIndex;
+		else
+			id = self:GetID();
+		end
+	end
+
+	local name = GetActionText(action)
+	
+	local key1, key2 = GetBindingKey(button_type..id)
+	local key = key2 or key1
+	local bind = GetBindingText(key, 1)
+
+	if (name and not (name == "") or bind and not (bind == "")) then
+		GameTooltip:AddLine(" ")
+		if (name and not (name == "")) then GameTooltip:AddLine(name, 1, 1, 1) end
+		if (bind and not (bind == "")) then GameTooltip:AddLine(bind, 1, 1, 1) end
+		GameTooltip:Show()
+	end
+end
+
+hooksecurefunc(getmetatable(ActionButton1Cooldown).__index, 'SetCooldown', function(self, start, duration, modRate)
 	if self:GetDebugName():find("ChargeCooldown") then
 		self:SetHideCountdownNumbers(false)
 		self:SetDrawEdge(false)

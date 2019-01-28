@@ -106,7 +106,7 @@ hooksecurefunc(BuffFrame, "SetPoint", function(self)
 end)
 
 hooksecurefunc(GameTooltip, "SetUnitAura", function(self, unit, index, filter)
-	local _, id, _, _, _, _, caster = UnitAura(unit, index, filter)
+	local _, _, _, _, _, _, caster, _, _, id = UnitAura(unit, index, filter)
 	
 	local name = caster and UnitName(caster)
 	if name then

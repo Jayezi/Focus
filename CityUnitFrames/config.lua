@@ -158,8 +158,11 @@ local indicators = {
 config.indicators = indicators[CityUi.player.class]
 
 config.buff_whitelist_pet = {
-	[118455] = true,		--Beast Cleave
 	[136] = true,			--Mend Pet
+}
+
+config.nameplate_buff_whitelist = {
+	[277242] = true,		--Symbiote of G'huun
 }
 
 -- A Buff whitelist mainly usefull for tracking cd durations on the player frame.
@@ -209,6 +212,7 @@ config.buff_whitelist = {
 	[235712] = true,		--Gyroscopic Stabilization
 	[190515] = true,		--Survival of the Fittest
 	[266779] = true,		--Coordinated Assault
+	[259388] = true,		--Mongoose Fury
 
 	-- Monk
 	[137639] = true, 		--Storm, Earth, and Fire
@@ -295,4 +299,5 @@ config.debuff_blacklist = {
 	[36900] = true,			--Soul Split: Evil!
 
 	[249224] = true,		--Chaotic Flames
+	[265206] = true,		--Immunosuppression
 }
