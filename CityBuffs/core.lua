@@ -37,12 +37,12 @@ local style_button = function(button)
 	border:SetAllPoints(button)
 	button.border = border
 
-	button.duration:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+	button.duration:SetFont(CityUi.config.default_font, CityUi.config.font_size_med, CityUi.config.font_flags)
 	button.duration:SetShadowOffset(0, 0)
 	button.duration:ClearAllPoints()
 	button.duration:SetPoint(unpack(cfg.duration_pos))
 
-	button.count:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+	button.count:SetFont(CityUi.config.default_font, CityUi.config.font_size_med, CityUi.config.font_flags)
 	button.count:ClearAllPoints()
 	button.count:SetPoint(unpack(cfg.count_pos))
 

@@ -2,12 +2,13 @@
 -- Global Init ------------------------------------
 ---------------------------------------------------
 
-local CityUi = {}
-_G["CityUi"] = CityUi
+local cui = {}
+CityUi = cui
 
 local player_class = select(2, UnitClass("player"))
 local player_color = RAID_CLASS_COLORS[player_class]
-CityUi.player = {
+
+cui.player = {
 	name = UnitName("player"),
 	class = player_class,
 	color = {player_color.r, player_color.g, player_color.b},
@@ -15,12 +16,12 @@ CityUi.player = {
 	realm = GetRealmName()
 }
 
-CityUi.media = {
+cui.media = {
 	fonts = {
-		pixel_10 = [[Interface\Addons\CityCore\media\fonts\pixel_10.ttf]],
 		role_symbols = [[Interface\Addons\CityCore\media\fonts\role_symbols.ttf]],
+		gotham_thicc = [[Interface\Addons\CityCore\media\fonts\gotham_thicc.ttf]],
+		gotham_burly = [[Interface\Addons\CityCore\media\fonts\gotham_burly.ttf]],
 		gotham_ultra = [[Interface\Addons\CityCore\media\fonts\gotham_ultra.ttf]],
-		gotham_narrow_bold = [[Interface\Addons\CityCore\media\fonts\gotham_narrow_bold.ttf]]
 	},
 
 	textures = {
@@ -33,87 +34,84 @@ local frame_border_color = CreateColor(0, 0, 0, 1)
 local tooltip_frame_border_color = CreateColor(.5, .5, .5, 1)
 local azerite_frame_border_color = CreateColor(.5, .5, 0, 1)
 
-CityUi.config = {
+cui.config = {
+	default_font = cui.media.fonts.gotham_ultra,
 	font_size_sml = 10,
 	font_size_med = 15,
 	font_size_lrg = 20,
 	font_size_big = 30,
-	font_flags = "THINOUTLINE,MONOCHROME",
+	font_flags = "THINOUTLINE",
 	frame_background = {.15, .15, .15, 1},
-    frame_background_light = {.3, .3, .3, 1},
+	frame_background_light = {.3, .3, .3, 1},
+	frame_background_transparent = {.15, .15, .15, .6},
 	frame_border = {0, 0, 0, 1},
 	frame_backdrop = {
-		bgFile = CityUi.media.textures.blank,
-		edgeFile = CityUi.media.textures.blank,
+		bgFile = cui.media.textures.blank,
+		edgeFile = cui.media.textures.blank,
 		tile = false,
 		tileSize = 0,
 		edgeSize = 1,
 		insets = {left = 0, right = 0, top = 0, bottom = 0},
 
-		backdropBorderColor = frame_border_color,
-		backdropColor = frame_background_color
+		backdropColor = frame_background_color,
+		backdropBorderColor = frame_border_color
 	},
 
-	-- Adjusts scaling for pixel perfect measurements.
-	ui_scale = 768 / select(2, GetPhysicalScreenSize()),
-	frame_positions = {
-		player =		{"TOPRIGHT", "BOTTOM", -200, 400},
-		target =		{"TOPLEFT", "BOTTOM", 200, 400},
-		tank =          {"TOPLEFT", "CENTER", 0, 0},
-	    focus =         {"TOPLEFT", "CENTER", 0, 0},
-	    party =         {"TOPLEFT", "CENTER", 0, 0},
-	    boss =          {"TOPLEFT", "CENTER", 0, 0},
-	    raid =			{"TOPLEFT", "CENTER", 0, 0},
-    }
+	ui_scale = PixelUtil.GetPixelToUIUnitFactor(),
 }
 
-CityUi.util = {
+-- filled as needed
+local mover_frames = {}
+-- exists after ADDON_LOADED
+local saved_positions
+
+cui.util = {
 
     gen_statusbar = function(parent, w, h, fg_color, bg_color)
         local bar = CreateFrame("StatusBar", nil, parent)
-	    bar:SetStatusBarTexture(CityUi.media.textures.blank)
-        bar:SetSize(w, h)
-        if fg_color then bar:SetStatusBarColor(unpack(fg_color)) end
-
-        bar.border = bar:CreateTexture(nil, "BACKGROUND", nil, -8)
-        bar.border:SetTexture(CityUi.media.textures.blank)
-        bar.border:SetVertexColor(unpack(CityUi.config.frame_border))
-	    bar.border:SetPoint("TOPLEFT", -1, 1)
-        bar.border:SetPoint("BOTTOMRIGHT", 1, -1)
-
-        bar.backdrop = bar:CreateTexture(nil, "BACKGROUND", nil, -7)
-	    bar.backdrop:SetTexture(CityUi.media.textures.blank)
-	    bar.backdrop:SetAllPoints()
+		bar:SetSize(w, h)
+	    bar:SetStatusBarTexture(cui.media.textures.blank)
+		bar:SetBackdrop(cui.config.frame_backdrop)
+		bar:GetStatusBarTexture():SetDrawLayer("BORDER", -1);
+		bar:SetBackdropBorderColor(unpack(cui.config.frame_border))
+		
+		if fg_color then
+			bar:SetStatusBarColor(unpack(fg_color))
+		end
 
         if bg_color then
-            bar.backdrop:SetVertexColor(unpack(bg_color))
+            bar:SetBackdropColor(unpack(bg_color))
         else
-            bar.backdrop:SetVertexColor(unpack(CityUi.config.frame_background))
+            bar:SetBackdropColor(unpack(cui.config.frame_background))
         end
 
         return bar
     end,
 
 	gen_backdrop = function(frame, ...)
-		frame:SetBackdrop(CityUi.config.frame_backdrop)
-		frame:SetBackdropBorderColor(unpack(CityUi.config.frame_border))
+		frame:SetBackdrop(cui.config.frame_backdrop)
+		frame:SetBackdropBorderColor(unpack(cui.config.frame_border))
 		if (...) then
 			frame:SetBackdropColor(...)
 		else
-			frame:SetBackdropColor(unpack(CityUi.config.frame_background))
+			frame:SetBackdropColor(unpack(cui.config.frame_background))
 		end
 	end,
 
     gen_border = function(frame, ...)
-		frame:SetBackdrop(CityUi.config.frame_backdrop)
-        frame:SetBackdropColor({0, 0, 0, 0})
-        frame:SetBackdropBorderColor(unpack(CityUi.config.frame_border))
+		frame:SetBackdrop(cui.config.frame_backdrop)
+		frame:SetBackdropColor({0, 0, 0, 0})
+		if (...) then
+			frame:SetBackdropBorderColor(...)
+		else
+			frame:SetBackdropBorderColor(cui.config.frame_border)
+		end
 	end,
 
 	gen_backdrop_borderless = function(frame, h, ...)
 		frame:SetBackdrop({
-			bgFile = CityUi.media.textures.blank,
-			edgeFile = CityUi.media.textures.blank,
+			bgFile = cui.media.textures.blank,
+			edgeFile = cui.media.textures.blank,
 			tile = false,
 			tileSize = 0,
 			edgeSize = h / 2,
@@ -123,19 +121,19 @@ CityUi.util = {
 			frame:SetBackdropColor(...)
 			frame:SetBackdropBorderColor(...)
 		else
-			frame:SetBackdropColor(unpack(CityUi.config.frame_background))
-			frame:SetBackdropBorderColor(unpack(CityUi.config.frame_background))
+			frame:SetBackdropColor(unpack(cui.config.frame_background))
+			frame:SetBackdropBorderColor(unpack(cui.config.frame_background))
 		end
 	end,
 
 	fix_string = function(fs, size, flags, font)
-		fs:SetFont(font or CityUi.media.fonts.pixel_10, size, flags or CityUi.config.font_flags)
+		fs:SetFont(font or cui.config.default_font, size, flags or cui.config.font_flags)
 		fs:SetShadowOffset(0, 0)
 	end,
 
-	gen_string = function(parent, size, flags, font, h_justify, v_justify)
-		local string = parent:CreateFontString(nil, "OVERLAY")
-		string:SetFont(font or CityUi.media.fonts.pixel_10, size, flags or CityUi.config.font_flags)
+	gen_string = function(parent, size, flags, font, h_justify, v_justify, name)
+		local string = parent:CreateFontString(name, "OVERLAY")
+		string:SetFont(font or cui.config.default_font, size, flags or cui.config.font_flags)
         if h_justify then
 			if h_justify == "MIDDLE" then h_justify = "CENTER" end
 			string:SetJustifyH(h_justify)
@@ -167,139 +165,176 @@ CityUi.util = {
 		frame:Show()
 		return frame
 	end,
+
+	to_tl_anchor = function(frame, point)
+		local frame_w, frame_h = frame:GetSize()
+		local screen_w, screen_h = GetPhysicalScreenSize()
+		local from, parent, to, x, y = unpack(point)
+
+		if type(parent) == "table" then
+			parent = parent:GetName()
+		end
+
+		local new_y = y
+		if strfind(to, "BOTTOM") then
+			new_y = new_y - screen_h
+		elseif not strfind(to, "TOP") then
+			new_y = new_y - screen_h / 2
+		end
+
+		if strfind(from, "BOTTOM") then
+			new_y = new_y + frame_h
+		elseif not strfind(from, "TOP") then
+			new_y = new_y + frame_h / 2
+		end
+
+		new_y = Round(new_y)
+
+		local new_x = x
+		if strfind(to, "RIGHT") then
+			new_x = new_x + screen_w
+		elseif not strfind(to, "LEFT") then
+			new_x = new_x + screen_w / 2
+		end
+
+		if strfind(from, "RIGHT") then
+			new_x = new_x - frame_w
+		elseif not strfind(from, "LEFT") then
+			new_x = new_x - frame_w / 2
+		end
+
+		new_x = Round(new_x)
+
+		return "TOPLEFT", parent, "TOPLEFT", new_x, new_y
+	end,
+
+	b_to_bl_anchor = function(frame, point)
+		local diff = frame:GetWidth() / 2
+		local base = select(1, GetPhysicalScreenSize()) / 2
+		local new_point = math.floor(base - diff + point[4] + .5)
+		return {"BOTTOMLEFT", point[2], "BOTTOMLEFT", new_point, point[5]}
+	end,
+
+	set_inside = function(inner, outer, inset)
+		inner:ClearAllPoints()
+		inner:SetPoint("TOPLEFT", outer, "TOPLEFT", inset or 1, inset and -inset or -1)
+		inner:SetPoint("BOTTOMRIGHT", outer, "BOTTOMRIGHT", inset and -inset or -1, inset or 1)
+	end,
+
+	get_mover_frame = function(name, default_pos)
+		local frame_name = "City"..name.."Mover"
+		local mover_frame = CreateFrame("Frame", frame_name, UIParent)
+	
+		local pos = saved_positions and saved_positions[name]
+		if pos then
+			mover_frame:SetPoint(unpack(pos))
+		elseif default_pos then
+			mover_frame:SetPoint(unpack(default_pos))
+		end
+	
+		mover_frame:SetSize(200, 50)
+		mover_frame:SetFrameStrata("TOOLTIP")
+		mover_frame:SetFrameLevel(20)
+		mover_frame:SetClampedToScreen(true)
+		mover_frame:SetMovable(true)
+		mover_frame:EnableMouse(true)
+	
+		mover_frame:SetScript("OnMouseDown", function(self, click)
+			if click == "LeftButton" and not self.isMoving then
+				self:StartMoving()
+				self.isMoving = true
+			end
+		end)
+	
+		mover_frame:SetScript("OnMouseUp", function(self, click)
+			if click == "LeftButton" and self.isMoving then
+				self:StopMovingOrSizing()
+				self:SetUserPlaced(false)
+				self.isMoving = false
+			end
+		end)
+	
+		mover_frame:SetScript("OnHide", function(self)
+			if ( self.isMoving ) then
+				self:StopMovingOrSizing()
+				self:SetUserPlaced(false)
+				self.isMoving = false
+			end
+		end)
+	
+		cui.util.gen_backdrop(mover_frame)
+	
+		local note = cui.util.gen_string(mover_frame, cui.config.font_size_med)
+		note:SetPoint("CENTER")
+		note:SetText(name)
+	
+		mover_frame:Hide()
+		mover_frames[name] = mover_frame
+	
+		return mover_frame
+	end
 }
 
-CityUi.event_manager = CreateFrame("Frame")
-CityUi.event_manager.events = {}
-CityUi.register_event = function(self, event, func)
-	if not self.event_manager.events[event] then self.event_manager.events[event] = {} end
-	table.insert(self.event_manager.events[event], func)
-	if not self.event_manager:IsEventRegistered(event) then
-		self.event_manager:RegisterEvent(event)
-	end
-end
-
-CityUi.event_manager:SetScript("OnEvent", function(self, event, ...)
-	local funcs = self.events[event]
-	if funcs then
-		for _, func in pairs(funcs) do
-			func(...)
-		end
-	end
-end)
-
----------------------------------------------------
--- UnitFrame Config -------------------------------
----------------------------------------------------
-
--- Loads the placement frames on startup and uses default values for positioning if not previously dragged.
--- Otherwise loads the position from CityFramePositions.
--- Frames will later be anchored to the top-left of these placement frames.
-CityUi:register_event("ADDON_LOADED", function(addon)
+local load_frame = CreateFrame("Frame")
+load_frame:RegisterEvent("ADDON_LOADED")
+load_frame:SetScript("OnEvent", function(self, event, addon)
 	if addon == "CityCore" then
 		if not CityFrameRole then CityFrameRole = {} end
-		if not CityFrameRole[CityUi.player.realm] then CityFrameRole[CityUi.player.realm] = {} end
-		if not CityFrameRole[CityUi.player.realm][CityUi.player.name] then CityFrameRole[CityUi.player.realm][CityUi.player.name] = "DAMAGER" end
-		print("Loaded role: "..CityFrameRole[CityUi.player.realm][CityUi.player.name])
+		if not CityFrameRole[cui.player.realm] then CityFrameRole[cui.player.realm] = {} end
+		if not CityFrameRole[cui.player.realm][cui.player.name] then CityFrameRole[cui.player.realm][cui.player.name] = "dps" end
+		print("Loaded role: "..CityFrameRole[cui.player.realm][cui.player.name])
 
 		if not CityFramePositions then CityFramePositions = {} end
-		if not CityFramePositions[CityUi.player.realm] then CityFramePositions[CityUi.player.realm] = {} end
-		if not CityFramePositions[CityUi.player.realm][CityUi.player.name] then
-			CityFramePositions[CityUi.player.realm][CityUi.player.name] = CopyTable(CityUi.config.frame_positions)
-		end
-		local player_positions = CityFramePositions[CityUi.player.realm][CityUi.player.name]
-
-		CityFrameList = {}
-
-		for name, position in pairs(player_positions) do
-
-			local temp_frame = CreateFrame("Frame", nil, UIParent)
-			temp_frame:SetFrameStrata("HIGH")
-			temp_frame.name = name
-			CityUi.util.gen_backdrop(temp_frame)
-
-			local note = CityUi.util.gen_string(temp_frame, CityUi.config.font_size_med)
-			note:SetPoint("CENTER")
-			note:SetText(name)
-
-			if not player_positions[name] then player_positions[name] = CityUi.config.frame_positions[name] end
-			local point = player_positions[name]
-			temp_frame:SetPoint(point[1], UIParent, point[2], point[3], point[4])
-			temp_frame:SetSize(200, 30)
-			temp_frame:EnableMouse(true)
-			temp_frame:SetMovable(true)
-			temp_frame:RegisterForDrag("LeftButton")
-			
-            temp_frame:SetScript("OnDragStart", function(self)
-				self:StartMoving()
-			end)
-
-			temp_frame:SetScript("OnDragStop", function(self)
-				self:StopMovingOrSizing()
-				local frame_pos = {self:GetPoint()}
-				player_positions[self.name] = {frame_pos[1], frame_pos[3], frame_pos[4], frame_pos[5]}
-			end)
-			
-            CityFrameList[name] = {CityUi.config.frame_positions[name][1], temp_frame}
-			temp_frame:Hide()
+		if not CityFramePositions[cui.player.realm] then CityFramePositions[cui.player.realm] = {} end
+		if not CityFramePositions[cui.player.realm][cui.player.name] then CityFramePositions[cui.player.realm][cui.player.name] = {} end
+		
+		-- position any added movable frames that have been positioned before
+		saved_positions = CityFramePositions[cui.player.realm][cui.player.name]
+		for name, frame in pairs(mover_frames) do
+			if saved_positions[name] then
+				frame:ClearAllPoints()
+				frame:SetPoint(cui.util.to_tl_anchor(frame, saved_positions[name]))
+			end
 		end
 	end
 end)
 
--- Hide the positioning frames.
+-- hide mover frames and save positions
 SLASH_LOCKFRAMES1 = "/lockframes"
 SlashCmdList.LOCKFRAMES = function()
-	local list = CityFrameList
-	if list then
-		for _, frame in pairs(CityFrameList) do
-			frame[2]:Hide()
-			if (frame[2].child and frame[2].child.test_frame) then frame[2].child.test_frame(false) end
-		end
+	for name, frame in pairs(mover_frames) do
+		frame:Hide()
+		saved_positions[name] = {cui.util.to_tl_anchor(frame, {frame:GetPoint()})}
 	end
 end
 
--- Show the positioning frames.
+-- TODO hide on combat
+-- show mover frames
 SLASH_MOVEFRAMES1 = "/moveframes"
 SlashCmdList.MOVEFRAMES = function()
-	local list = CityFrameList
-	if list then
-		for _, frame in pairs(CityFrameList) do
-			frame[2]:Show()
-			if (frame[2].child and frame[2].child.test_frame) then frame[2].child.test_frame(true) end
-		end
-	end
-end
-
--- Reset positioning frames.
-SLASH_RESETFRAMES1 = "/resetframes"
-SlashCmdList.RESETFRAMES = function()
-	local list = CityFrameList
-	if list then
-		for name, frame in pairs(CityFrameList) do
-			point = CityUi.config.frame_positions[name]
-			frame[2]:SetPoint(point[1], UIParent, point[2], point[3], point[4])
-		end
+	for name, frame in pairs(mover_frames) do
+		frame:Show()
 	end
 end
 
 SLASH_RELOADUI1 = "/rl"
 SlashCmdList.RELOADUI = ReloadUI
 
--- Command to change roles for raid frame sizes.
+-- change roles for raid frames
 SLASH_ROLE1 = "/role"
 SlashCmdList.ROLE = function(arg)
-	if arg == "dps" or arg == "tank" then
-		CityFrameRole[CityUi.player.realm][CityUi.player.name] = "DAMAGER"
+	if arg == "dps" then
+		CityFrameRole[cui.player.realm][cui.player.name] = "dps"
 		print("/rl for changes to take effect")
-		print(CityFrameRole[CityUi.player.realm][CityUi.player.name])
+		print(CityFrameRole[cui.player.realm][cui.player.name])
 	elseif arg == "healer" then
-		CityFrameRole[CityUi.player.realm][CityUi.player.name] = "HEALER"
+		CityFrameRole[cui.player.realm][cui.player.name] = "healer"
 		print("/rl for changes to take effect")
-		print(CityFrameRole[CityUi.player.realm][CityUi.player.name])
+		print(CityFrameRole[cui.player.realm][cui.player.name])
 	elseif arg == "current" then
-		print(CityFrameRole[CityUi.player.realm][CityUi.player.name])
+		print(CityFrameRole[cui.player.realm][cui.player.name])
 	else
-		print("/role (dps, tank, healer, current)")
+		print("/role (dps, healer, current)")
 	end
 end
 
@@ -314,9 +349,9 @@ combatlog_checker:SetHeight(150)
 combatlog_checker:SetWidth(300)
 combatlog_checker:SetFrameStrata("HIGH")
 combatlog_checker:RegisterForClicks("LeftButtonDown", "RightButtonDown")
-CityUi.util.gen_backdrop(combatlog_checker)
+cui.util.gen_backdrop(combatlog_checker)
 
-combatlog_checker.text = CityUi.util.gen_string(combatlog_checker, CityUi.config.font_size_lrg)
+combatlog_checker.text = cui.util.gen_string(combatlog_checker, cui.config.font_size_lrg)
 combatlog_checker.text:SetPoint("CENTER")
 combatlog_checker.text:SetTextColor(1, 1, 1, 1)
 combatlog_checker:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -357,90 +392,40 @@ end)
 -- Tooltips ---------------------------------------
 ---------------------------------------------------
 
-GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT = CityUi.config.frame_backdrop
+GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT = cui.config.frame_backdrop
 GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT.backdropBorderColor = tooltip_frame_border_color
 
-for k, v in pairs(CityUi.config.frame_backdrop) do
+for k, v in pairs(cui.config.frame_backdrop) do
 	GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM[k] = v
 end
 
 GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM.overlayAtlasTopScale = 1
 GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM.backdropBorderColor = azerite_frame_border_color
 
-GameTooltipStatusBar:SetStatusBarTexture(CityUi.media.textures.blank)
+GameTooltipStatusBar:SetStatusBarTexture(cui.media.textures.blank)
+
+local tooltip_parent = cui.util.get_mover_frame("Tooltip")
+tooltip_parent:SetPoint("BOTTOMRIGHT", UIParent, -10, 10)
+
+hooksecurefunc("GameTooltip_SetDefaultAnchor", function(self, parent)
+	self:SetOwner(tooltip_parent, "ANCHOR_TOPRIGHT", 0, -tooltip_parent:GetHeight())
+end)
 
 ---------------------------------------------------
 -- Panels -----------------------------------------
 ---------------------------------------------------
 
-CityUi.util.gen_panel({
+cui.util.gen_panel({
 	name = "DataPanel",
 	strata = "BACKGROUND",
 	parent = UIParent,
 	w = 460,
 	h = 25,
 	point1 = {"BOTTOMLEFT", "UIParent", "BOTTOMLEFT", 2, 2},
-	backdrop = CityUi.config.frame_backdrop,
-	bgcolor = {.15, .15, .15, .7},
-	bordercolor = {0, 0, 0, 1},
+	backdrop = cui.config.frame_backdrop,
+	bgcolor = cui.config.frame_background_transparent,
+	bordercolor = cui.config.frame_border,
 })
-
-SLASH_ALTPBAR1 = "/testaltp"
-SlashCmdList.ALTPBAR = function(input)
-
-	if UnitAlternatePowerInfo("player") then return end
-
-	UnitPowerBarAlt_TearDown(PlayerPowerBarAlt)
-	if not PlayerPowerBarAlt:IsShown() then
-		UnitPowerBarAlt_SetUp(PlayerPowerBarAlt, 26)
-		local textureInfo = {
-			frame = { "Interface\\UNITPOWERBARALT\\UndeadMeat_Horizontal_Frame", 1, 1, 1 },
-			background = { "Interface\\UNITPOWERBARALT\\Generic1Player_Horizontal_Bgnd", 1, 1, 1 },
-			fill = { "Interface\\UNITPOWERBARALT\\Generic1_Horizontal_Fill", 0.16862745583057, 0.87450987100601, 0.24313727021217 },
-			spark = { nil, 1, 1, 1 },
-			flash = { "Interface\\UNITPOWERBARALT\\Meat_Horizontal_Flash", 1, 1, 1 },
-		}
-		for name, info in next, textureInfo do
-			local texture = PlayerPowerBarAlt[name]
-			local path, r, g, b = unpack(info)
-			texture:SetTexture(path)
-			texture:SetVertexColor(r, g, b)
-		end
-
-		PlayerPowerBarAlt.minPower = 0
-		PlayerPowerBarAlt.maxPower = 300
-		PlayerPowerBarAlt.range = PlayerPowerBarAlt.maxPower - PlayerPowerBarAlt.minPower
-		PlayerPowerBarAlt.value = 150
-		PlayerPowerBarAlt.displayedValue = PlayerPowerBarAlt.value
-		TextStatusBar_UpdateTextStringWithValues(PlayerPowerBarAlt.statusFrame, PlayerPowerBarAlt.statusFrame.text, PlayerPowerBarAlt.displayedValue, PlayerPowerBarAlt.minPower, PlayerPowerBarAlt.maxPower)
-
-		PlayerPowerBarAlt:UpdateFill()
-		PlayerPowerBarAlt:Show()
-	else
-		UnitPowerBarAlt_TearDown(PlayerPowerBarAlt)
-		PlayerPowerBarAlt:Hide()
-	end
-end
-
-SLASH_EXTRAB1 = "/testextrab"
-SlashCmdList.EXTRAB = function(input)
-    local frame = ExtraActionBarFrame
-	if not HasExtraActionBar() and not InCombatLockdown() then
-		if frame:IsShown() then
-			frame.intro:Stop()
-			frame.outro:Play()
-		else
-			frame.button:Show()
-			frame:Show()
-			frame.outro:Stop()
-			frame.intro:Play()
-			if not frame.button.icon:GetTexture() then
-				frame.button.icon:SetTexture("Interface\\ICONS\\ABILITY_SEAL")
-				frame.button.icon:Show()
-			end
-		end
-	end
-end
 
 -- local character_frame = CreateFrame("PlayerModel", "CityPlayerModel", UiParent)
 -- character_frame:SetSize(500, 750)
@@ -451,20 +436,155 @@ end
 -- UI Setup ---------------------------------------
 ---------------------------------------------------
 
-UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = CityUi.config.font_size_med
+ChatBubbleFont:SetFont(cui.config.default_font, cui.config.font_size_lrg, cui.config.font_flags)
 
-ZoneTextString:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_big, CityUi.config.font_flags)
-SubZoneTextString:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_big, CityUi.config.font_flags)
-PVPInfoTextString:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_lrg, CityUi.config.font_flags)
-PVPArenaTextString:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_lrg, CityUi.config.font_flags)
+local login_frame = CreateFrame("Frame")
+login_frame:RegisterEvent("PLAYER_LOGIN")
+login_frame:SetScript("OnEvent", function()
 
-CityUi:register_event("PLAYER_LOGIN", function()
-	UIParent:SetScale(CityUi.config.ui_scale)
-	WorldFrame:SetScale(CityUi.config.ui_scale)
+	UIParent:SetScale(cui.config.ui_scale)
+	WorldFrame:SetScale(cui.config.ui_scale)
 
 	if LibStub and LibStub("LibSharedMedia-3.0") then
-		LibStub("LibSharedMedia-3.0"):Register("font", "Pixel10", CityUi.media.fonts.pixel_10)
-		LibStub("LibSharedMedia-3.0"):Register("statusbar", "Blank", CityUi.media.textures.blank)
-		LibStub("LibSharedMedia-3.0"):Register("border", "Blank", CityUi.media.textures.blank)
+		LibStub("LibSharedMedia-3.0"):Register("font", "Gotham Thicc", cui.media.fonts.gotham_thicc)
+		LibStub("LibSharedMedia-3.0"):Register("font", "Gotham Burly", cui.media.fonts.gotham_burly)
+		LibStub("LibSharedMedia-3.0"):Register("font", "Gotham Ultra", cui.media.fonts.gotham_ultra)
+		LibStub("LibSharedMedia-3.0"):Register("statusbar", "Blank", cui.media.textures.blank)
+		LibStub("LibSharedMedia-3.0"):Register("border", "Blank", cui.media.textures.blank)
+	end
+
+	local skada_windows = {"Damage", "Healing", "Threat"}
+
+	for _, v in pairs(skada_windows) do
+		local window = _G["SkadaBarWindow"..v]
+		if window then
+			local regions = {window.button:GetRegions()}
+			for _, v in pairs(regions) do
+				if v.GetText then
+					v:SetShadowOffset(0, 0)
+				end
+			end
+		end
+	end
+end)
+
+---------------------------------------------------
+-- BW Skin ----------------------------------------
+---------------------------------------------------
+
+local f = CreateFrame("Frame")
+local register_bw_skin = function()
+
+	-- CityUi
+	local backdropBorder = {
+		bgFile = cui.media.textures.blank,
+		edgeFile = cui.media.textures.blank,
+		tile = false, tileSize = 0, edgeSize = 1,
+		insets = {left = 0, right = 0, top = 0, bottom = 0}
+	}
+
+	local function removeStyle(bar)
+		bar.candyBarBackdrop:Hide()
+		local height = bar:Get("bigwigs:restoreheight")
+		if height then
+			bar:SetHeight(height)
+		end
+
+		local tex = bar:Get("bigwigs:restoreicon")
+		if tex then
+			bar:SetIcon(tex)
+			bar:Set("bigwigs:restoreicon", nil)
+
+			bar.candyBarIconFrameBackdrop:Hide()
+		end
+
+		bar.candyBarDuration:ClearAllPoints()
+		bar.candyBarDuration:SetPoint("TOPLEFT", bar.candyBarBar, "TOPLEFT", 2, 0)
+		bar.candyBarDuration:SetPoint("BOTTOMRIGHT", bar.candyBarBar, "BOTTOMRIGHT", -2, 0)
+
+		bar.candyBarLabel:ClearAllPoints()
+		bar.candyBarLabel:SetPoint("TOPLEFT", bar.candyBarBar, "TOPLEFT", 2, 0)
+		bar.candyBarLabel:SetPoint("BOTTOMRIGHT", bar.candyBarBar, "BOTTOMRIGHT", -2, 0)
+	end
+
+	local function styleBar(bar)
+		local height = bar:GetHeight()
+		bar:Set("bigwigs:restoreheight", height)
+		bar:SetHeight(height / 2)
+
+		local bd = bar.candyBarBackdrop
+
+		bd:SetBackdrop(backdropBorder)
+		bd:SetBackdropColor(unpack(cui.config.frame_background_transparent))
+		bd:SetBackdropBorderColor(unpack(cui.config.frame_border))
+
+		bd:ClearAllPoints()
+		bd:SetPoint("TOPLEFT", bar, "TOPLEFT", -1, 1)
+		bd:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 1, -1)
+		bd:Show()
+
+		local tex = bar:GetIcon()
+		if tex then
+			local icon = bar.candyBarIconFrame
+			bar:SetIcon(nil)
+			icon:SetTexture(tex)
+			icon:Show()
+			if bar.iconPosition == "RIGHT" then
+				icon:SetPoint("BOTTOMLEFT", bar, "BOTTOMRIGHT", 5, 0)
+			else
+				icon:SetPoint("BOTTOMRIGHT", bar, "BOTTOMLEFT", -5, 0)
+			end
+			icon:SetSize(height, height)
+			bar:Set("bigwigs:restoreicon", tex)
+
+			local iconBd = bar.candyBarIconFrameBackdrop
+			iconBd:SetBackdrop(backdropBorder)
+			iconBd:SetBackdropColor(unpack(cui.config.frame_background_transparent))
+			iconBd:SetBackdropBorderColor(unpack(cui.config.frame_border))
+
+			iconBd:ClearAllPoints()
+			iconBd:SetPoint("TOPLEFT", icon, "TOPLEFT", -1, 1)
+			iconBd:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 1, -1)
+			iconBd:Show()
+		end
+
+		bar.candyBarLabel:ClearAllPoints()
+		bar.candyBarLabel:SetPoint("BOTTOMLEFT", bar.candyBarBar, "TOPLEFT", 2, 2)
+
+		bar.candyBarDuration:ClearAllPoints()
+		bar.candyBarDuration:SetPoint("BOTTOMRIGHT", bar.candyBarBar, "TOPRIGHT", -2, 2)
+	end
+
+	if not BigWigs then return end
+	local bars = BigWigs:GetPlugin("Bars", true)
+	if not bars then return end
+
+	f:UnregisterEvent("ADDON_LOADED")
+	f:UnregisterEvent("PLAYER_LOGIN")
+
+	bars:RegisterBarStyle("identifier", {
+		apiVersion = 1,
+		version = 1,
+		barHeight = 20,
+		fontSizeNormal = 16,
+		fontSizeEmphasized = 16,
+		GetSpacing = function(bar) return bar:GetHeight() + 10 end,
+		ApplyStyle = styleBar,
+		BarStopped = removeStyle,
+		GetStyleName = function() return "CityUi" end,
+	})
+end
+
+f:RegisterEvent("ADDON_LOADED")
+f:RegisterEvent("PLAYER_LOGIN")
+local reason = nil
+f:SetScript("OnEvent", function(self, event, msg)
+	if event == "ADDON_LOADED" then
+		if not reason then reason = (select(6, GetAddOnInfo("BigWigs_Plugins"))) end
+		if (reason == "MISSING" and msg == "BigWigs") or msg == "BigWigs_Plugins" then
+			register_bw_skin()
+		end
+	elseif event == "PLAYER_LOGIN" then
+		register_bw_skin()
 	end
 end)

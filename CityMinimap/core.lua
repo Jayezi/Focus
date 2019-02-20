@@ -1,4 +1,4 @@
-local CityUi = CityUi
+local cui = CityUi
 
 local function strip_textures(object)
 	local regions = {object:GetRegions()}
@@ -22,43 +22,45 @@ if not IsAddOnLoaded("Blizzard_TimeManager") then
 	LoadAddOn("Blizzard_TimeManager")
 end
 
-CityUi.util.gen_backdrop(Minimap)
-MinimapCluster:SetSize(270, 270)
+cui.util.gen_border(MinimapCluster)
+MinimapCluster:SetSize(250, 250)
+MinimapCluster:ClearAllPoints()
+MinimapCluster:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
 
-Minimap:SetSize(250, 250)
-Minimap:ClearAllPoints()
-Minimap:SetPoint("TOPLEFT", 10, -10)
-Minimap:SetPoint("BOTTOMRIGHT", -10, 10)
+Minimap:SetSize(249, 249)
+cui.util.set_inside(Minimap, MinimapCluster)
 Minimap:SetArchBlobRingScalar(0);
 Minimap:SetQuestBlobRingScalar(0);
-Minimap:SetMaskTexture(CityUi.media.textures.blank)
+Minimap:SetMaskTexture(cui.media.textures.blank)
 MinimapBackdrop:SetAllPoints(Minimap)
 function GetMinimapShape() return "SQUARE" end
 
-TimeManagerClockButton:SetSize(50, 30)
-TimeManagerClockButton:SetHitRectInsets(0, 0, 0, 0)
-TimeManagerClockButton:ClearAllPoints()
-TimeManagerClockButton:SetPoint("BOTTOMRIGHT", Minimap)
+
 
 local clockFrame, clockTime = TimeManagerClockButton:GetRegions()
 clockFrame:Hide()
-clockTime:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+clockTime:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
 clockTime:SetShadowOffset(0, 0)
 clockTime:SetTextColor(1, 1, 1, 1)
-clockTime:SetJustifyH("CENTER")
-clockTime:SetJustifyV("MIDDLE")
-clockTime:SetAllPoints(TimeManagerClockButton)
+clockTime:SetJustifyH("RIGHT")
+clockTime:SetJustifyV("BOTTOM")
+clockTime:ClearAllPoints()
+clockTime:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -5, 5)
 clockTime:Show()
 
-MiniMapInstanceDifficulty:ClearAllPoints()
-MiniMapInstanceDifficulty:SetPoint("TOP", Minimap)
+TimeManagerClockButton:SetHitRectInsets(0, 0, 0, 0)
+TimeManagerClockButton:SetAllPoints(clockTime)
 
-MinimapZoneTextButton:ClearAllPoints()
-MinimapZoneTextButton:SetPoint("TOP", Minimap)
-MinimapZoneTextButton:SetSize(200, 20)
-MinimapZoneText:SetAllPoints()
-MinimapZoneText:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+MinimapZoneText:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
+MinimapZoneText:ClearAllPoints()
 MinimapZoneText:SetShadowOffset(0, 0)
+MinimapZoneText:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 5, -5)
+MinimapZoneText:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -5, -5)
+
+MinimapZoneTextButton:SetAllPoints(MinimapZoneText)
+
+MiniMapInstanceDifficulty:ClearAllPoints()
+MiniMapInstanceDifficulty:SetPoint("TOP", MinimapZoneText, "BOTTOM", 0, -5)
 
 MinimapBorder:Hide()
 MinimapBorderTop:Hide()
@@ -67,20 +69,20 @@ MinimapZoomOut:Hide()
 MinimapNorthTag:SetTexture(nil)
 MiniMapWorldMapButton:Hide()
 
-GameTimeFrame:ClearAllPoints()
-GameTimeFrame:SetPoint("BOTTOMRIGHT", TimeManagerClockButton, "BOTTOMLEFT", 0, 0)
+local game_time_string = GameTimeFrame:GetFontString()
+game_time_string:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
+game_time_string:SetTextColor(1, 1, 1, 1)
+game_time_string:ClearAllPoints()
+game_time_string:SetPoint("TOPRIGHT", clockTime, "TOPLEFT", -5, 0)
+game_time_string:SetPoint("BOTTOMRIGHT", clockTime, "BOTTOMLEFT", -5, 0)
+game_time_string:SetJustifyH("CENTER")
+game_time_string:SetJustifyV("MIDDLE")
+
+GameTimeFrame:SetAllPoints(game_time_string)
 GameTimeFrame:SetNormalTexture(nil)
 GameTimeFrame:SetPushedTexture(nil)
 GameTimeFrame:SetHighlightTexture(nil)
 GameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
-GameTimeFrame:SetSize(30, 30)
-
-local game_time_string = GameTimeFrame:GetFontString()
-game_time_string:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
-game_time_string:SetTextColor(1, 1, 1, 1)
-game_time_string:SetAllPoints(GameTimeFrame)
-game_time_string:SetJustifyH("CENTER")
-game_time_string:SetJustifyV("MIDDLE")
 
 MiniMapMailFrame:SetSize(45, 45)
 MiniMapMailFrame:ClearAllPoints()
@@ -99,7 +101,7 @@ QueueStatusMinimapButton:SetPoint("LEFT", Minimap)
 QueueStatusMinimapButtonBorder:Hide()
 
 MiniMapTracking:ClearAllPoints()
-MiniMapTracking:SetPoint("TOPRIGHT", -10, -10)
+MiniMapTracking:SetPoint("TOPRIGHT", -5, -5)
 MiniMapTracking:SetSize(25, 25)
 
 MiniMapTrackingButton:SetAllPoints(MiniMapTracking)
@@ -111,7 +113,6 @@ MiniMapTrackingIconOverlay:Hide()
 MiniMapTrackingButtonBorder:Hide()
 MiniMapTrackingIconOverlay.oldShow = MiniMapTrackingIconOverlay.Show
 MiniMapTrackingIconOverlay.Show = function(self) return end
-
 strip_textures(MiniMapTrackingButton)
 
 ObjectiveTrackerFrame:ClearAllPoints()

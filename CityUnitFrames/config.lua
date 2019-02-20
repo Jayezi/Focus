@@ -1,80 +1,164 @@
-local addon, ns = ...
+local addon, cuf = ...
 
-local config = {}
-ns.config = config
-local CityUi = CityUi
+local cfg = {}
+cuf.cfg = cfg
+local cui = CityUi
 
 oUF.colors.power['MANA'] = {46/255, 130/255, 215/255}
---oUF.colors.power['MANA'] = {46/255, 130/255, 215/255}
 
-config.player_color = oUF.colors.class[CityUi.player.class]
-config.altp_color = {.5, .5, .5, 1}
-config.cast_non_interrupt_color = {.5, .2, .2, 1}
-config.cast_interrupt_color = {.2, .5, .2, 1}
+cfg.altp_color = {.5, .5, .5, 1}
+cfg.cast_non_interrupt_color = {.5, .2, .2, 1}
+cfg.cast_interrupt_color = {.2, .5, .2, 1}
+cfg.range_alpha = .5
 
-config.role = CityFrameRole[CityUi.player.realm][CityUi.player.name]
-
--- Primary unitframes (player, target mirrored across center).
-config.primary_health_w, config.primary_health_h = 350, 35
-
--- Player castbar top relative to bottom, size.
-config.player_cast_x, config.player_cast_y = 0, 480
-config.player_cast_w, config.player_cast_h = 350, 28
-
--- Target castbar bottomright relative to target topright.
-config.target_cast_x, config.target_cast_y = 0, 150
-config.target_cast_w, config.target_cast_h = 500, 32
-
--- Non-movable secondary unitframes (pet, target of target mirrored across center)
-config.secondary_health_w, config.secondary_health_h = 200, 25
-
--- Nameplates
-config.nameplate_health_w, config.nameplate_health_h = 200, 15
-config.nameplate_cast_h = 15
-
--- Experience bar top relative to top.
-config.xp_x, config.xp_y = 0, -10
-config.xp_w, config.xp_h = 500, 18
-
--- Defaults.
-config.power_h = 8
-config.cast_h = 25
-
--- Alpha for out of range frames.
-config.oor_alpha = .4
-
--- Size of the unit's healthbar.
-config.frame_sizes = {
-	primary = {350, 35},
-	secondary = {150, 25},
-	focus = {300, 25},
-	boss = {250, 25},
-	tank = {110, 60},
-	party = {110, 60},
-	damager = {80, 50},
-	healer = {105, 55},
+cfg.enabled = {
+    player =        true,
+    target =        true,
+    nameplates =    true,
+    targettarget =  true,
+    pet =           true,
+    focus =         true,
+    boss =          true,
+    party =         true,
+    raid =          true,
+    tank =          true,
 }
 
-config.frame_anchors = CityFrameList
+local powers = {
+--	class				standalone		invert		tags
+	["HUNTER"] =		{20,			true,		"[city:color][city:shortppfrequent]"},
+	["DEATHKNIGHT"] =	{20,      		false,		"[city:color][city:shortppfrequent]"},
+	["ROGUE"] =			{20,      		false,		"[city:color][city:shortppfrequent]"},
+	["DEMONHUNTER"] =	{20,      		false,		"[city:color][city:shortppfrequent]"},
+	["PALADIN"] =		{false,     	true,		"[city:color][city:pplongfrequent]"},
+	["PRIEST"] =		{false,     	true,		"[city:color][city:pplongfrequent]"},
+	["DRUID"] =			{false,     	false,		"[city:color][city:pplongfrequent]"},
+	["SHAMAN"] =		{false,     	false,		"[city:color][city:pplongfrequent]"},
+	["MAGE"] =			{false,     	false,		"[city:color][city:pplongfrequent]"},
+	["MONK"] =			{20,      		false,		"[city:color][city:shortppfrequent]"},
+	["WARRIOR"]	=		{20,			false,		"[city:color][city:shortppfrequent]"},
+}
 
-config.aura_config = {
---	frame =				{size,	rows,	anchor, 		x-direction,	y-direction,	rowlimit,	countsize,	cdsize,	squashed}
-	player = 			{48,	1,		"BOTTOMRIGHT",	"LEFT",			"UP", 			false,		15,			20,		false},
+local indicators = {
+--	class = pos = spellId, color, "state/cd/count", castByPlayer, size
+	["PALADIN"] = {
+		-- Beacon of Virtue
+		["tr"] = {200025, {1, 1, .5}, "cd", true, 15},
+		-- Beacon of Light
+		["tl"] = {53563, {1, 1, .5}, "state", true, 12},
+		-- Beacon of Faith
+		["bl"] = {156910, {.5, .5, 1}, "state", true, 12},
+		-- Blessing of Sacrifice
+		["br"] = {6940, {1, .5, 1}, "cd", true, 15},
+	}
+}
+
+cfg.frames = {
+	player = {
+		size = {w = 350, h = 40},
+		pos = {"TOPRIGHT", UIParent, "BOTTOM", -200, 400},
+		cast = {
+			size = {w = 350, h = 30},
+			pos = {"BOTTOM", UIParent, "BOTTOM", 0, 460},
+		},
+		power = {
+			cfg = powers[cui.player.class],
+			h = 8,
+		},
+		alt_power = {
+			size = {w = 500, h = 20},
+			pos = {"TOP", UIParent, "TOP", 0, -10},
+		},
+	},
+	pet = {
+		size = {w = 220, h = 30},
+		power = {
+			h = 8
+		}
+	},
+	target = {
+		size = {w = 350, h = 40},
+		pos = {"TOPLEFT", UIParent, "BOTTOM", 200, 400},
+		cast = {
+			size = {w = 500, h = 40},
+			offset = {x = 0, y = 150},
+		},
+		power = {
+			h = 8
+		}
+	},
+	targettarget = {
+		size = {w = 220, h = 30},
+	},
+	focus = {
+		size = {w = 300, h = 30},
+		pos = {"TOPLEFT", UIParent, "TOPLEFT", 10, -10},
+		cast = {
+			h = 30
+		},
+	},
+	tank = {
+		size = {w = 110, h = 60},
+		pos = {"TOPLEFT", UIParent, "TOPLEFT", 10, -10},
+		power = {
+			h = 8
+		},
+	},
+	party = {
+		size = {w = 110, h = 60},
+		pos = {"BOTTOMLEFT", UIParent, "BOTTOMLEFT", 10, 10},
+		power = {
+			h = 8
+		},
+		indicators = indicators[cui.player.class]
+	},
+	raid = {
+		size = {
+			dps = {w = 80, h = 50},
+			healer = {w = 105, h = 55},
+		},
+		pos = {"BOTTOMLEFT", UIParent, "BOTTOMLEFT", 10, 10},
+		power = {
+			h = 8
+		},
+		indicators = indicators[cui.player.class]
+	},
+	boss = {
+		size = {w = 250, h = 25},
+		pos = {"TOPRIGHT", UIParent, "TOPRIGHT", -10, -1},
+		power = {
+			h = 8
+		},
+		cast = {
+			h = 15
+		}
+	},
+	nameplate = {
+		size = {w = 250, h = 18},
+		power = {
+			h = 4
+		}
+	},
+}
+
+cfg.auras = {
+--	frame				size	rows	anchor			x-direction		y-direction		rowlimit	countsize	cdsize	squashed
+	player = 			{50,	1,		"BOTTOMRIGHT",	"LEFT",			"UP", 			false,		15,			20,		false},
 	boss = 				{50,	2, 		"TOPRIGHT", 	"LEFT", 		"DOWN",			2, 			15,			20,		true},
-	pet = 				{48,	1, 		"BOTTOMRIGHT", 	"LEFT",			"UP", 			false, 		15,			20,		true},
+	pet = 				{50,	1, 		"BOTTOMRIGHT", 	"LEFT",			"UP", 			false, 		15,			20,		true},
 	target_buff = 		{50,	3, 		"BOTTOMLEFT", 	"RIGHT",		"UP", 			false,		15,			15,		true},
 	target_debuff = 	{50,	1, 		"BOTTOMLEFT", 	"RIGHT", 		"UP", 			false,		15,			20,		false},
-	nameplate_debuff =	{50,	2, 		"TOPLEFT",		"RIGHT", 		"DOWN", 		3,			15,			20,		true},
-	nameplate_buff =	{60,	1, 		"TOPRIGHT", 	"LEFT",			"DOWN", 		3,			15,			20,		true},
+	nameplate_debuff =	{58,	2, 		"TOPLEFT",		"RIGHT", 		"DOWN", 		3,			15,			20,		true},
+	nameplate_buff =	{58,	2, 		"TOPRIGHT", 	"LEFT",			"DOWN", 		3,			15,			20,		true},
 	tank = 				{22, 	1, 		"BOTTOMLEFT",	"RIGHT",		"DOWN", 		3,			10, 		10,		false},
 	focus = 			{25, 	1, 		"BOTTOMRIGHT",	"LEFT", 		"UP", 			false, 		10, 		10,		false},
 	party = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		3, 			10, 		10,		false},
 	healer = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		3, 			10, 		10,		false},
-	damager = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		2, 			10, 		10,		false},
+	dps = 				{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		2, 			10, 		10,		false},
 }
 
-config.raid_marks = {
---  frame =         {anchor,        x offset,   y offset,   size}
+cfg.raid_marks = {
+--  frame			anchor			x offset	y offset	size
     primary =		{"BOTTOM",      0,          0,          25},
     secondary =     {"TOPRIGHT",    -5,         -5,         20},
     boss =          {"TOP",         0,          0,          30},
@@ -85,22 +169,14 @@ config.raid_marks = {
     raid =          {"TOP",     	0,          0,         	15},
 }
 
-config.raid_role = {"TOPLEFT", 3, -3, 10}
-
-config.enabled = {
-    player =        true,
-    target =        true,
-    nameplates =    true,
-    tot =           true,
-    pet =           true,
-    focus =         true,
-    boss =          true,
-    party =         true,
-    raid =          true,
-    tank =          true,
+cfg.raid_role = {
+	point = "TOPLEFT",
+	x = 3,
+	y = -3,
+	size = 10
 }
 
-config.nameplate_config = {
+cfg.nameplate_cfg = {
 	["nameplateMinScale"] = 1,
 	["nameplateMinScaleDistance"] = 10,
 	["nameplateMaxScale"] = 1,
@@ -126,47 +202,15 @@ config.nameplate_config = {
     ["nameplateVerticalScale"] = 1
 }
 
-local power_config = {
---  ["CLASS"] =         {center,    h,      flip,   tags}
-	["HUNTER"] =        {true,      20,     true,	"[city:color][city:shortppfrequent]"},
-	["DEATHKNIGHT"] =   {true,      20,     false,	"[city:color][city:shortppfrequent]"},
-	["ROGUE"] =         {true,      20,     false,	"[city:color][city:shortppfrequent]"},
-	["DEMONHUNTER"] =   {true,      20,     false,	"[city:color][city:shortppfrequent]"},
-	["PALADIN"] =       {false,     8,      true,	"[city:color][city:pplongfrequent]"},
-	["PRIEST"] =        {false,     8,      true,	"[city:color][city:pplongfrequent]"},
-	["DRUID"] =         {false,     8,      false,	"[city:color][city:pplongfrequent]"},
-	["SHAMAN"] =        {false,     8,      false,	"[city:color][city:pplongfrequent]"},
-	["MAGE"] =          {false,     8,      false,	"[city:color][city:pplongfrequent]"},
-	["MONK"] =          {true,      20,     false,	"[city:color][city:shortppfrequent]"},
-	["WARRIOR"]	=       {true,      20,     false,	"[city:color][city:shortppfrequent]"},
-}
-config.player_power_config = power_config[CityUi.player.class]
-
-local indicators = {
-	--  ["xx"] = {spellId, {color}, "state/cd/count", castByPlayer, size}
-	["PALADIN"] = {
-		-- Beacon of Virtue
-		["tr"] = {200025, {1, 1, .5}, "cd", true, 15},
-		-- Beacon of Light
-		["tl"] = {53563, {1, 1, .5}, "state", true, 12},
-		-- Beacon of Faith
-		["bl"] = {156910, {.5, .5, 1}, "state", true, 12},
-		-- Blessing of Sacrifice
-		["br"] = {6940, {1, .5, 1}, "cd", true, 15},
-	}
-}
-config.indicators = indicators[CityUi.player.class]
-
-config.buff_whitelist_pet = {
+cfg.pet_buff_whitelist = {
 	[136] = true,			--Mend Pet
 }
 
-config.nameplate_buff_whitelist = {
+cfg.nameplate_buff_whitelist = {
 	[277242] = true,		--Symbiote of G'huun
 }
 
--- A Buff whitelist mainly usefull for tracking cd durations on the player frame.
-config.buff_whitelist = {
+cfg.player_buff_whitelist = {
 
 	-- All
 	[208431] = true,		--Corruption: Descent into Madness
@@ -182,6 +226,8 @@ config.buff_whitelist = {
 	[208052] = true,		--Sephuz's Secret
 	[234143] = true,		--Temptation
 	[188024] = true,		--Skystep Potion
+	[287916] = true,		--V.I.G.O.R Engaged
+	[268311] = true,		--Galecaller's Boon
 
 	-- Paladin
 	[132403] = true,		--Shield of the Righteous
@@ -213,7 +259,11 @@ config.buff_whitelist = {
 	[190515] = true,		--Survival of the Fittest
 	[266779] = true,		--Coordinated Assault
 	[259388] = true,		--Mongoose Fury
-
+	[260402] = true,		--Double Tap
+	[288613] = true,		--Trueshot
+	[269576] = true,		--Master Marksman
+	[257622] = true,		--Trick Shots
+	
 	-- Monk
 	[137639] = true, 		--Storm, Earth, and Fire
 	[215479] = true,		--Ironskin Brew
@@ -242,7 +292,7 @@ config.buff_whitelist = {
 }
 
 -- A debuff whitelist mainly useful for showing only select auras on small frames.
-config.debuff_whitelist = {
+cfg.debuff_whitelist = {
 
 	[116888] = true,		--Shroud of Purgatory
 	[225080] = true,		--Reincarnation
@@ -252,7 +302,7 @@ config.debuff_whitelist = {
 }
 
 -- A debuff blacklist useful for keeping larger frames from getting too crowded but still generally showing all auras.
-config.debuff_blacklist = {
+cfg.debuff_blacklist = {
 
 	[57724] = true,			--Sated
 	[57723] = true,			--Exhaustion
@@ -300,4 +350,7 @@ config.debuff_blacklist = {
 
 	[249224] = true,		--Chaotic Flames
 	[265206] = true,		--Immunosuppression
+
+	[287967] = true,		--V.I.G.O.R Cooldown
+	[284645] = true,		--Topaz of Brilliant Sunlight
 }

@@ -2,8 +2,5 @@
 ## Title: CityCore
 ## Author: CityPunch
 ## SavedVariables: CityFrameRole, CityFramePositions
-## X-DBM-Timer-Skin: 1
-## X-DBM-Timer-Skin-Name: CityUi
 
-dbm_timer_skin.xml
 core.lua

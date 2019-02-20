@@ -1,100 +1,147 @@
-local addon, ns = ...
-local cfg = ns.cfg
-local lib = ns.lib
-local CityUi = CityUi
+local _, cab = ...
+local cfg = cab.cfg
+local lib = cab.lib
+local cui = CityUi
 
-MainMenuBar:EnableMouse(false)
+do
+	lib.hide_blizzard()
 
-MainMenuBarArtFrameBackground:Hide()
-MainMenuBarArtFrame.LeftEndCap:Hide()
-MainMenuBarArtFrame.RightEndCap:Hide()
-MainMenuBarArtFrame.PageNumber:Hide()
-StatusTrackingBarManager:Hide()
-ActionBarUpButton:Hide()
-ActionBarDownButton:Hide()
-MicroButtonAndBagsBar.MicroBagBar:Hide()
+	local num = NUM_ACTIONBAR_BUTTONS
+	local bars = {
+		"MultiBarBottomLeft",
+		"MultiBarBottomRight",
+		"MultiBarLeft",
+		"MultiBarRight",
+	}
+
+	do
+		local name = "Action"
+		local bar_cfg = cfg.bars[name]
+		
+		local bar = lib.create_bar(name, num, bar_cfg)
+		lib.setup_bar(name, bar, num, bar_cfg, lib.style_action)
+		for i = 1, num do
+			local button = _G["ActionButton"..i]
+			button:SetParent(bar)
+			bar:SetFrameRef("ActionButton"..i, button)
+		end
+
+		bar:Execute(([[
+			buttons = table.new()
+			for i=1, %d do
+				table.insert(buttons, self:GetFrameRef("%s"..i))
+			end
+		]]):format(num, "ActionButton"))
+
+		bar:SetAttribute("_onstate-page", [[
+			for i, button in next, buttons do
+				button:SetAttribute("actionpage", newstate)
+			end
+		]])
+
+		RegisterStateDriver(bar, "page", "[bar:6]6;[bar:5]5;[bar:4]4;[bar:3]3;[bar:2]2;[overridebar]14;[shapeshift]13;[vehicleui]12;[possessbar]12;[bonusbar:5]11;[bonusbar:4]10;[bonusbar:3]9;[bonusbar:2]8;[bonusbar:1]7;1")
+
+		bar:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
+		bar:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
+		bar:SetScript("OnEvent", function(self, event, unit, ...)
+			for i = 1, num do
+				local button = _G["ActionButton"..i]
+				local action = button.action
+				local icon = button.icon
+
+				if action >= 120 then
+					local texture = GetActionTexture(action)
+
+					if (texture) then
+						icon:SetTexture(texture)
+						icon:Show()
+					else
+						if icon:IsShown() then
+							icon:Hide()
+						end
+					end
+				end
+			end
+		end)
+	end
+
+	for _, name in ipairs(bars) do
+		local bar_cfg = cfg.bars[name]
+
+		local bar = lib.create_bar(name, num, bar_cfg)
+		_G[name]:SetParent(bar)
+		_G[name]:EnableMouse(false)
+		lib.setup_bar(name, bar, num, bar_cfg, lib.style_action)
+	end
+end
 
 ExtraActionBarFrame:SetParent(UIParent)
 ExtraActionBarFrame:ClearAllPoints()
 ExtraActionBarFrame:SetPoint(unpack(cfg.bars.extra.pos))
 ExtraActionBarFrame.ignoreFramePositionManager = true
-ExtraActionBarFrame:SetAttribute("ignoreFramePositionManager", true)
 
 ZoneAbilityFrame:SetParent(UIParent)
 ZoneAbilityFrame:ClearAllPoints()
 ZoneAbilityFrame:SetPoint(unpack(cfg.bars.zone.pos))
 ZoneAbilityFrame.ignoreFramePositionManager = true
-ZoneAbilityFrame:SetAttribute("ignoreFramePositionManager", true)
 
 do
+	-- can test possess bar with remote control toys
+	local name = "Possess"
 	local num = NUM_POSSESS_SLOTS
-	local bar_cfg = cfg.bars.possess
+	local bar_cfg = cfg.bars[name]
+
 	PossessBackground1:SetTexture("")
 	PossessBackground2:SetTexture("")
-	PossessBarFrame.ignoreFramePositionManager = true
-	PossessBarFrame:SetAttribute("ignoreFramePositionManager", true);
-	PossessBarFrame:ClearAllPoints()
-	PossessBarFrame:SetPoint(unpack(bar_cfg.pos))
-	PossessBarFrame:SetWidth((bar_cfg.buttons.size + bar_cfg.buttons.margin) * num - bar_cfg.buttons.margin)
-	PossessBarFrame:SetHeight(bar_cfg.buttons.size)
-	PossessBarFrame:SetScale(1 / cfg.bars.main.scale)
-	
-	for i = 1, num do
-		local button = _G["PossessButton"..i]
-		lib.style_stance(button)
-		button:ClearAllPoints()
-		button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.size)
-		if i == 1 then
-			button:SetPoint("TOPLEFT", PossessBarFrame)
-		else
-			button:SetPoint("TOPLEFT", _G["PossessButton"..(i - 1)], "TOPRIGHT", bar_cfg.buttons.margin, 0)
-		end
-	end
+
+	local bar = lib.create_bar(name, num, bar_cfg)
+	PossessBarFrame:SetParent(bar)
+	lib.setup_bar(name, bar, num, bar_cfg, lib.style_stance)
 end
 
 do
+	local name = "PetAction"
 	local num = NUM_PET_ACTION_SLOTS
-	local bar_cfg = cfg.bars.pet
+	local bar_cfg = cfg.bars[name]
 	local per_row = num / bar_cfg.rows
 
-	for i = 1, num do
-		local button = _G["PetActionButton"..i]
-		lib.style_pet(button)
-		button:ClearAllPoints()
-		button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.size)
-
-		if i == 1 then
-			button:SetPoint(unpack(bar_cfg.pos))
-		elseif i % per_row == 1 then
-			button:SetPoint("BOTTOMLEFT", _G["PetActionButton"..(i - per_row)], "TOPLEFT", 0, bar_cfg.buttons.margin)
-		else
-			button:SetPoint("TOPLEFT", _G["PetActionButton"..(i - 1)], "TOPRIGHT", bar_cfg.buttons.margin, 0)
-		end
-	end
+	local bar = lib.create_bar(name, num, bar_cfg)
+	PetActionBarFrame:SetParent(bar)
+	lib.setup_bar(name, bar, num, bar_cfg, lib.style_pet)
 end
 
 do
+	local name = "Stance"
 	local num = NUM_STANCE_SLOTS
-	local bar_cfg = cfg.bars.stance
-	StanceBarFrame.ignoreFramePositionManager = true
-	StanceBarFrame:SetAttribute("ignoreFramePositionManager", true);
-	StanceBarFrame:ClearAllPoints()
-	StanceBarFrame:SetPoint(unpack(bar_cfg.pos))
-	StanceBarFrame:SetWidth((bar_cfg.buttons.size + bar_cfg.buttons.margin) * num - bar_cfg.buttons.margin)
-	StanceBarFrame:SetHeight(bar_cfg.buttons.size)
-	StanceBarFrame:SetScale(1 / cfg.bars.main.scale)
+	local bar_cfg = cfg.bars[name]
 
-	for i = 1, num do
-		local button = _G["StanceButton"..i]
-		lib.style_stance(button)
-		button:ClearAllPoints()
-		button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.size)
-		if i == 1 then
-		button:SetPoint("TOPLEFT", StanceBarFrame)
-		else
-			button:SetPoint("TOPLEFT", _G["StanceButton"..(i - 1)], "TOPRIGHT", bar_cfg.buttons.margin, 0)
+	local bar = lib.create_bar(name, num, bar_cfg)
+	StanceBarFrame:SetParent(bar)
+	lib.setup_bar(name, bar, num, bar_cfg, lib.style_stance)
+end
+
+do
+	local name = "MicroMenu"
+	local bar_cfg = cfg.bars[name]
+
+	local buttons = {}
+	for i, name in next, MICRO_BUTTONS do
+		local button = _G[name]
+		if button and button:IsShown() then
+			table.insert(buttons, button)
 		end
 	end
+
+	local bar = lib.create_bar(name, #buttons, bar_cfg)
+	for i = 1, #buttons do
+		buttons[i]:SetParent(bar)
+	end
+	lib.setup_bar(name, bar, #buttons, bar_cfg, lib.style_menu, buttons)
+
+	GuildMicroButtonTabard:SetAllPoints(GuildMicroButton)
+	GuildMicroButtonTabardEmblem:SetSize(bar_cfg.buttons.size * bar_cfg.buttons.width_scale / 2, bar_cfg.buttons.size / 2)
+	GuildMicroButtonTabardBackground:SetAllPoints(GuildMicroButtonTabard)
+	PetBattleFrame.BottomFrame.MicroButtonFrame:SetScript("OnShow", nil)
 end
 
 do
@@ -103,89 +150,24 @@ do
 		CharacterBag0Slot,
 		CharacterBag1Slot,
 		CharacterBag2Slot,
-		CharacterBag3Slot
+		CharacterBag3Slot,
 	}
-	
-	MainMenuBarBackpackButton:ClearAllPoints();
-	MainMenuBarBackpackButton:SetPoint(unpack(cfg.bars.bag.pos))
-	
-	local prev = nil
-	for _, button in pairs(bags) do
-		if (prev) then
-			button:ClearAllPoints();
-			button:SetPoint("BOTTOMLEFT", prev, "BOTTOMRIGHT", 2, 0)
-		end
-		prev = button
-		button:SetScale(1 / cfg.bars.main.scale)
-		lib.style_bag(button)
+
+	local name = "Bag"
+	local bar_cfg = cfg.bars[name]
+
+	local bar = lib.create_bar(name, #bags, bar_cfg)
+	for i = 1, #bags do
+		bags[i]:SetParent(bar)
 	end
+	lib.setup_bar(name, bar, #bags, bar_cfg, lib.style_bag, bags)
 	
-	MainMenuBarBackpackButtonCount:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+	MainMenuBarBackpackButtonCount:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
 	MainMenuBarBackpackButtonCount:SetDrawLayer("OVERLAY", 7)
 	MainMenuBarBackpackButtonCount:SetPoint("BOTTOMRIGHT")
 end
 
-do
-	MultiBarBottomLeft:SetScale(1 / cfg.bars.main.scale)
-	MultiBarBottomRight:SetScale(1 / cfg.bars.main.scale)
-	MultiBarRight:SetScale(1 / cfg.bars.main.scale)
-	MultiBarLeft:SetScale(1 / cfg.bars.main.scale)
-	ActionButton1:SetScale(1 / cfg.bars.main.scale)
-
-	local num = NUM_ACTIONBAR_BUTTONS
-	local bars = {
-		"ActionButton",
-		"MultiBarBottomLeftButton",
-		"MultiBarBottomRightButton",
-		"MultiBarLeftButton",
-		"MultiBarRightButton",
-	}
-
-	for _, name in ipairs(bars) do
-		local bar_cfg = cfg.bars[name]
-		local per_row = num / bar_cfg.rows
-
-		local frame = CreateFrame("Frame", "City"..name, UIParent)
-		frame:SetPoint(unpack(bar_cfg.pos))
-		frame:SetWidth((bar_cfg.buttons.size + bar_cfg.buttons.margin) * per_row - bar_cfg.buttons.margin)
-		frame:SetHeight((bar_cfg.buttons.size + bar_cfg.buttons.margin) * bar_cfg.rows - bar_cfg.buttons.margin)
-
-		for i = 1, num do
-			local button = _G[name..i]
-
-			if name == "ActionButton" then
-				button:SetScale(1 / cfg.bars.main.scale)
-			end
-			
-			button.short = bar_cfg.short
-			button:ClearAllPoints()
-			button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.size * (button.short and (2 / 3) or 1))
-			
-			if i == 1 then
-				button:SetPoint("TOPLEFT", frame)
-			elseif i % per_row == 1 then
-				button:SetPoint("TOPLEFT", _G[name..(i - per_row)], "BOTTOMLEFT", 0, -bar_cfg.buttons.margin)
-			else
-				button:SetPoint("TOPLEFT", _G[name..(i - 1)], "TOPRIGHT", bar_cfg.buttons.margin, 0)
-			end
-			
-			lib.style_action(button)
-
-			if bar_cfg.limit and i > bar_cfg.limit then
-				button.oldShow = button.Show
-				button.Show = function(self)
-					self:Hide()
-				end
-			end
-		end
-	end
-end
-
-local old_ActionButton_SetTooltip = ActionButton_SetTooltip;
-
-ActionButton_SetTooltip = function(self)
-	old_ActionButton_SetTooltip(self)
-
+hooksecurefunc("ActionButton_SetTooltip", function(self)
 	local button_type = self.buttonType
 	local action = self.action
 	local id
@@ -213,15 +195,23 @@ ActionButton_SetTooltip = function(self)
 		if (bind and not (bind == "")) then GameTooltip:AddLine(bind, 1, 1, 1) end
 		GameTooltip:Show()
 	end
-end
+end)
 
 hooksecurefunc(getmetatable(ActionButton1Cooldown).__index, 'SetCooldown', function(self, start, duration, modRate)
 	if self:GetDebugName():find("ChargeCooldown") then
 		self:SetHideCountdownNumbers(false)
 		self:SetDrawEdge(false)
 		self:SetFrameStrata("HIGH")
-		self:GetRegions():SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_lrg, CityUi.config.font_flags)
+		self:GetRegions():SetFont(cui.config.default_font, cui.config.font_size_lrg, cui.config.font_flags)
 		self:GetRegions():SetShadowOffset(0, 0)
+	end
+end)
+
+hooksecurefunc('ActionButton_UpdateCooldown', function(self)
+	if (self.chargeCooldown and self.chargeCooldown:IsShown()) then
+		self.cooldown:GetRegions():SetAlpha(0)
+	else
+		self.cooldown:GetRegions():SetAlpha(1)
 	end
 end)
 

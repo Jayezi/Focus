@@ -98,7 +98,7 @@ end)
 -- friends --------------
 
 local friend_text = CityUi.util.gen_string(data_parent, CityUi.config.font_size_med)
-friend_text:SetPoint("BOTTOMLEFT", mem_text, "BOTTOMRIGHT", 20, 0)
+friend_text:SetPoint("BOTTOMLEFT", mem_text, "BOTTOMRIGHT", 5, 0)
 
 local friend_frame = CreateFrame("Button", "CityFriends", UIParent)
 friend_frame:SetAllPoints(friend_text)
@@ -191,7 +191,7 @@ friend_frame:SetScript("OnClick", function(_, button) if button == "LeftButton" 
 -- latency --------------
 
 local net_text = CityUi.util.gen_string(data_parent, CityUi.config.font_size_med)
-net_text:SetPoint("BOTTOMLEFT", friend_text, "BOTTOMRIGHT", 20, 0)
+net_text:SetPoint("BOTTOMLEFT", friend_text, "BOTTOMRIGHT", 5, 0)
 
 local net_frame = CreateFrame("Frame", "CityNet", UIParent)
 net_frame:SetAllPoints(net_text)
@@ -214,7 +214,7 @@ end)
 -- framerate ------------
 
 local fps_text = CityUi.util.gen_string(data_parent, CityUi.config.font_size_med)
-fps_text:SetPoint("BOTTOMLEFT", net_text, "BOTTOMRIGHT", 20, 0)
+fps_text:SetPoint("BOTTOMLEFT", net_text, "BOTTOMRIGHT", 5, 0)
 
 local fps_frame = CreateFrame("Frame", "CityFps", UIParent)
 fps_frame:SetAllPoints(fps_text)
@@ -236,7 +236,9 @@ end)
 
 -- gold -------------
 
-CityUi:register_event("ADDON_LOADED", function(addon)
+local frame = CreateFrame("Frame")
+frame:RegisterEvent("ADDON_LOADED")
+frame:SetScript("OnEvent", function(self, event, addon)
 	if addon == "CityStats" then
 		if not CityRealmGold then CityRealmGold = {} end
 		if not CityRealmGold[CityUi.player.realm] then CityRealmGold[CityUi.player.realm] = {} end
@@ -286,7 +288,7 @@ end)
 -- azerite -----------------
 
 local azerite_text = CityUi.util.gen_string(data_parent, CityUi.config.font_size_med)
-azerite_text:SetPoint("BOTTOMRIGHT", gold_text, "BOTTOMLEFT", -20, 0)
+azerite_text:SetPoint("BOTTOMRIGHT", gold_text, "BOTTOMLEFT", -5, 0)
 
 local azerite_frame = CreateFrame("Frame", "CityAzerite", UIParent)
 azerite_frame:SetAllPoints(azerite_text)

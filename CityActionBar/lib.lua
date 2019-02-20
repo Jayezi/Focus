@@ -1,8 +1,109 @@
-local addon, ns = ...
-local cfg = ns.cfg
+local addon, cab = ...
+local cfg = cab.cfg
 local lib = {}
-ns.lib = lib
-local CityUi = CityUi
+cab.lib = lib
+local cui = CityUi
+
+local scripts = {
+	"OnShow", "OnHide", "OnEvent", "OnEnter", "OnLeave", "OnUpdate", "OnValueChanged", "OnClick", "OnMouseDown", "OnMouseUp",
+}
+  
+local to_hide = {
+	MainMenuBar, OverrideActionBar
+}
+  
+local to_disable = {
+	MainMenuBar, MicroButtonAndBagsBar, MainMenuBarArtFrame, StatusTrackingBarManager,
+	ActionBarDownButton, ActionBarUpButton, MainMenuBarVehicleLeaveButton,
+	OverrideActionBar, OverrideActionBarExpBar, OverrideActionBarHealthBar, OverrideActionBarPowerBar, OverrideActionBarPitchFrame
+}
+
+local disable_scripts = function(frame)
+	for i, script in next, scripts do
+		if frame:HasScript(script) then
+			frame:SetScript(script, nil)
+		end
+	end
+end
+
+lib.create_bar = function(name, num, cfg)
+
+	local per_row = num / (cfg.rows or 1)
+	local bar = CreateFrame("Frame", "City"..name.."Bar", UIParent, "SecureHandlerStateTemplate")
+
+	if cfg.buttons.size then
+		bar:SetWidth((cfg.buttons.size * (cfg.buttons.width_scale or 1) + cfg.buttons.margin) * per_row - cfg.buttons.margin)
+		bar:SetHeight((cfg.buttons.size + cfg.buttons.margin) * (cfg.rows or 1) - cfg.buttons.margin)
+	end
+	
+	local point = cfg.pos
+	if point[1] == point[3] and point[1] == "BOTTOM" then
+		point = cui.util.b_to_bl_anchor(bar, point)
+	end
+	if type(point[2]) == "string" then
+		point[2] = _G[point[2]]
+	end
+	bar:SetPoint(unpack(point))
+
+	if cfg.visibility then
+		RegisterStateDriver(bar, "visibility", cfg.visibility or "[petbattle] hide; show")
+	end
+
+	return bar
+end
+
+lib.setup_bar = function(name, bar, num, cfg, style_func, buttons)
+	local per_row = num / (cfg.rows or 1)
+
+	for i = 1, num do
+		local button = buttons and buttons[i] or _G[name.."Button"..i]
+
+		button.short = cfg.short
+		if cfg.buttons.size then
+			button:SetSize(cfg.buttons.size * (cfg.buttons.width_scale or 1), cfg.buttons.size * (button.short and (2 / 3) or 1))
+		end
+		
+		button:ClearAllPoints()
+		if i == 1 then
+			button:SetPoint("TOPLEFT", bar)
+			button:SetAttribute("flyoutDirection", "LEFT");
+		elseif i % per_row == 1 then
+			button:SetPoint("TOPLEFT", buttons and buttons[i - per_row] or _G[name.."Button"..(i - per_row)], "BOTTOMLEFT", 0, -cfg.buttons.margin)
+			button:SetAttribute("flyoutDirection", "LEFT");
+		else
+			button:SetPoint("TOPLEFT", buttons and buttons[i - 1] or _G[name.."Button"..(i - 1)], "TOPRIGHT", cfg.buttons.margin, 0)
+			if i % per_row == 0 then
+				button:SetAttribute("flyoutDirection", "RIGHT");
+			else
+				button:SetAttribute("flyoutDirection", "UP");
+			end
+		end
+		
+		style_func(button)
+	end
+end
+
+lib.hide_blizzard = function()
+	local hidden_parent = CreateFrame("Frame")
+	hidden_parent:Hide()
+
+	hidden_parent:SetScript("OnEvent", function()
+		TokenFrame_LoadUI()
+		TokenFrame_Update()
+		BackpackTokenFrame_Update()
+	end)
+
+	hidden_parent:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
+	
+	for i, frame in next, to_hide do
+		frame:SetParent(hidden_parent)
+	end
+	
+	for i, frame in next, to_disable do
+		frame:UnregisterAllEvents()
+		disable_scripts(frame)
+	end
+end
 
 local skin_textures = function(button, icon, normal)
 
@@ -17,7 +118,7 @@ local skin_textures = function(button, icon, normal)
 	icon:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
 	icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
 
-	local blank = CityUi.media.textures.blank
+	local blank = cui.media.textures.blank
 	
 	local checked = button:GetCheckedTexture()
 	checked:SetAllPoints(icon)
@@ -51,14 +152,43 @@ local skin_textures = function(button, icon, normal)
 	highlight:SetVertexColor(unpack(cfg.color.highlight))
 end
 
+lib.style_menu = function(button)
+	if not button or button.styled then
+		return
+	end
+	button.styled = true
+	
+	local regions = {button:GetRegions()}
+	for k, v in pairs(regions) do
+		v:SetTexCoord(.22, .80, .22, .81)
+		v:ClearAllPoints()
+		v:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+		v:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+	end
+
+	local pushed = button:GetPushedTexture()
+	pushed:SetTexCoord(.19, .77, .28, .86)
+	
+	local overlay = button:CreateTexture(nil, "OVERLAY")
+	overlay:SetTexture(cui.media.textures.blank)
+	overlay:SetAllPoints()
+	overlay:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+	overlay:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+	overlay:SetVertexColor(.6, .6, .6, .3)
+		
+	button:SetHighlightTexture(overlay)
+
+	cui.util.gen_border(button)
+end
+
 lib.style_action = function(button)
 	if not button or button.styled then
 		return
 	end
 	button.styled = true
 
-	local r, g, b = unpack(CityUi.config.frame_background)
-	CityUi.util.gen_backdrop(button, r, g, b, .6)
+	local r, g, b = unpack(cui.config.frame_background)
+	cui.util.gen_backdrop(button, r, g, b, .6)
 
 	local action = button.action
 	local name = button:GetName()
@@ -80,7 +210,7 @@ lib.style_action = function(button)
 	if fob then fob:SetTexture("") end
 	if fobs then fobs:SetTexture("") end
 	if border then
-		border:SetTexture(CityUi.media.textures.blank)
+		border:SetTexture(cui.media.textures.blank)
 		border:SetAllPoints(button)
 		border:SetDrawLayer("BORDER")
 	end
@@ -92,7 +222,7 @@ lib.style_action = function(button)
 	text_overlay:SetFrameStrata("TOOLTIP")
 
 	count:SetDrawLayer("OVERLAY", 7)
-	count:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_lrg, CityUi.config.font_flags)
+	count:SetFont(cui.config.default_font, cui.config.font_size_lrg, cui.config.font_flags)
 	count:ClearAllPoints()
 	count:SetParent(text_overlay)
 	count:SetPoint("TOPLEFT", icon, "TOPLEFT", -3, 6)
@@ -101,7 +231,7 @@ lib.style_action = function(button)
 
 	if hotkey then
 		hotkey:SetDrawLayer("OVERLAY", 7)
-		hotkey:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+		hotkey:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
 		hotkey:ClearAllPoints()
 		hotkey:SetParent(text_overlay)
 		hotkey:SetPoint("BOTTOMLEFT", 3, -1)
@@ -112,21 +242,12 @@ lib.style_action = function(button)
 
 	if macro then
 		macro:Hide()
-		-- macro:SetDrawLayer("OVERLAY", 7)
-		-- macro:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_sml, CityUi.config.font_flags)
-		-- macro:SetShadowOffset(0, 0)
-		-- macro:ClearAllPoints()
-		-- macro:SetParent(text_overlay)
-		-- macro:SetPoint("BOTTOMLEFT", 0, -1)
-		-- macro:SetPoint("BOTTOMRIGHT", 0, -1)
-		-- macro:SetJustifyH("LEFT")
-		-- macro:SetJustifyV("BOTTOM")
 	end
 
 	cooldown:SetAllPoints(icon)
 	cooldown:SetHideCountdownNumbers(false)
 	cooldown:SetDrawEdge(false)
-	cooldown:GetRegions():SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_lrg, CityUi.config.font_flags)
+	cooldown:GetRegions():SetFont(cui.config.default_font, cui.config.font_size_lrg, cui.config.font_flags)
 	cooldown:GetRegions():SetShadowOffset(0, 0)
 
 	auto:SetParent(text_overlay)
@@ -143,9 +264,9 @@ lib.style_vehicle = function(button)
 	if not button or button.style then return end
 	button.styled = true
 
-	CityUi.util.gen_backdrop(button)
+	cui.util.gen_backdrop(button)
 
-	local blank = CityUi.media.textures.blank
+	local blank = cui.media.textures.blank
 	
 	local pushed = button:GetPushedTexture()
 	pushed:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
@@ -169,7 +290,7 @@ lib.style_pet = function(button)
 	if not button or button.city_styled then return end
 	button.city_styled = true
 	
-	CityUi.util.gen_backdrop(button)
+	cui.util.gen_backdrop(button)
 	
 	local name = button:GetName()
 	local icon  = _G[name.."Icon"]
@@ -194,7 +315,7 @@ lib.style_pet = function(button)
 	shine:SetPoint("TOPLEFT", icon, 1, -1)
 	shine:SetPoint("BOTTOMRIGHT", icon, -1, 1)
 
-	hotkey:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_sml, CityUi.config.font_flags)
+	hotkey:SetFont(cui.config.default_font, cui.config.font_size_sml, cui.config.font_flags)
 	hotkey:ClearAllPoints()
 	hotkey:SetParent(text_overlay)
 	hotkey:SetPoint("TOPRIGHT", button, 3, 1)
@@ -203,7 +324,7 @@ lib.style_pet = function(button)
 	cooldown:SetAllPoints(icon)
 	cooldown:SetHideCountdownNumbers(false)
 	cooldown:SetDrawEdge(false)
-	cooldown:GetRegions():SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+	cooldown:GetRegions():SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
 	cooldown:GetRegions():SetShadowOffset(0, 0)
 
 	flash.oldShow = flash.Show
@@ -216,7 +337,7 @@ lib.style_stance = function(button)
 	if not button or button.styled then return end
 	button.styled = true
 	
-	CityUi.util.gen_backdrop(button)
+	cui.util.gen_backdrop(button)
 	
 	local name = button:GetName()
 	local icon  = _G[name.."Icon"]
@@ -228,7 +349,7 @@ lib.style_bag = function(button)
 	if not button or button.styled then return end
 	button.styled = true
 	
-	CityUi.util.gen_backdrop(button)
+	cui.util.gen_backdrop(button)
 
 	local name = button:GetName()
 	local icon = _G[name.."IconTexture"]

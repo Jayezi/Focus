@@ -1,25 +1,8 @@
-local addon, ns = ...
-local cfg = ns.cfg
-local lib = ns.lib
+local addon, cab = ...
+local cfg = cab.cfg
+local lib = cab.lib
 
--- Leaving both ways here for now just to see how they go
-
--- Reuse the default button
-MainMenuBarVehicleLeaveButton.oldSetPoint = MainMenuBarVehicleLeaveButton.SetPoint
-MainMenuBarVehicleLeaveButton.SetPoint = function(self)
-	self:oldSetPoint(unpack(cfg.bars.vehicle.pos))
-end
-
-MainMenuBarVehicleLeaveButton:HookScript("OnShow", function(self)
-	lib.style_vehicle(self)
-	self:SetSize(50, 50)
-	self:SetScale(1 / cfg.bars.main.scale)
-	self:SetPoint()
-end)
-
--- Make my own
-
-local vehicle = CreateFrame("Button", "CityExitVehicle", UIParent)
+local vehicle = CreateFrame("Button", "CityExitVehicleButton", UIParent)
 
 function vehicle:VehicleOnEvent(event)
     if CanExitVehicle() then
@@ -39,7 +22,7 @@ function vehicle:VehicleOnClick()
     end
 end
 
-vehicle:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 5, -5)
+vehicle:SetPoint("BOTTOMRIGHT", _G["CityBagBar"], "BOTTOMLEFT", -10, 0)
 vehicle:SetSize(80, 50)
 vehicle:SetFrameStrata("TOOLTIP")
 
@@ -76,7 +59,7 @@ vehicle:SetScript("OnLeave", function()
 end)
 
 vehicle.text = vehicle:CreateFontString(nil, "OVERLAY")
-vehicle.text:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_lrg, CityUi.config.font_flags)
-vehicle.text:SetText("Exit")
+vehicle.text:SetFont(CityUi.config.default_font, CityUi.config.font_size_med, CityUi.config.font_flags)
+vehicle.text:SetText("Vehicle")
 vehicle.text:SetAllPoints(vehicle)
 vehicle.text:SetJustifyH("CENTER")

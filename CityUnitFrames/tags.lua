@@ -1,8 +1,5 @@
--- oUF City
-
-local addon, ns = ...
-
-local cfg = ns.config
+local addon, cuf = ...
+local cfg = cuf.cfg
 
 local hex = function(r, g, b)
 	if r then
@@ -81,16 +78,11 @@ oUF.Tags.Events['city:color'] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION UNIT
 oUF.Tags.Methods["city:hplong"] = function(unit)
 
 	local curr, max = UnitHealth(unit), UnitHealthMax(unit)
-	
-	local per = 0
-	if max > 0 then
-		per = ("%.1f"):format(curr / max * 100)
-	end
 
 	local shortcurr = numFormat(curr)
 	local shortmax = numFormat(max)
 	
-	local hp = shortcurr.."/"..shortmax.."-"..per.."%"
+	local hp = shortcurr.."/"..shortmax
 	
 	if UnitIsDead(unit) then 
 		hp = hp.." Dead"
@@ -106,7 +98,7 @@ oUF.Tags.Methods["city:hplong"] = function(unit)
 	
 	return hp
 end
-oUF.Tags.Events["city:hplong"] = "UNIT_HEALTH UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION UNIT_FACTION"
+oUF.Tags.Events["city:hplong"] = "UNIT_HEALTH UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
 
 oUF.Tags.Methods["city:bosshp"] = function(unit)
 

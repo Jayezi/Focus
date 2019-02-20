@@ -6,5 +6,4 @@
 config.lua
 lib.lua
 actionbars.lua
-microbar.lua
 vehicle.lua

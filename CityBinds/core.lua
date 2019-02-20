@@ -15,7 +15,9 @@ City_Layouts = {
 
 local CityUi = CityUi
 
-CityUi:register_event("ADDON_LOADED", function(addon)
+local frame = CreateFrame("Frame")
+frame:RegisterEvent("ADDON_LOADED")
+frame:SetScript("OnEvent", function(self, event, addon)
 	if addon == "CityBinds" then
 		if not CityBindLayouts then CityBindLayouts = {} end
 		if not CityBindLayouts[CityUi.player.realm] then CityBindLayouts[CityUi.player.realm] = {} end

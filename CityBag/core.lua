@@ -42,7 +42,7 @@ end
 local function make_movable(frame)
 	frame:SetClampedToScreen(true)
 	frame:SetMovable(true)
-	frame:SetUserPlaced(true)
+	--frame:SetUserPlaced(true)
 	frame:EnableMouse(true)
 	frame:RegisterForDrag("LeftButton")
 end
@@ -98,7 +98,7 @@ local function skin_items(index, frame)
 		cooldown:SetAllPoints(icon)
 		cooldown:SetHideCountdownNumbers(false)
 		cooldown:SetDrawEdge(false)
-		cooldown:GetRegions():SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_lrg, CityUi.config.font_flags)
+		cooldown:GetRegions():SetFont(CityUi.config.default_font, CityUi.config.font_size_lrg, CityUi.config.font_flags)
 		cooldown:GetRegions():SetShadowOffset(0, 0)
 
 		local blank = CityUi.media.textures.blank
@@ -151,7 +151,7 @@ local function create(name, ...)
 	if name == "Bank" then
 		local last_bag
 		for i = 1, 7 do
-			bag = BankSlotsFrame["Bag"..i]
+			local bag = BankSlotsFrame["Bag"..i]
 			bag:ClearAllPoints()
 			bag:SetSize(config.bag_size, config.bag_size)
 
@@ -236,7 +236,7 @@ skin_edit_box(BankItemSearchBox)
 
 for i = 1, 3 do
 	local frame = _G["BackpackTokenFrameToken"..i]
-	frame:SetSize(75, 20)
+	frame:SetSize(100, 20)
 
 	local icon = _G["BackpackTokenFrameToken"..i.."Icon"]
 	icon:SetSize(20, 20)
@@ -250,6 +250,7 @@ for i = 1, 3 do
 	count:SetJustifyV("BOTTOM")
 	count:ClearAllPoints()
 	count:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT", 10, 0)
+	count:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
 
 	frame:ClearAllPoints()
 	if i == 1 then

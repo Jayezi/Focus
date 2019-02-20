@@ -1,6 +1,6 @@
 local addon, ns = ...
 local cfg = ns.cfg
-local CityUi = CityUi
+local cui = CityUi
 
 LoadAddOn("Blizzard_CombatLog")
 
@@ -75,15 +75,45 @@ for i = 2, 15 do
 end
 
 ChatFrameMenuButton:ClearAllPoints()
-ChatFrameMenuButton:SetPoint("TOPLEFT", ChatFrame1Background, "TOPRIGHT")
+ChatFrameMenuButton:SetPoint("TOPLEFT", ChatFrame1Background, "TOPRIGHT", 2, 0)
+ChatFrameMenuButton:SetSize(25, 22)
+cui.util.gen_backdrop(ChatFrameMenuButton)
+local normal = ChatFrameMenuButton:GetNormalTexture()
+normal:ClearAllPoints()
+normal:SetPoint("TOPLEFT", ChatFrameMenuButton, "TOPLEFT", 1, -1)
+normal:SetPoint("BOTTOMRIGHT", ChatFrameMenuButton, "BOTTOMRIGHT", -1, 1)
+normal:SetTexCoord(0.21, 0.73, 0.28, 0.76)
+ChatFrameMenuButton:SetPushedTexture(normal:GetTexture())
+local pushed = ChatFrameMenuButton:GetPushedTexture()
+pushed:SetTexCoord(0.21, 0.73, 0.28, 0.76)
 
-ChatFrameChannelButton:ClearAllPoints()
-ChatFrameChannelButton:SetPoint("TOP", ChatFrameMenuButton, "BOTTOM")
+local highlight = ChatFrameMenuButton:GetHighlightTexture()
+highlight:ClearAllPoints()
+highlight:SetPoint("TOPLEFT", ChatFrameMenuButton, "TOPLEFT", 1, -1)
+highlight:SetPoint("BOTTOMRIGHT", ChatFrameMenuButton, "BOTTOMRIGHT", -1, 1)
+highlight:SetTexture(cui.media.textures.blank)
+highlight:SetVertexColor(.6, .6, .6, .3)
+
+
+local function skin_chatframe_button(frame, prev)
+	frame:ClearAllPoints()
+	frame:SetPoint("TOPLEFT", prev, "BOTTOMLEFT", 0, -2)
+	frame:SetSize(25, 25)
+	cui.util.gen_backdrop(frame)
+	frame:SetNormalTexture("")
+	frame:SetPushedTexture("")
+	frame.iconPushedOffsetX = 0
+	frame.iconPushedOffsetY = 0
+end
+
+skin_chatframe_button(ChatFrameChannelButton, ChatFrameMenuButton)
+skin_chatframe_button(ChatFrameToggleVoiceDeafenButton, ChatFrameChannelButton)
+skin_chatframe_button(ChatFrameToggleVoiceMuteButton, ChatFrameToggleVoiceDeafenButton)
 
 BNToastFrame:SetClampedToScreen(true)
 BNToastFrame:SetClampRectInsets(-10, 10, 10, -10)
 
-ChatFontNormal:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+ChatFontNormal:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
 ChatFontNormal:SetShadowOffset(0, 0)
 ChatFontNormal:SetShadowColor(0, 0, 0, 0)
 
@@ -116,7 +146,7 @@ local skin_chat_frame = function(frame)
 	local name = frame:GetName()
 
 	local frame_bg = _G[name.."Background"]
-	frame_bg:SetTexture(CityUi.media.textures.blank)
+	frame_bg:SetTexture(cui.media.textures.blank)
 	frame_bg:SetVertexColor(unpack(cfg.bg_color))
 	frame_bg.SetVertexColor = function() return end
 	frame_bg:SetAlpha(cfg.bg_alpha)
@@ -127,7 +157,7 @@ local skin_chat_frame = function(frame)
 
 	for _, tex_name in pairs(frame_border_textures) do
 		local texture = _G[name..tex_name]
-		texture:SetTexture(CityUi.media.textures.blank)
+		texture:SetTexture(cui.media.textures.blank)
 		texture:SetSize(1, 1)
 		texture:SetVertexColor(unpack(cfg.border_color))
 		texture.SetVertexColor = function() return end
@@ -141,7 +171,7 @@ local skin_chat_frame = function(frame)
 	_G[name.."BottomRightTexture"]:SetPoint("BOTTOMRIGHT", frame_bg, "BOTTOMRIGHT")
 
 	if frame.CombatLogQuickButtonFrame then
-		_G[frame.CombatLogQuickButtonFrame:GetName().."ProgressBar"]:SetStatusBarTexture(CityUi.media.textures.blank)
+		_G[frame.CombatLogQuickButtonFrame:GetName().."ProgressBar"]:SetStatusBarTexture(cui.media.textures.blank)
 		frame_bg:SetPoint("TOPLEFT", -5, 5 + frame.CombatLogQuickButtonFrame:GetHeight())
 		frame.CombatLogQuickButtonFrame:ClearAllPoints()
 		frame.CombatLogQuickButtonFrame.oldSetPoint = frame.CombatLogQuickButtonFrame.SetPoint
@@ -170,7 +200,7 @@ local skin_chat_frame = function(frame)
 	frame:SetClampRectInsets(0, 0, 0, 0)
 	frame:SetMaxResize(UIParent:GetWidth() / 2, UIParent:GetHeight() / 1.5)
 	frame:SetMinResize(200, 100)
-	frame:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+	frame:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
 	frame:SetShadowOffset(0, 0)
 	frame:SetShadowColor(0, 0, 0, 0)
 
@@ -197,12 +227,12 @@ local skin_chat_frame = function(frame)
 	edit:SetPoint("LEFT", frame, "LEFT", 0, 0)
 	edit:SetPoint("RIGHT", frame, "RIGHT", 0, 0)
 
-	CityUi.util.gen_backdrop(edit)
+	cui.util.gen_backdrop(edit)
 
 	local tab = _G[name.."Tab"]
 
 	local tab_fs = tab:GetFontString()
-	tab_fs:SetFont(CityUi.media.fonts.pixel_10, CityUi.config.font_size_med, CityUi.config.font_flags)
+	tab_fs:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
 	tab_fs:SetShadowOffset(0, 0)
 	tab_fs:SetShadowColor(0, 0, 0, 0)
 	tab_fs:SetTextColor(1, 1, 1, 1)
@@ -272,6 +302,8 @@ end
 SLASH_DOCKCHAT1 = "/dockchat"
 SlashCmdList.DOCKCHAT = dock_chat
 
-CityUi:register_event("PLAYER_LOGIN", function()
+local frame = CreateFrame("Frame")
+frame:RegisterEvent("PLAYER_LOGIN")
+frame:SetScript("OnEvent", function()
 	dock_chat()
 end)

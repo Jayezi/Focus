@@ -1,6 +1,7 @@
 local addon, ns = ...
 local cfg = {}
 ns.cfg = cfg
+local cui = CityUi
 
 cfg.color = {
 	pressed = {.3, .3, .3, .5},
@@ -9,102 +10,100 @@ cfg.color = {
 }
 
 cfg.bars = {
-	main = {
-		scale = 1,
-		pos = {"TOP", UIParent, "BOTTOM", 0, -200}
-	},
-	vehicle = {
-		size = 50,
-		pos = {"LEFT", UIParent, "LEFT", 5, 0}
-	},
 	extra = {
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 125}
+		pos = {"TOP", "UIParent", "TOP", 0, -50}
 	},
 	zone = {
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 125}
+		pos = {"TOP", "UIParent", "TOP", 0, -50}
 	},
-	ActionButton = {
+	Action = {
 		rows = 1,
-		scale = 1,
 		buttons = {
 			size = 35,
 			margin = 5,
 		},
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 5},
+		pos = {"BOTTOM", UIParent, "BOTTOM", 0, 5},
+		visibility = "[petbattle] hide; show"
 	},
-	MultiBarBottomLeftButton = {
+	MultiBarBottomLeft = {
 		rows = 1,
-		scale = 1,
 		buttons = {
 			size = 35,
 			margin = 5,
 		},
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 45},
+		pos = {"BOTTOM", UIParent, "BOTTOM", 0, 45},
+		visibility = "[petbattle][overridebar][vehicleui][possessbar][shapeshift] hide; show"
 	},
-	MultiBarBottomRightButton = {
+	MultiBarBottomRight = {
 		rows = 1,
-		scale = 1,
 		buttons = {
 			size = 35,
 			margin = 5,
 		},
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 85},
+		pos = {"BOTTOM", UIParent, "BOTTOM", 0, 85},
+		visibility = "[petbattle][overridebar][vehicleui][possessbar][shapeshift] hide; show"
 	},
-	MultiBarLeftButton = {
+	MultiBarLeft = {
 		rows = 2,
-		scale = 1,
 		buttons = {
 			size = 60,
 			margin = 2,
 		},
 		short = true,
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 200},
+		pos = {"BOTTOM", UIParent, "BOTTOM", 0, 200},
+		visibility = "[petbattle][overridebar][vehicleui][possessbar][shapeshift] hide; show"
 	},
-	MultiBarRightButton = {
+	MultiBarRight = {
 		rows = 2,
-		scale = 1,
 		buttons = {
 			size = 60,
 			margin = 2,
 		},
 		short = true,
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 284},
+		pos = {"BOTTOM", UIParent, "BOTTOM", 0, 284},
+		visibility = "[petbattle][overridebar][vehicleui][possessbar][shapeshift] hide; show"
 	},
-	stance = {
-		scale = 1,
+	Stance = {
 		buttons = {
 			size = 30,
 			margin = 5,
 		},
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 125},
+		pos = {"BOTTOMLEFT", "CityActionBar", "BOTTOMRIGHT", 5, 0},
+		visibility = "[petbattle][overridebar][vehicleui][possessbar][shapeshift] hide; show"
 	},
-	possess = {
-		scale = 1,
+	Possess = {
 		buttons = {
 			size = 30,
 			margin = 5,
 		},
-		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 160},
+		pos = {"BOTTOMLEFT", "CityActionBar", "TOPLEFT", 0, 5},
+		visibility = "[possessbar] show; hide"
 	},
-	pet = {
-		rows = 2,
-		scale = 1,
+	PetAction = {
+		rows = 1,
 		buttons = {
 			size = 30,
 			margin = 5,
 		},
-		pos = {"BOTTOMLEFT", "UIParent", "BOTTOM", 300, 5},
+		pos = {"BOTTOMLEFT", "CityMultiBarBottomRightBar", "TOPLEFT", 0, 5},
+		visibility = "[petbattle][overridebar][vehicleui][possessbar][shapeshift] hide; [pet] show; hide"
     },
-    menu = {
+    MicroMenu = {
 		enable = false,
-		scale = 1,
 		buttons = {
-			size = 50
+			size = 30,
+			margin = 2,
+			width_scale = .777
 		},
-		pos = {"TOP", "UIParent", "TOP"},
+		pos = {"BOTTOMRIGHT", "CityBagBar", "BOTTOMRIGHT", -5, 5},
+		visibility = "[petbattle] hide; show"
     },
-    bag = {
-		scale = 1,
-		pos = {"BOTTOMLEFT", "UIParent", "BOTTOMLEFT", 470, 5},
+    Bag = {
+		buttons = {
+			size = 30,
+			margin = 2,
+		},
+		pos = {"BOTTOMRIGHT", "CityMicroMenuBar", "BOTTOMLEFT", -10, 0},
+		visibility = "[petbattle] hide; show"
     },
 }
