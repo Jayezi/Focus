@@ -8,17 +8,6 @@ local function create_player_style(base)
 	local player_cfg = cfg.frames.player
 	base:SetWidth(player_cfg.size.w)
 	lib.enable_mouse(base)
-	
-	-- health
-	base.Health = cui.util.gen_statusbar(base, player_cfg.size.w, player_cfg.size.h)
-	base.Health.colorClass = true
-	base.Health.colorReaction = true
-	base.Health.frequentUpdates = true
-	base.Health.PostUpdate = lib.invert_color
-	lib.push_bar(base, base.Health)
-
-	base.HealthPrediction = lib.gen_heal_bar(base.Health)
-	base.HealthPrediction.frequentUpdates = true
 
 	-- cast
 	base.Castbar = lib.gen_cast_bar(base, player_cfg.cast.size.w, player_cfg.cast.size.h, cui.config.font_size_med, true, false, cui.player.color)
@@ -54,10 +43,22 @@ local function create_player_style(base)
 		end
 	end
 
+	-- health
+	base.Health = cui.util.gen_statusbar(base, player_cfg.size.w, player_cfg.size.h)
+	base.Health.colorClass = true
+	base.Health.colorReaction = true
+	base.Health.frequentUpdates = true
+	base.Health.PostUpdate = lib.invert_color
+	lib.push_bar(base, base.Health)
+
+	base.HealthPrediction = lib.gen_heal_bar(base.Health)
+	base.HealthPrediction.frequentUpdates = true
+
 	-- "druid mana" etc.
-	base.AdditionalPower = cui.util.gen_statusbar(base, player_cfg.size.w / 3, player_cfg.power.h)
+	base.AdditionalPower = cui.util.gen_statusbar(base, player_cfg.size.w, player_cfg.power.h)
 	base.AdditionalPower:SetFrameLevel(base.Health:GetFrameLevel() + 1)
-	base.AdditionalPower:SetPoint("TOPLEFT", base.Health, "BOTTOMLEFT", 0, player_cfg.power.h / 2)
+	base.AdditionalPower:SetPoint("TOPLEFT", base.Health, "TOPLEFT", 2, -2)
+	base.AdditionalPower:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -2, -2)
 	base.AdditionalPower.colorPower = true
 
 	-- alternate power
@@ -72,8 +73,8 @@ local function create_player_style(base)
 
 	-- strings
 	local hp_string = cui.util.gen_string(base.Health, cui.config.font_size_med, nil, nil, "LEFT", "BOTTOM")
-	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 0)
-	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 0)
+	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 1)
+	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
 	base:Tag(hp_string, "[city:color][city:hplong]")
 	
 	local altp_string = cui.util.gen_string(base.AlternativePower, cui.config.font_size_med, nil, nil, "BOTTOM", "CENTER")
@@ -95,7 +96,7 @@ local function create_player_style(base)
 		power_string:SetPoint("BOTTOM", 0, -10)
 	else
 		power_string = cui.util.gen_string(base.Health, cui.config.font_size_med, nil, nil, "RIGHT", "BOTTOM")
-		power_string:SetPoint("BOTTOMRIGHT", base.Health, "TOPRIGHT", -1, 1)
+		power_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
 	end
 	base:Tag(power_string, power_tag)
 	
@@ -128,8 +129,6 @@ local function create_target_style(base)
 	base.Power.colorDisconnected = true
 	base.Power.frequentUpdates = true
 	base.Power.colorTapping = true
-	base.Power.displayAltPower = true
-	base.Power.altPowerColor = cfg.altp_color
 	lib.push_bar(base, base.Power)
 	
 	-- health
@@ -140,6 +139,12 @@ local function create_target_style(base)
 	base.Health.frequentUpdates = true
 	base.Health.PostUpdate = lib.invert_color
 	lib.push_bar(base, base.Health)
+
+	-- alternate power
+	base.AlternativePower = cui.util.gen_statusbar(base, target_cfg.size.w, target_cfg.power.h)
+	base.AlternativePower:SetFrameLevel(base.Health:GetFrameLevel() + 1)
+	base.AlternativePower:SetPoint("TOPLEFT", base.Health, "TOPLEFT", 2, -2)
+	base.AlternativePower:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -2, -2)
 	
 	-- cast
 	base.Castbar = lib.gen_cast_bar(base, target_cfg.cast.size.w, target_cfg.cast.size.h, cui.config.font_size_med, false, true)
@@ -153,8 +158,8 @@ local function create_target_style(base)
 	base:Tag(power_string, "[city:color][city:pplongfrequent]")
 
 	local hp_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "LEFT", "BOTTOM")
-	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 0)
-	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 0)
+	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 1)
+	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
 	base:Tag(hp_string, "[city:color][city:hplong]")
 
 	local hp_perc_string = cui.util.gen_string(base.Health, cui.config.font_size_lrg, nil, nil, "RIGHT", "TOP")
@@ -279,6 +284,10 @@ local function create_nameplate_style(base)
 	base:Tag(name_string, "[city:color][name]")
 	name_string:SetPoint("BOTTOMLEFT", base.Health, "TOPLEFT", 1, 1)
 
+	local hp_string = cui.util.gen_string(base.Health, cui.config.font_size_lrg, nil, nil, "RIGHT", "TOP")
+	base:Tag(hp_string, "[city:color][perhp]")
+	hp_string:SetPoint("RIGHT", base.Health, "BOTTOMRIGHT", -1, 0)
+
 	-- cast
 	base.Castbar = lib.gen_nameplate_cast_bar(base, w, h, cui.config.font_size_med)
 	base.Castbar:SetPoint("TOPLEFT", base.Health, "BOTTOMLEFT", 0, 1)
@@ -364,27 +373,28 @@ local function create_boss_style(base)
 	lib.push_bar(base, base.Power)
 
 	-- alt power
-	base.AlternativePower = cui.util.gen_statusbar(base, boss_cfg.size.w / 2, boss_cfg.power.h)
-	base.AlternativePower:SetPoint("CENTER", base.Health, "BOTTOM")
+	base.AlternativePower = cui.util.gen_statusbar(base, boss_cfg.size.w, boss_cfg.power.h)
+	base.AlternativePower:SetPoint("TOPLEFT", base.Health, "TOPLEFT", 2, -2)
+	base.AlternativePower:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -2, -2)
 	
 	base:SetHeight(base.stack_height)
 
 	-- strings
 	local hp_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "LEFT", "BOTTOM")
-	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 2)
+	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 1)
 	base:Tag(hp_string, "[city:color][perhp]%")
 	
 	local power_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "RIGHT", "BOTTOM")
-	power_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", 1, 2)
+	power_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", 1, 1)
 	base:Tag(power_string, "[city:color][perpp]%")
 	
 	local altp_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "RIGHT", "TOP")
-	altp_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", -1, 1)
+	altp_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", -1, -1)
 	base:Tag(altp_string, "[city:color][city:altpower]")
 	
 	local name_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "LEFT", "TOP")
-	name_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, 2)
-	name_string:SetPoint("TOPRIGHT", altp_string, "TOPLEFT", -5, 0)
+	name_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, -1)
+	name_string:SetPoint("RIGHT", altp_string, "LEFT", -5, 0)
 	base:Tag(name_string, "[city:color][name]")
 	
 	-- auras
@@ -512,7 +522,6 @@ local function create_raid_style(role)
 			-- power
 			base.Power = cui.util.gen_statusbar(base, raid_cfg.size.dps.w, raid_cfg.power.h)
 			base.Power.colorPower = true
-			base.Power.altPowerColor = cfg.altp_color
 			lib.push_bar(base, base.Power)
 	
 			-- strings
@@ -652,7 +661,7 @@ oUF:Factory(function(self)
 			if i == 1 then
 				boss[i]:SetPoint("TOPLEFT", mover)
 			else
-				boss[i]:SetPoint("TOPRIGHT", boss[i - 1], "BOTTOMRIGHT", 0, -(cfg.frames.boss.cast.h + 2 * (cui.config.font_size_med + 4) + 6))
+				boss[i]:SetPoint("TOPRIGHT", boss[i - 1], "BOTTOMRIGHT", 0, -(20 + cfg.frames.boss.cast.h + 2 * cui.config.font_size_med))
 			end
 		end
 	end

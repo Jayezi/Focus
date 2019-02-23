@@ -430,19 +430,16 @@ local function set_reagents(show)
 
 	skin_colors(98, "ReagentBankFrameItem", 0)
 	skin_items(98, "ReagentBankFrameItem")
-
-	local deposit = ReagentBankFrame:GetChildren()
-	deposit:SetSize(150, 20)
-	deposit:ClearAllPoints()
-	deposit:SetPoint("BOTTOMRIGHT", bank, "BOTTOMRIGHT", -10, 10)
-	--deposit:SetFrameStrata("HIGH")
-	--deposit:SetFrameLevel(3)
-	strip_textures(deposit, true)
 	
 	CityUi.util.fix_string(ReagentBankFrameText, CityUi.config.font_size_med)
-	ReagentBankFrameText:SetAllPoints(deposit)
-	ReagentBankFrameText:SetJustifyH("CENTER")
-	ReagentBankFrameText:SetJustifyV("MIDDLE")
+	ReagentBankFrameText:ClearAllPoints()
+	ReagentBankFrameText:SetPoint("BOTTOMRIGHT", bank, "BOTTOMRIGHT", -10, 10)
+	ReagentBankFrameText:SetJustifyH("RIGHT")
+	ReagentBankFrameText:SetJustifyV("BOTTOM")
+	
+	local deposit = ReagentBankFrame:GetChildren()
+	deposit:SetAllPoints(ReagentBankFrameText)
+	strip_textures(deposit, true)
 
 	if (show) then
 		bank:SetID(REAGENTBANK_CONTAINER)

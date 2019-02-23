@@ -228,8 +228,8 @@ lib.gen_xp_bar = function(base, w, h)
 	xp_bar:SetSize(w, h)
 	
     -- give this the backdrop since the module forces it behind the xp bar
-	local rested_bar = cui.util.gen_statusbar(xp_bar, w, h)
-	rested_bar:SetAllPoints()
+	local rested_bar = cui.util.gen_statusbar(xp_bar, w + 2, h + 2)
+	rested_bar:SetPoint("TOPLEFT", xp_bar, "TOPLEFT", -1, 1)
 
     xp_bar.Rested = rested_bar
 	return xp_bar

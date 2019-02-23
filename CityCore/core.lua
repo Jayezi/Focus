@@ -282,7 +282,7 @@ load_frame:SetScript("OnEvent", function(self, event, addon)
 		if not CityFrameRole then CityFrameRole = {} end
 		if not CityFrameRole[cui.player.realm] then CityFrameRole[cui.player.realm] = {} end
 		if not CityFrameRole[cui.player.realm][cui.player.name] then CityFrameRole[cui.player.realm][cui.player.name] = "dps" end
-		print("Loaded role: "..CityFrameRole[cui.player.realm][cui.player.name])
+		print("loaded "..CityFrameRole[cui.player.realm][cui.player.name].." role")
 
 		if not CityFramePositions then CityFramePositions = {} end
 		if not CityFramePositions[cui.player.realm] then CityFramePositions[cui.player.realm] = {} end
@@ -374,13 +374,13 @@ combatlog_checker:SetScript("OnClick", function(self, button)
 			self:Hide()
 		else
 			LoggingCombat(true)
-			print("Combat logging enabled.")
+			print("combat logging enabled")
 			self:Hide()
 		end
 	else
 		if combatlog_checker.log_on then
 			LoggingCombat(false)
-			print("Combat logging disabled.")
+			print("combat logging disabled")
 			self:Hide()
 		else
 			self:Hide()

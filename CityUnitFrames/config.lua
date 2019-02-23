@@ -6,7 +6,6 @@ local cui = CityUi
 
 oUF.colors.power['MANA'] = {46/255, 130/255, 215/255}
 
-cfg.altp_color = {.5, .5, .5, 1}
 cfg.cast_non_interrupt_color = {.5, .2, .2, 1}
 cfg.cast_interrupt_color = {.2, .5, .2, 1}
 cfg.range_alpha = .5
@@ -124,13 +123,13 @@ cfg.frames = {
 		indicators = indicators[cui.player.class]
 	},
 	boss = {
-		size = {w = 250, h = 25},
+		size = {w = 300, h = 30},
 		pos = {"TOPRIGHT", UIParent, "TOPRIGHT", -10, -1},
 		power = {
 			h = 8
 		},
 		cast = {
-			h = 15
+			h = 25
 		}
 	},
 	nameplate = {

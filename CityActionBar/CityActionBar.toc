@@ -1,6 +1,6 @@
-## Interface: 70100
+## Interface: 80100
 ## Title: CityActionBar
-## Author: CityPunch
+## Author: Jayeasy
 ## RequiredDeps: CityCore
 
 config.lua

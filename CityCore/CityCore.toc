@@ -1,6 +1,6 @@
-## Interface: 70200
+## Interface: 80100
 ## Title: CityCore
-## Author: CityPunch
+## Author: Jayeasy
 ## SavedVariables: CityFrameRole, CityFramePositions
 
 core.lua

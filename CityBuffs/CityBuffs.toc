@@ -1,5 +1,5 @@
-## Interface: 70100
-## Author: CityPunch
+## Interface: 80100
+## Author: Jayeasy
 ## Title: CityBuffs
 ## RequiredDeps: CityCore
 
