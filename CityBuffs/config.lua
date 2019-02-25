@@ -1,6 +1,6 @@
-local addon, ns = ...
+local addon, cbu = ...
 local cfg = {}
-ns.cfg = cfg
+cbu.cfg = cfg
 
 cfg.row_gap = 10
 cfg.col_gap = 6

@@ -26,6 +26,52 @@ local disable_scripts = function(frame)
 	end
 end
 
+local skin_textures = function(button, icon, normal)
+
+	icon:SetDrawLayer("OVERLAY", -8)
+	
+	if button.short then
+		icon:SetTexCoord(0.1, 0.9, 0.23, 0.77)
+	else
+		icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+	end
+
+	cui.util.set_inside(icon, button)
+
+	local blank = cui.media.textures.blank
+	
+	local checked = button:GetCheckedTexture()
+	checked:SetAllPoints(icon)
+	checked:SetTexture(blank)
+	checked:SetVertexColor(unpack(cfg.color.checked))
+	hooksecurefunc(checked, "SetAlpha", function(self, a)
+		if a ~= 0.5 then
+			self:SetAlpha(0.5)
+		end
+	end)
+	
+	local pushed = button:GetPushedTexture()
+	pushed:SetDrawLayer("OVERLAY", -6)
+	pushed:SetAllPoints(icon)
+	pushed:SetTexture(blank)
+	pushed:SetVertexColor(unpack(cfg.color.pressed))
+
+	button:SetNormalTexture("")
+	if normal then
+		normal.SetTexCoord = function() return end
+		hooksecurefunc(button, "SetNormalTexture", function(self, tex)
+			if tex ~= "" then
+				self:SetNormalTexture("")
+			end
+		end)
+	end
+
+	local highlight = button:GetHighlightTexture()
+	highlight:SetAllPoints(icon)
+	highlight:SetTexture(blank)
+	highlight:SetVertexColor(unpack(cfg.color.highlight))
+end
+
 lib.create_bar = function(name, num, cfg)
 
 	local per_row = num / (cfg.rows or 1)
@@ -103,52 +149,6 @@ lib.hide_blizzard = function()
 		frame:UnregisterAllEvents()
 		disable_scripts(frame)
 	end
-end
-
-local skin_textures = function(button, icon, normal)
-
-	icon:SetDrawLayer("OVERLAY", -8)
-	
-	if button.short then
-		icon:SetTexCoord(0.1, 0.9, 0.23, 0.77)
-	else
-		icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-	end
-
-	cui.util.set_inside(icon, button)
-
-	local blank = cui.media.textures.blank
-	
-	local checked = button:GetCheckedTexture()
-	checked:SetAllPoints(icon)
-	checked:SetTexture(blank)
-	checked:SetVertexColor(unpack(cfg.color.checked))
-	hooksecurefunc(checked, "SetAlpha", function(self, a)
-		if a ~= 0.5 then
-			self:SetAlpha(0.5)
-		end
-	end)
-	
-	local pushed = button:GetPushedTexture()
-	pushed:SetDrawLayer("OVERLAY", -6)
-	pushed:SetAllPoints(icon)
-	pushed:SetTexture(blank)
-	pushed:SetVertexColor(unpack(cfg.color.pressed))
-
-	button:SetNormalTexture("")
-	if normal then
-		normal.SetTexCoord = function() return end
-		hooksecurefunc(button, "SetNormalTexture", function(self, tex)
-			if tex ~= "" then
-				self:SetNormalTexture("")
-			end
-		end)
-	end
-
-	local highlight = button:GetHighlightTexture()
-	highlight:SetAllPoints(icon)
-	highlight:SetTexture(blank)
-	highlight:SetVertexColor(unpack(cfg.color.highlight))
 end
 
 lib.style_menu = function(button)
@@ -277,7 +277,6 @@ lib.style_vehicle = function(button)
 	highlight:SetTexture(blank)
 	highlight:SetVertexColor(unpack(cfg.color.highlight))
 end
-
 
 lib.style_pet = function(button)
 	if not button or button.city_styled then return end

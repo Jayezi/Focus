@@ -400,6 +400,7 @@ hooksecurefunc("GameTooltip_SetDefaultAnchor", function(self, parent)
 end)
 
 -- panels
+
 cui.util.gen_panel({
 	name = "DataPanel",
 	strata = "BACKGROUND",
@@ -413,32 +414,36 @@ cui.util.gen_panel({
 })
 
 -- afk screen
-local character_frame = CreateFrame("PlayerModel", "CityPlayerModel")
-character_frame:SetSize(500, 700)
-character_frame:SetPoint("RIGHT", WorldFrame, "CENTER")
-character_frame:SetUnit("player")
-character_frame:SetRotation(math.rad(25))
-
-local anims = {
-	MONK = 732,
-	HUNTER = 115
-}
-
-if anims[cui.player.class] then
-	character_frame:SetAnimation(anims[cui.player.class])
-end
 
 local afk = CreateFrame("Frame")
 afk:SetAllPoints(WorldFrame)
 cui.util.gen_backdrop(afk, 0, 0, 0, .75)
-local name = cui.util.gen_string(afk, 50)
+local name = cui.util.gen_string(afk, 50, nil, nil, "LEFT")
 name:SetText(cui.player.name)
 name:SetPoint("LEFT", WorldFrame, "CENTER")
+name:SetPoint("RIGHT", WorldFrame, "RIGHT")
 name:SetTextColor(unpack(cui.player.color))
 afk:Hide()
 
+local anims = {
+	MONK = 732, -- Meditate
+	HUNTER = 115 -- Kneel
+}
+
+local character_frame = CreateFrame("DressUpModel", "CityPlayerModel", nil)
+character_frame:SetSize(600, 700)
+character_frame:SetPoint("RIGHT", WorldFrame, "CENTER")
+
 local start_afk = function()
+	character_frame:SetUnit("player")
+	character_frame:SetRotation(math.rad(25))
+	character_frame:SetSheathed(true)
 	character_frame:Show()
+
+	if anims[cui.player.class] then
+		character_frame:SetAnimation(anims[cui.player.class])
+	end
+
 	afk:Show()
 	UIParent:SetAlpha(0)
 	WorldFrame:SetAlpha(0)
@@ -471,6 +476,16 @@ end)
 
 ChatBubbleFont:SetFont(cui.config.default_font, cui.config.font_size_lrg, cui.config.font_flags)
 
+local talking_head_frame = CreateFrame("Frame")
+talking_head_frame:RegisterEvent("ADDON_LOADED")
+talking_head_frame:SetScript("OnEvent", function()
+	if addon == "Blizzard_TalkingHeadUI" then
+		TalkingHeadFrame:ClearAllPoints()
+		TalkingHeadFrame:SetPoint("TOPLEFT", 10, -10)
+		TalkingHeadFrame.ignoreFramePositionManager = true
+	end
+end)
+
 local login_frame = CreateFrame("Frame")
 login_frame:RegisterEvent("PLAYER_LOGIN")
 login_frame:SetScript("OnEvent", function()
@@ -502,6 +517,7 @@ login_frame:SetScript("OnEvent", function()
 end)
 
 -- BW skin
+
 local f = CreateFrame("Frame")
 local register_bw_skin = function()
 

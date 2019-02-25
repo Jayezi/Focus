@@ -96,10 +96,10 @@ local update_buffs = function()
 	BuffFrame:SetSize(width, height)
 end
 
-local oldBuffFrame_SetPoint = BuffFrame.SetPoint
+local buffs_setpoint = BuffFrame.SetPoint
 hooksecurefunc(BuffFrame, "SetPoint", function(self)
 	self:ClearAllPoints()
-	oldBuffFrame_SetPoint(self, "TOPRIGHT", Minimap, "TOPLEFT", -15, 0)
+	buffs_setpoint(self, "TOPRIGHT", Minimap, "TOPLEFT", -20, 0)
 end)
 
 hooksecurefunc(GameTooltip, "SetUnitAura", function(self, unit, index, filter)
@@ -115,6 +115,3 @@ end)
 
 hooksecurefunc("BuffFrame_UpdateAllBuffAnchors", update_buffs)
 hooksecurefunc("DebuffButton_UpdateAnchors", update_debuffs)
-
---TemporaryEnchantFrame.Show = TemporaryEnchantFrame.Hide
---TemporaryEnchantFrame:Hide()
