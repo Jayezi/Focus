@@ -1,6 +1,8 @@
 local addon, cuf = ...
 local cfg = cuf.cfg
 
+local alt_power_index = ALTERNATE_POWER_INDEX
+
 local hex = function(r, g, b)
 	if r then
 		if (type(r) == 'table') then
@@ -16,9 +18,9 @@ end
 
 local formatTime = function(rawTime)
 	if rawTime > 60 then 
-		endTime = math.floor(rawTime / 60)
+		endTime = math.math.floor(rawTime / 60)
 	else 
-		endTime = math.floor(rawTime)
+		endTime = math.math.floor(rawTime)
 	end
 	return endTime
 end
@@ -35,7 +37,7 @@ local numFormat = function(v)
 	end
 end
 
-local alt_power_index = ALTERNATE_POWER_INDEX
+-- misc
 
 oUF.Tags.Methods['city:role'] = function(u)
 	local role = UnitGroupRolesAssigned(u)
@@ -49,20 +51,18 @@ oUF.Tags.Methods['city:role'] = function(u)
 end
 oUF.Tags.Events['city:role'] = 'PLAYER_ROLES_ASSIGNED GROUP_ROSTER_UPDATE'
 
-oUF.Tags.Methods["city:info"] = function(unit) 
-	local status
-	if (UnitIsAFK(unit)) then
-		status = "AFK "
-	elseif (UnitIsDND(unit)) then
-		status = "DND "
-	end
+oUF.Tags.Methods["city:status"] = function(unit)
+	if not UnitIsConnected(unit) then return "OFF " end
+	local status = ""
+	if UnitIsAFK(unit) then status = status.."AFK " end
+	if UnitIsDND(unit) then status = status.."DND " end
 	return status
 end
-oUF.Tags.Events["city:info"] = "PLAYER_ENTERING_WORLD PLAYER_FLAGS_CHANGED"
+oUF.Tags.Events["city:status"] = "PLAYER_ENTERING_WORLD PLAYER_FLAGS_CHANGED"
 
 oUF.Tags.Methods['city:color'] = function(unit)
 	if not UnitIsConnected(unit) then
-		return "|cff999999"
+		return hex(oUF.colors.tapped)
 	end
 	
 	if (UnitIsPlayer(unit)) then
@@ -75,127 +75,122 @@ oUF.Tags.Methods['city:color'] = function(unit)
 end
 oUF.Tags.Events['city:color'] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION UNIT_FACTION"
 
-oUF.Tags.Methods["city:hplong"] = function(unit)
+-- health
 
+oUF.Tags.Methods["city:hp:curr/max state"] = function(unit)
 	local curr, max = UnitHealth(unit), UnitHealthMax(unit)
 
 	local shortcurr = numFormat(curr)
 	local shortmax = numFormat(max)
 	
-	local hp = shortcurr.."/"..shortmax
+	local str = shortcurr.."/"..shortmax
 	
 	if UnitIsDead(unit) then 
-		hp = hp.." Dead"
+		str = str.." Dead"
 	end
 	
 	if UnitIsGhost(unit) then
-		hp = hp.." Ghost"
+		str = str.." Ghost"
 	end
 	
-	if not UnitIsConnected(unit) then
-		hp = hp.." Off"
-	end
-	
-	return hp
+	return str
 end
-oUF.Tags.Events["city:hplong"] = "UNIT_HEALTH UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
+oUF.Tags.Events["city:hp:curr/max state"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
 
-oUF.Tags.Methods["city:bosshp"] = function(unit)
-
-	if (UnitIsDead(unit) or UnitIsGhost(unit)) then 
-		return "Dead"
-	end
-	
-	local min, max = UnitHealth(unit), UnitHealthMax(unit)
-	local per = 0
+oUF.Tags.Methods["city:hp:curr-perc"] = function(unit)
+	local curr, max = UnitHealth(unit), UnitHealthMax(unit)
+	local perc = 0
 	if max > 0 then
-		per = floor(min / max * 100)
+		perc = math.floor(UnitHealth(unit) / max * 100 + 0.5)
+	end
+
+	local str = numFormat(curr).."-"..perc.."%"
+	
+	return str
+end
+oUF.Tags.Events["city:hp:curr-perc"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
+
+oUF.Tags.Methods["city:hp:perc"] = function(unit)
+	local max = UnitHealthMax(unit)
+	local str = 0
+	if max > 0 then
+		str = math.floor(UnitHealth(unit) / max * 100 + 0.5)
 	end
 	
-	local shortmin = numFormat(min)
-	local shortmax = numFormat(max)
+	return str
+end
+oUF.Tags.Events["city:hp:perc"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH"
+
+oUF.Tags.Methods["city:hp:perc."] = function(unit)
+	local max = UnitHealthMax(unit)
+	local str = 0
+	if max > 0 then
+		local perc = UnitHealth(unit) / max * 100
+		if perc < 10 then
+			str = ("%.1f"):format(perc)
+		else
+			str = math.floor(perc + 0.5)
+		end
+	end
 	
-	return shortmin.."/"..shortmax.."-"..per.."%"  
+	return str
 end
-oUF.Tags.Events["city:bosshp"] = "UNIT_HEALTH UNIT_MAXHEALTH"
+oUF.Tags.Events["city:hp:perc."] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH"
 
-oUF.Tags.Methods["city:shorthp"] = function(unit)
-	local min, max = UnitHealth(unit), UnitHealthMax(unit)
-	local shortmin = numFormat(min)
-	local shortmax = numFormat(max)
-	return shortmin.."/"..shortmax
-end
-oUF.Tags.Events["city:shorthp"] = "UNIT_HEALTH UNIT_MAXHEALTH"
-
-oUF.Tags.Methods["city:currhp"] = function(unit)
+oUF.Tags.Methods["city:hp:curr"] = function(unit)
 	return numFormat(UnitHealth(unit))
 end
-oUF.Tags.Events["city:currhp"] = "UNIT_HEALTH UNIT_MAXHEALTH"
+oUF.Tags.Events["city:hp:curr"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH"
 
-oUF.Tags.Methods["city:ppdefault"] = function(unit)
-	local min, max = UnitPower(unit), UnitPowerMax(unit)
-	local per = 0
-	if max > 0 then
-		per = floor(min / max * 100)
+oUF.Tags.Methods["city:hp:group"] = function(unit)
+	if not UnitIsConnected(unit) then return "OFF" end
+	if UnitIsDeadOrGhost(unit) then return "Dead" end
+	if UnitIsAFK(unit) then return "AFK" end
+
+	local heal_absorb = UnitGetTotalHealAbsorbs(unit)
+	if heal_absorb > 0 then
+		return hex(1, .25, .25)..numFormat(heal_absorb)
 	end
-	local shortmin = numFormat(min)
-	return shortmin.."-"..per.."%"
-end
-oUF.Tags.Events["city:ppdefault"] = "UNIT_POWER_UPDATE"
-
-oUF.Tags.Methods["city:pplongfrequent"] = function(unit)
-	local min, max = UnitPower(unit), UnitPowerMax(unit)
-	local per = 0
-	if max > 0 then
-		per = floor(min / max * 100)
-	end
-	local shortmin = numFormat(min)
-	return shortmin.."-"..per.."%"
-end
-oUF.Tags.Events["city:pplongfrequent"] = "UNIT_POWER_FREQUENT"
-
-oUF.Tags.Methods["city:bosspp"] = function(unit)
-	local min, max = UnitPower(unit), UnitPowerMax(unit)
-	local per = 0
-	if max > 0 then
-		per = floor(min / max * 100)
-	end
-	local shortmin = numFormat(min)
-	return shortmin.."-"..per.."%"
-end
-oUF.Tags.Events["city:bosspp"] = "UNIT_POWER_FREQUENT"
-
-oUF.Tags.Methods["city:shortpp"] = function(unit)
-	return numFormat(UnitPower(unit))
-end
-oUF.Tags.Events["city:shortpp"] = "UNIT_POWER_UPDATE"
-
-oUF.Tags.Methods["city:shortppfrequent"] = function(unit)
-	return numFormat(UnitPower(unit))
-end
-oUF.Tags.Events["city:shortppfrequent"] = "UNIT_POWER_FREQUENT"
-
-oUF.Tags.Methods['city:altpower'] = function(unit)
-	local cur = UnitPower(unit, alt_power_index)
-	local max = UnitPowerMax(unit, alt_power_index)
-	if(max > 0 and not UnitIsDeadOrGhost(unit)) then
-		return ("%s%%"):format(math.floor(cur / max * 100 + .5))
-	else
-		return ""
-	end
-end
-oUF.Tags.Events['city:altpower'] = 'UNIT_POWER_UPDATE'
-
-oUF.Tags.Methods["city:hpraid"] = function(unit)
-	if not UnitIsConnected(unit) then
-		return "Off"
-	end
-	if(UnitIsDead(unit) or UnitIsGhost(unit)) then
-		return "Dead"
-	end
-	local heal_absorb = UnitGetTotalHealAbsorbs(unit) or 0
-	if heal_absorb > 0 then return "|r"..hex(1, .25, .25)..numFormat(heal_absorb).."|r" end
 
 	return ""
 end
-oUF.Tags.Events["city:hpraid"] = "UNIT_NAME_UPDATE UNIT_ABSORB_AMOUNT_CHANGED UNIT_HEAL_ABSORB_AMOUNT_CHANGED UNIT_CONNECTION"
+oUF.Tags.Events["city:hp:group"] = "UNIT_NAME_UPDATE UNIT_ABSORB_AMOUNT_CHANGED UNIT_HEAL_ABSORB_AMOUNT_CHANGED UNIT_CONNECTION"
+
+-- power
+
+oUF.Tags.Methods["city:pp:curr/max-perc"] = function(unit)
+	local curr, max = UnitPower(unit), UnitPowerMax(unit)
+	local per = 0
+	if max > 0 then
+		per = math.floor(curr / max * 100 + 0.5)
+	end
+	return numFormat(curr).."/"..numFormat(max).."-"..per.."%"
+end
+oUF.Tags.Events["city:pp:curr/max-perc"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER"
+
+oUF.Tags.Methods["city:pp:curr-perc"] = function(unit)
+	local curr, max = UnitPower(unit), UnitPowerMax(unit)
+	local per = 0
+	if max > 0 then
+		per = math.floor(curr / max * 100 + 0.5)
+	end
+	return numFormat(curr).."-"..per.."%"
+end
+oUF.Tags.Events["city:pp:curr-perc"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER"
+
+oUF.Tags.Methods["city:pp:curr"] = function(unit)
+	return numFormat(UnitPower(unit))
+end
+oUF.Tags.Events["city:pp:curr"] = "UNIT_POWER_FREQUENT"
+
+-- alternative power
+
+oUF.Tags.Methods["city:altp:perc"] = function(unit)
+	local max = UnitPowerMax(unit, alt_power_index)
+	local str = ""
+	if max > 0 then
+		str = math.floor(UnitPower(unit, alt_power_index) / max * 100 + 0.5)
+	end
+	return str
+end
+oUF.Tags.Events["city:altp:perc"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER"

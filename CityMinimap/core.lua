@@ -39,8 +39,7 @@ function GetMinimapShape() return "SQUARE" end
 
 local clockFrame, clockTime = TimeManagerClockButton:GetRegions()
 clockFrame:Hide()
-clockTime:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
-clockTime:SetShadowOffset(0, 0)
+cui.util.fix_string(clockTime, cui.config.font_size_med)
 clockTime:SetTextColor(1, 1, 1, 1)
 clockTime:SetJustifyH("RIGHT")
 clockTime:SetJustifyV("BOTTOM")
@@ -51,9 +50,8 @@ clockTime:Show()
 TimeManagerClockButton:SetHitRectInsets(0, 0, 0, 0)
 TimeManagerClockButton:SetAllPoints(clockTime)
 
-MinimapZoneText:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
+cui.util.fix_string(MinimapZoneText, cui.config.font_size_med)
 MinimapZoneText:ClearAllPoints()
-MinimapZoneText:SetShadowOffset(0, 0)
 MinimapZoneText:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 5, -5)
 MinimapZoneText:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -5, -5)
 

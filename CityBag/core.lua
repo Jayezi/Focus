@@ -1,11 +1,4 @@
--- REAGENTBANK_CONTAINER: Reagent bank (-3)
--- KEYRING_CONTAINER: Keyring and currency bag (-2)
--- BANK_CONTAINER Main storage area in the bank (-1)
--- BACKPACK_CONTAINER: Backpack (0)
--- 1 through NUM_BAG_SLOTS: Bag slots (as presented in the default UI, numbered right to left)
--- NUM_BAG_SLOTS + 1 through NUM_BAG_SLOTS + NUM_BANKBAGSLOTS: Bank bag slots (as presented in the default UI, numbered left to right)
-
-local CityUi = CityUi
+local cui = CityUi
 
 BACKPACK_HEIGHT = 22
 
@@ -69,7 +62,7 @@ local function skin_colors(size, frame, bag_id)
 		
 	local bag_color = bag_colors[bag_type]
 	for i = 1, size do
-		CityUi.util.gen_backdrop(_G[frame..i], bag_color)
+		cui.util.gen_backdrop(_G[frame..i], bag_color)
 	end
 end
 
@@ -84,7 +77,7 @@ local function skin_items(index, frame)
 		local quest = _G[frame..i.."IconQuestTexture"]
 
 		count:SetDrawLayer("OVERLAY")
-		CityUi.util.fix_string(count, CityUi.config.font_size_med)
+		cui.util.fix_string(count, cui.config.font_size_med)
 		count:SetJustifyH("RIGHT")
 		count:SetJustifyV("BOTTOM")
 		count:ClearAllPoints()
@@ -92,16 +85,14 @@ local function skin_items(index, frame)
 
 		icon:SetDrawLayer("OVERLAY", -8)
 		icon:SetTexCoord(.1, .9, .1, .9)
-		icon:SetPoint("TOPLEFT", item, "TOPLEFT", 1, -1)
-		icon:SetPoint("BOTTOMRIGHT", item, "BOTTOMRIGHT", -1, 1)
+		cui.util.set_inside(icon, item)
 
 		cooldown:SetAllPoints(icon)
 		cooldown:SetHideCountdownNumbers(false)
 		cooldown:SetDrawEdge(false)
-		cooldown:GetRegions():SetFont(CityUi.config.default_font, CityUi.config.font_size_lrg, CityUi.config.font_flags)
-		cooldown:GetRegions():SetShadowOffset(0, 0)
+		cui.util.fix_string(cooldown:GetRegions(), cui.config.font_size_lrg)
 
-		local blank = CityUi.media.textures.blank
+		local blank = cui.media.textures.blank
 		
 		if new then
 			new.Show = function() return end
@@ -145,7 +136,7 @@ local function create(name, ...)
 	frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 	frame:Hide()
 
-	CityUi.util.gen_backdrop(frame)
+	cui.util.gen_backdrop(frame)
 	make_movable(frame)
 	
 	if name == "Bank" then
@@ -172,7 +163,7 @@ local function create(name, ...)
 			bag:SetHighlightTexture("")
 			bag:SetCheckedTexture("");
 			
-			local blank = CityUi.media.textures.blank
+			local blank = cui.media.textures.blank
 			local border = bag.IconBorder
 			hooksecurefunc(border, "SetTexture", function(self, tex)
 				if tex ~= blank then
@@ -193,13 +184,13 @@ local function skin_edit_box(frame)
 	frame.Right:Hide()
 	frame:SetSize(150, 20)
 	
-	CityUi.util.gen_backdrop(frame)
+	cui.util.gen_backdrop(frame)
 
 	_G[frame:GetName().."SearchIcon"]:Hide()
 	frame:SetTextInsets(5, 20, 0, 2);
 	frame.Instructions:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, 2)
-	CityUi.util.fix_string(frame.Instructions, CityUi.config.font_size_med)
-	CityUi.util.fix_string(frame, CityUi.config.font_size_med)
+	cui.util.fix_string(frame.Instructions, cui.config.font_size_med)
+	cui.util.fix_string(frame, cui.config.font_size_med)
 end
 
 skin_items(28, "BankFrameItem")
@@ -245,7 +236,7 @@ for i = 1, 3 do
 	icon:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
 
 	local count = _G["BackpackTokenFrameToken"..i.."Count"]
-	CityUi.util.fix_string(count, CityUi.config.font_size_med)
+	cui.util.fix_string(count, cui.config.font_size_med)
 	count:SetJustifyH("LEFT")
 	count:SetJustifyV("BOTTOM")
 	count:ClearAllPoints()
@@ -270,7 +261,7 @@ local money_text = {
 }
 
 for _, name in pairs(money_text) do
-	CityUi.util.fix_string(_G[name], CityUi.config.font_size_med)
+	cui.util.fix_string(_G[name], cui.config.font_size_med)
 end
 
 ContainerFrame1MoneyFrame:ClearAllPoints()
@@ -366,8 +357,8 @@ local function set_bank(show)
 		BankFrameTab1Text:SetAllPoints(BankFrameTab1)
 		BankFrameTab2Text:SetAllPoints(BankFrameTab2)
 
-		CityUi.util.fix_string(BankFrameTab1Text, CityUi.config.font_size_med)
-		CityUi.util.fix_string(BankFrameTab2Text, CityUi.config.font_size_med)
+		cui.util.fix_string(BankFrameTab1Text, cui.config.font_size_med)
+		cui.util.fix_string(BankFrameTab2Text, cui.config.font_size_med)
 
 		strip_textures(BankFrameTab1, true)
 		strip_textures(BankFrameTab2, true)
@@ -380,7 +371,7 @@ local function set_bank(show)
 		BankFramePurchaseButton:SetPoint("LEFT", BankSlotsFrame["Bag7"], "RIGHT", 5, 0)
 		strip_textures(BankFramePurchaseButton, true)
 
-		CityUi.util.fix_string(BankFramePurchaseButtonText, CityUi.config.font_size_med)
+		cui.util.fix_string(BankFramePurchaseButtonText, cui.config.font_size_med)
 		BankFramePurchaseButtonText:SetAllPoints(BankFramePurchaseButton)
 		BankFramePurchaseButtonText:SetText("+")
 		BankFramePurchaseButtonText:SetJustifyH("CENTER")
@@ -431,7 +422,7 @@ local function set_reagents(show)
 	skin_colors(98, "ReagentBankFrameItem", 0)
 	skin_items(98, "ReagentBankFrameItem")
 	
-	CityUi.util.fix_string(ReagentBankFrameText, CityUi.config.font_size_med)
+	cui.util.fix_string(ReagentBankFrameText, cui.config.font_size_med)
 	ReagentBankFrameText:ClearAllPoints()
 	ReagentBankFrameText:SetPoint("BOTTOMRIGHT", bank, "BOTTOMRIGHT", -10, 10)
 	ReagentBankFrameText:SetJustifyH("RIGHT")

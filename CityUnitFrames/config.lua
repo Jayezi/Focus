@@ -25,17 +25,17 @@ cfg.enabled = {
 
 local powers = {
 --	class				standalone		invert		tags
-	["HUNTER"] =		{20,			true,		"[city:color][city:shortppfrequent]"},
-	["DEATHKNIGHT"] =	{20,      		false,		"[city:color][city:shortppfrequent]"},
-	["ROGUE"] =			{20,      		false,		"[city:color][city:shortppfrequent]"},
-	["DEMONHUNTER"] =	{20,      		false,		"[city:color][city:shortppfrequent]"},
-	["PALADIN"] =		{false,     	true,		"[city:color][city:pplongfrequent]"},
-	["PRIEST"] =		{false,     	true,		"[city:color][city:pplongfrequent]"},
-	["DRUID"] =			{false,     	false,		"[city:color][city:pplongfrequent]"},
-	["SHAMAN"] =		{false,     	false,		"[city:color][city:pplongfrequent]"},
-	["MAGE"] =			{false,     	false,		"[city:color][city:pplongfrequent]"},
-	["MONK"] =			{20,      		false,		"[city:color][city:shortppfrequent]"},
-	["WARRIOR"]	=		{20,			false,		"[city:color][city:shortppfrequent]"},
+	["HUNTER"] =		{20,			true,		"[city:color][city:pp:curr]"},
+	["DEATHKNIGHT"] =	{20,      		false,		"[city:color][city:pp:curr]"},
+	["ROGUE"] =			{20,      		false,		"[city:color][city:pp:curr]"},
+	["DEMONHUNTER"] =	{20,      		false,		"[city:color][city:pp:curr]"},
+	["PALADIN"] =		{false,     	true,		"[city:color][city:pp:curr/max-perc]"},
+	["PRIEST"] =		{false,     	true,		"[city:color][city:pp:curr/max-perc]"},
+	["DRUID"] =			{false,     	false,		"[city:color][city:pp:curr/max-perc]"},
+	["SHAMAN"] =		{false,     	false,		"[city:color][city:pp:curr/max-perc]"},
+	["MAGE"] =			{false,     	false,		"[city:color][city:pp:curr/max-perc]"},
+	["MONK"] =			{20,      		false,		"[city:color][city:pp:curr]"},
+	["WARRIOR"]	=		{20,			false,		"[city:color][city:pp:curr]"},
 }
 
 local indicators = {
@@ -90,7 +90,7 @@ cfg.frames = {
 		size = {w = 220, h = 30},
 	},
 	focus = {
-		size = {w = 300, h = 30},
+		size = {w = 300, h = 35},
 		pos = {"TOPLEFT", UIParent, "TOPLEFT", 10, -10},
 		cast = {
 			h = 30
@@ -123,7 +123,7 @@ cfg.frames = {
 		indicators = indicators[cui.player.class]
 	},
 	boss = {
-		size = {w = 300, h = 30},
+		size = {w = 300, h = 40},
 		pos = {"TOPRIGHT", UIParent, "TOPRIGHT", -10, -1},
 		power = {
 			h = 8
@@ -143,14 +143,14 @@ cfg.frames = {
 cfg.auras = {
 --	frame				size	rows	anchor			x-direction		y-direction		rowlimit	countsize	cdsize	squashed
 	player = 			{50,	1,		"BOTTOMRIGHT",	"LEFT",			"UP", 			false,		15,			20,		false},
-	boss = 				{50,	2, 		"TOPRIGHT", 	"LEFT", 		"DOWN",			2, 			15,			20,		true},
+	boss = 				{46,	2, 		"TOPRIGHT", 	"LEFT", 		"DOWN",			3, 			15,			20,		true},
 	pet = 				{50,	1, 		"BOTTOMRIGHT", 	"LEFT",			"UP", 			false, 		15,			20,		true},
 	target_buff = 		{50,	3, 		"BOTTOMLEFT", 	"RIGHT",		"UP", 			false,		15,			15,		true},
 	target_debuff = 	{50,	1, 		"BOTTOMLEFT", 	"RIGHT", 		"UP", 			false,		15,			20,		false},
 	nameplate_debuff =	{58,	2, 		"TOPLEFT",		"RIGHT", 		"DOWN", 		3,			15,			20,		true},
 	nameplate_buff =	{58,	2, 		"TOPRIGHT", 	"LEFT",			"DOWN", 		3,			15,			20,		true},
 	tank = 				{22, 	1, 		"BOTTOMLEFT",	"RIGHT",		"DOWN", 		3,			10, 		10,		false},
-	focus = 			{25, 	1, 		"BOTTOMRIGHT",	"LEFT", 		"UP", 			false, 		10, 		10,		false},
+	focus = 			{40, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"UP", 			false, 		10, 		15,		true},
 	party = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		3, 			10, 		10,		false},
 	healer = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		3, 			10, 		10,		false},
 	dps = 				{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		2, 			10, 		10,		false},

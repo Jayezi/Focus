@@ -37,8 +37,8 @@ lib.create_bar = function(name, num, cfg)
 	end
 	
 	local point = cfg.pos
-	if point[1] == point[3] and point[1] == "BOTTOM" then
-		point = cui.util.b_to_bl_anchor(bar, point)
+	if point[2] == "UIParent" then
+		point = {cui.util.to_tl_anchor(bar, point)}
 	end
 	if type(point[2]) == "string" then
 		point[2] = _G[point[2]]
@@ -115,8 +115,7 @@ local skin_textures = function(button, icon, normal)
 		icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 	end
 
-	icon:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
-	icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+	cui.util.set_inside(icon, button)
 
 	local blank = cui.media.textures.blank
 	
@@ -162,8 +161,7 @@ lib.style_menu = function(button)
 	for k, v in pairs(regions) do
 		v:SetTexCoord(.22, .80, .22, .81)
 		v:ClearAllPoints()
-		v:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
-		v:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+		cui.util.set_inside(v, button)
 	end
 
 	local pushed = button:GetPushedTexture()
@@ -172,8 +170,7 @@ lib.style_menu = function(button)
 	local overlay = button:CreateTexture(nil, "OVERLAY")
 	overlay:SetTexture(cui.media.textures.blank)
 	overlay:SetAllPoints()
-	overlay:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
-	overlay:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+	cui.util.set_inside(overlay, button)
 	overlay:SetVertexColor(.6, .6, .6, .3)
 		
 	button:SetHighlightTexture(overlay)
@@ -247,8 +244,7 @@ lib.style_action = function(button)
 	cooldown:SetAllPoints(icon)
 	cooldown:SetHideCountdownNumbers(false)
 	cooldown:SetDrawEdge(false)
-	cooldown:GetRegions():SetFont(cui.config.default_font, cui.config.font_size_lrg, cui.config.font_flags)
-	cooldown:GetRegions():SetShadowOffset(0, 0)
+	cui.util.fix_string(cooldown:GetRegions(), cui.config.font_size_lrg)
 
 	auto:SetParent(text_overlay)
 	auto:SetTexCoord(.18, .82, .16, .82)
@@ -269,18 +265,15 @@ lib.style_vehicle = function(button)
 	local blank = cui.media.textures.blank
 	
 	local pushed = button:GetPushedTexture()
-	pushed:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
-	pushed:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+	cui.util.set_inside(pushed, button)
 	pushed:SetTexCoord(.2, .8, .2, .8)
 
 	local normal = button:GetNormalTexture()
-	normal:SetPoint("TOPLEFT", 1, -1)
-	normal:SetPoint("BOTTOMRIGHT", -1, 1)
+	cui.util.set_inside(normal, button)
 	normal:SetTexCoord(.2, .8, .2, .8)
 
 	local highlight = button:GetHighlightTexture()
-	highlight:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
-	highlight:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+	cui.util.set_inside(highlight, button)
 	highlight:SetTexture(blank)
 	highlight:SetVertexColor(unpack(cfg.color.highlight))
 end
@@ -324,8 +317,7 @@ lib.style_pet = function(button)
 	cooldown:SetAllPoints(icon)
 	cooldown:SetHideCountdownNumbers(false)
 	cooldown:SetDrawEdge(false)
-	cooldown:GetRegions():SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
-	cooldown:GetRegions():SetShadowOffset(0, 0)
+	cui.util.fix_string(cooldown:GetRegions(), cui.config.font_size_med)
 
 	flash.oldShow = flash.Show
 	flash.Show = function(self)

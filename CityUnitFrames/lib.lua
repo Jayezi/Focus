@@ -11,9 +11,13 @@ lib.invert_color = function(self)
 end
 
 lib.push_bar = function(base, bar)
-	local stack_height = base.stack_height or 0
-    bar:SetPoint("TOPLEFT", base, "TOPLEFT", 0, -stack_height)
-	base.stack_height = stack_height + bar:GetHeight() - 1
+	if base.stack_height then
+		bar:SetPoint("TOPLEFT", base, "TOPLEFT", 0, 1 - base.stack_height)
+		base.stack_height = base.stack_height + bar:GetHeight() - 1
+	else
+		bar:SetPoint("TOPLEFT", base, "TOPLEFT", 0, 0)
+		base.stack_height = bar:GetHeight()
+	end	
 end
 
 lib.enable_mouse = function(base)
@@ -89,8 +93,7 @@ lib.gen_cast_bar = function(base, w, h, text_size, latency, interrupt, color)
 	
     cast_icon.border = cast_bar:CreateTexture()
 	cast_icon.border:SetDrawLayer("OVERLAY", -7)
-	cast_icon.border:SetPoint("TOPLEFT", cast_icon, "TOPLEFT", -1, 1)
-	cast_icon.border:SetPoint("BOTTOMRIGHT", cast_icon, "BOTTOMRIGHT", 1, -1)
+	cui.util.set_outside(cast_icon.border, cast_icon)
 	cast_icon.border:SetTexture(cui.media.textures.blank)
 	cast_icon.border:SetVertexColor(unpack(cui.config.frame_border))
 	
@@ -167,8 +170,7 @@ lib.gen_nameplate_cast_bar = function(base, w, h, text_size)
 	
     cast_icon.border = cast_bar:CreateTexture()
 	cast_icon.border:SetDrawLayer("OVERLAY", -7)
-	cast_icon.border:SetPoint("TOPLEFT", cast_icon, "TOPLEFT", -1, 1)
-	cast_icon.border:SetPoint("BOTTOMRIGHT", cast_icon, "BOTTOMRIGHT", 1, -1)
+	cui.util.set_outside(cast_icon.border, cast_icon)
 	cast_icon.border:SetTexture(cui.media.textures.blank)
 	cast_icon.border:SetVertexColor(unpack(cui.config.frame_border))
 	
@@ -333,8 +335,7 @@ local gen_indicator = function(cfg, parent, h_justify, v_justify, x_offset, y_of
 		local cd = CreateFrame("Cooldown", nil, indicator)
 		cd:SetAllPoints(indicator)
 		cd:SetHideCountdownNumbers(false)
-		cd:GetRegions():SetFont(cui.config.default_font, cfg[5], cui.config.font_flags)
-		cd:GetRegions():SetShadowOffset(0, 0)
+		cui.util.fix_string(cd:GetRegions(), cfg[5])
 		cd:GetRegions():SetTextColor(unpack(cfg[2]))
 		cd:GetRegions():SetJustifyH(h_justify)
 		cd:GetRegions():SetJustifyV(v_justify)
@@ -446,8 +447,7 @@ local post_create_aura = function(buffs, button)
 	button.cd:SetReverse(true)
 	button.cd:SetFrameLevel(button:GetFrameLevel())
 	button.cd:SetHideCountdownNumbers(false)
-	button.cd:GetRegions():SetFont(cui.config.default_font, buffs.cdsize, cui.config.font_flags)
-	button.cd:GetRegions():SetShadowOffset(0, 0)
+	cui.util.fix_string(button.cd:GetRegions(), buffs.cdsize)
 	button.cd:SetDrawEdge(false)
 	
 	if buffs.squashed then
@@ -455,8 +455,7 @@ local post_create_aura = function(buffs, button)
 	else
 		button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 	end
-	button.icon:SetPoint("TOPLEFT", 1, -1)
-	button.icon:SetPoint("BOTTOMRIGHT", -1, 1)
+	cui.util.set_inside(button.icon, button)
 	
 	button.overlay:SetDrawLayer("BACKGROUND")
 	button.overlay:SetTexture(cui.media.textures.blank)

@@ -1,6 +1,7 @@
 local addon, cab = ...
 local cfg = cab.cfg
 local lib = cab.lib
+local cui = CityUi
 
 local vehicle = CreateFrame("Button", "CityExitVehicleButton", UIParent)
 
@@ -26,7 +27,7 @@ vehicle:SetPoint("BOTTOMRIGHT", _G["CityBagBar"], "BOTTOMLEFT", -10, 0)
 vehicle:SetSize(80, 50)
 vehicle:SetFrameStrata("TOOLTIP")
 
-CityUi.util.gen_backdrop(vehicle)
+cui.util.gen_backdrop(vehicle)
 
 vehicle:SetFrameStrata("MEDIUM")
 vehicle:SetFrameLevel(10)
@@ -59,7 +60,7 @@ vehicle:SetScript("OnLeave", function()
 end)
 
 vehicle.text = vehicle:CreateFontString(nil, "OVERLAY")
-vehicle.text:SetFont(CityUi.config.default_font, CityUi.config.font_size_med, CityUi.config.font_flags)
+vehicle.text:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
 vehicle.text:SetText("Vehicle")
 vehicle.text:SetAllPoints(vehicle)
 vehicle.text:SetJustifyH("CENTER")

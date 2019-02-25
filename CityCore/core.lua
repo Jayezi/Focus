@@ -1,8 +1,4 @@
-﻿---------------------------------------------------
--- Global Init ------------------------------------
----------------------------------------------------
-
-local cui = {}
+﻿local cui = {}
 CityUi = cui
 
 local player_class = select(2, UnitClass("player"))
@@ -208,11 +204,10 @@ cui.util = {
 		return "TOPLEFT", parent, "TOPLEFT", new_x, new_y
 	end,
 
-	b_to_bl_anchor = function(frame, point)
-		local diff = frame:GetWidth() / 2
-		local base = select(1, GetPhysicalScreenSize()) / 2
-		local new_point = math.floor(base - diff + point[4] + .5)
-		return {"BOTTOMLEFT", point[2], "BOTTOMLEFT", new_point, point[5]}
+	set_outside = function(outer, inner, offest)
+		outer:ClearAllPoints()
+		outer:SetPoint("TOPLEFT", inner, "TOPLEFT", inset and -inset or -1, inset or 1)
+		outer:SetPoint("BOTTOMRIGHT", inner, "BOTTOMRIGHT", inset or 1, inset and -inset or -1)
 	end,
 
 	set_inside = function(inner, outer, inset)
@@ -308,7 +303,6 @@ SlashCmdList.LOCKFRAMES = function()
 	end
 end
 
--- TODO hide on combat
 -- show mover frames
 SLASH_MOVEFRAMES1 = "/moveframes"
 SlashCmdList.MOVEFRAMES = function()
@@ -338,10 +332,7 @@ SlashCmdList.ROLE = function(arg)
 	end
 end
 
----------------------------------------------------
--- Combatlog Reminder -----------------------------
----------------------------------------------------
-
+-- combatlog reminder
 local combatlog_checker = CreateFrame("Button", nil, UIParent)
 combatlog_checker:Hide()
 combatlog_checker:SetPoint("CENTER")
@@ -388,10 +379,7 @@ combatlog_checker:SetScript("OnClick", function(self, button)
 	end
 end)
 
----------------------------------------------------
--- Tooltips ---------------------------------------
----------------------------------------------------
-
+-- tooltips
 GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT = cui.config.frame_backdrop
 GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT.backdropBorderColor = tooltip_frame_border_color
 
@@ -411,10 +399,7 @@ hooksecurefunc("GameTooltip_SetDefaultAnchor", function(self, parent)
 	self:SetOwner(tooltip_parent, "ANCHOR_TOPRIGHT", 0, -tooltip_parent:GetHeight())
 end)
 
----------------------------------------------------
--- Panels -----------------------------------------
----------------------------------------------------
-
+-- panels
 cui.util.gen_panel({
 	name = "DataPanel",
 	strata = "BACKGROUND",
@@ -427,14 +412,62 @@ cui.util.gen_panel({
 	bordercolor = cui.config.frame_border,
 })
 
--- local character_frame = CreateFrame("PlayerModel", "CityPlayerModel", UiParent)
--- character_frame:SetSize(500, 750)
--- character_frame:SetPoint("CENTER")
--- character_frame:SetUnit("player")
+-- afk screen
+local character_frame = CreateFrame("PlayerModel", "CityPlayerModel")
+character_frame:SetSize(500, 700)
+character_frame:SetPoint("RIGHT", WorldFrame, "CENTER")
+character_frame:SetUnit("player")
+character_frame:SetRotation(math.rad(25))
 
----------------------------------------------------
--- UI Setup ---------------------------------------
----------------------------------------------------
+local anims = {
+	MONK = 732,
+	HUNTER = 115
+}
+
+if anims[cui.player.class] then
+	character_frame:SetAnimation(anims[cui.player.class])
+end
+
+local afk = CreateFrame("Frame")
+afk:SetAllPoints(WorldFrame)
+cui.util.gen_backdrop(afk, 0, 0, 0, .75)
+local name = cui.util.gen_string(afk, 50)
+name:SetText(cui.player.name)
+name:SetPoint("LEFT", WorldFrame, "CENTER")
+name:SetTextColor(unpack(cui.player.color))
+afk:Hide()
+
+local start_afk = function()
+	character_frame:Show()
+	afk:Show()
+	UIParent:SetAlpha(0)
+	WorldFrame:SetAlpha(0)
+end
+
+local end_afk = function()
+	character_frame:Hide()
+	afk:Hide()
+	UIParent:SetAlpha(1)
+	WorldFrame:SetAlpha(1)
+end
+
+afk:EnableMouse(true)
+afk:SetScript("OnMouseUp", function(self, click)
+	if click == "LeftButton" then
+		end_afk()
+	end
+end)
+
+afk:RegisterEvent("PLAYER_FLAGS_CHANGED")
+afk:RegisterEvent("PLAYER_ENTERING_WORLD")
+afk:RegisterEvent("PLAYER_LEAVING_WORLD")
+afk:SetScript("OnEvent", function(event)	
+	if UnitIsAFK("player") then
+		start_afk()
+	else
+		end_afk()
+	end
+end)
 
 ChatBubbleFont:SetFont(cui.config.default_font, cui.config.font_size_lrg, cui.config.font_flags)
 
@@ -468,14 +501,10 @@ login_frame:SetScript("OnEvent", function()
 	end
 end)
 
----------------------------------------------------
--- BW Skin ----------------------------------------
----------------------------------------------------
-
+-- BW skin
 local f = CreateFrame("Frame")
 local register_bw_skin = function()
 
-	-- CityUi
 	local backdropBorder = {
 		bgFile = cui.media.textures.blank,
 		edgeFile = cui.media.textures.blank,
@@ -518,9 +547,7 @@ local register_bw_skin = function()
 		bd:SetBackdropColor(unpack(cui.config.frame_background_transparent))
 		bd:SetBackdropBorderColor(unpack(cui.config.frame_border))
 
-		bd:ClearAllPoints()
-		bd:SetPoint("TOPLEFT", bar, "TOPLEFT", -1, 1)
-		bd:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 1, -1)
+		cui.util.set_outside(bd, bar)
 		bd:Show()
 
 		local tex = bar:GetIcon()
@@ -537,15 +564,13 @@ local register_bw_skin = function()
 			icon:SetSize(height, height)
 			bar:Set("bigwigs:restoreicon", tex)
 
-			local iconBd = bar.candyBarIconFrameBackdrop
-			iconBd:SetBackdrop(backdropBorder)
-			iconBd:SetBackdropColor(unpack(cui.config.frame_background_transparent))
-			iconBd:SetBackdropBorderColor(unpack(cui.config.frame_border))
+			local icon_bd = bar.candyBarIconFrameBackdrop
+			icon_bd:SetBackdrop(backdropBorder)
+			icon_bd:SetBackdropColor(unpack(cui.config.frame_background_transparent))
+			icon_bd:SetBackdropBorderColor(unpack(cui.config.frame_border))
 
-			iconBd:ClearAllPoints()
-			iconBd:SetPoint("TOPLEFT", icon, "TOPLEFT", -1, 1)
-			iconBd:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 1, -1)
-			iconBd:Show()
+			cui.util.set_outside(icon_bd, icon)
+			icon_bd:Show()
 		end
 
 		bar.candyBarLabel:ClearAllPoints()
@@ -571,7 +596,7 @@ local register_bw_skin = function()
 		GetSpacing = function(bar) return bar:GetHeight() + 10 end,
 		ApplyStyle = styleBar,
 		BarStopped = removeStyle,
-		GetStyleName = function() return "CityUi" end,
+		GetStyleName = function() return "CityUI" end,
 	})
 end
 

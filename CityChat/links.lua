@@ -1,6 +1,5 @@
-local addon, ns = ...
-local cfg = ns.cfg
-local CityUi = CityUi
+local addon, cch = ...
+local cfg = cch.cfg
 
 local make_link = function(url)
 	return " |Hurl:"..url.."|h|cff"..cfg.link_color.."["..url.."]|r|h "

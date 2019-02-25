@@ -202,8 +202,7 @@ hooksecurefunc(getmetatable(ActionButton1Cooldown).__index, 'SetCooldown', funct
 		self:SetHideCountdownNumbers(false)
 		self:SetDrawEdge(false)
 		self:SetFrameStrata("HIGH")
-		self:GetRegions():SetFont(cui.config.default_font, cui.config.font_size_lrg, cui.config.font_flags)
-		self:GetRegions():SetShadowOffset(0, 0)
+		cui.util.fix_string(self:GetRegions(), cui.config.font_size_lrg)
 	end
 end)
 

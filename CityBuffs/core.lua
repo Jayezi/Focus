@@ -1,6 +1,6 @@
 local addon, ns = ...
 local cfg = ns.cfg
-local CityUi = CityUi
+local cui = CityUi
 
 HOUR_ONELETTER_ABBR = "%dh"
 DAY_ONELETTER_ABBR = "%dd"
@@ -18,31 +18,28 @@ local style_button = function(button)
 
 	local icon = _G[name.."Icon"]
 	icon:SetTexCoord(.1, .9, .1, .9)
-	icon:ClearAllPoints()
-	icon:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
-	icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+	cui.util.set_inside(icon, button)
 	icon:SetDrawLayer("BACKGROUND", -7)
 	button.icon = icon
 
 	local border = _G[name.."Border"] or button:CreateTexture(name.."Border", "BACKGROUND", nil, -8)
-	border:SetTexture(CityUi.media.textures.blank)
+	border:SetTexture(cui.media.textures.blank)
 	border:SetTexCoord(0, 1, 0, 1)
 	border:SetDrawLayer("BACKGROUND", -8)
 	
 	if not debuff then
-		border:SetVertexColor(unpack(CityUi.config.frame_border))
+		border:SetVertexColor(unpack(cui.config.frame_border))
 	end
 	
 	border:ClearAllPoints()
 	border:SetAllPoints(button)
 	button.border = border
 
-	button.duration:SetFont(CityUi.config.default_font, CityUi.config.font_size_med, CityUi.config.font_flags)
-	button.duration:SetShadowOffset(0, 0)
+	cui.util.fix_string(button.duration, cui.config.font_size_med)
 	button.duration:ClearAllPoints()
 	button.duration:SetPoint(unpack(cfg.duration_pos))
 
-	button.count:SetFont(CityUi.config.default_font, CityUi.config.font_size_med, CityUi.config.font_flags)
+	button.count:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
 	button.count:ClearAllPoints()
 	button.count:SetPoint(unpack(cfg.count_pos))
 

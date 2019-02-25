@@ -75,20 +75,20 @@ local function create_player_style(base)
 	local hp_string = cui.util.gen_string(base.Health, cui.config.font_size_med, nil, nil, "LEFT", "BOTTOM")
 	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 1)
 	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
-	base:Tag(hp_string, "[city:color][city:hplong]")
+	base:Tag(hp_string, "[city:color][city:hp:curr/max state]")
 	
 	local altp_string = cui.util.gen_string(base.AlternativePower, cui.config.font_size_med, nil, nil, "BOTTOM", "CENTER")
 	altp_string:SetPoint("BOTTOM", 0, 1)
-	base:Tag(altp_string, "[city:color][city:altpower]")
+	base:Tag(altp_string, "[city:color][city:altp:perc]")
 
 	local hp_perc_string = cui.util.gen_string(base.Health, cui.config.font_size_lrg, nil, nil, "LEFT", "TOP")
 	hp_perc_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, 10)
-	base:Tag(hp_perc_string, "[city:color][perhp]")
+	base:Tag(hp_perc_string, "[city:color][city:hp:perc.]")
 
 	local name_string = cui.util.gen_string(base.Health, cui.config.font_size_lrg, nil, nil, "RIGHT", "TOP")
 	name_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", -1, 10)
 	name_string:SetPoint("LEFT", hp_perc_string, "RIGHT", 5, 0)
-	base:Tag(name_string, "[city:color][city:info][name]")
+	base:Tag(name_string, "[city:color][city:status][name]")
 	
 	local power_string
 	if (power_standalone) then
@@ -155,21 +155,21 @@ local function create_target_style(base)
 	-- strings
 	local power_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "RIGHT", "BOTTOM")
 	power_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", 1, 1)
-	base:Tag(power_string, "[city:color][city:pplongfrequent]")
+	base:Tag(power_string, "[city:color][city:pp:curr-perc]")
 
 	local hp_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "LEFT", "BOTTOM")
 	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 1)
 	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
-	base:Tag(hp_string, "[city:color][city:hplong]")
+	base:Tag(hp_string, "[city:color][city:hp:curr/max state]")
 
 	local hp_perc_string = cui.util.gen_string(base.Health, cui.config.font_size_lrg, nil, nil, "RIGHT", "TOP")
 	hp_perc_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", -1, 10)
-	base:Tag(hp_perc_string, "[city:color][perhp]")
+	base:Tag(hp_perc_string, "[city:color][city:hp:perc.]")
 
 	local name_string = cui.util.gen_string(base.Health, cui.config.font_size_lrg, nil, nil, "LEFT", "TOP")
 	name_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, 10)
 	name_string:SetPoint("RIGHT", hp_perc_string, "LEFT", -5, 0)
-	base:Tag(name_string, "[city:color][city:info][name]")
+	base:Tag(name_string, "[city:color][city:status][name]")
 	
 	-- auras
 	base.Debuffs = lib.gen_auras(base, target_cfg.size.w, cfg.auras.target_debuff, "Debuffs")
@@ -238,11 +238,11 @@ local function create_pet_style(base)
 
 	local hp_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "RIGHT", "TOP")
 	hp_string:SetPoint("TOPRIGHT", base, "TOPLEFT", 0, -1)
-	base:Tag(hp_string, "[city:color][city:currhp]")
+	base:Tag(hp_string, "[city:color][city:hp:curr]")
 
 	local power_string = cui.util.gen_string(base.Health, cui.config.font_size_med, nil, nil, "RIGHT", "BOTTOM")
 	power_string:SetPoint("BOTTOMRIGHT", base, "BOTTOMLEFT", 0, 1)
-	base:Tag(power_string, "[city:color][city:shortppfrequent]")
+	base:Tag(power_string, "[city:color][city:pp:curr]")
 	
 	-- auras
 	base.Debuffs = lib.gen_auras(base, pet_cfg.size.w, cfg.auras.pet, "Debuffs")
@@ -272,7 +272,7 @@ local function create_nameplate_style(base)
 	base.Power:SetStatusBarTexture(cui.media.textures.blank)
 	base.Power:SetSize(w / 2, h / 3)
 	base.Power:SetFrameLevel(base.Health:GetFrameLevel() + 1)
-	base.Power:SetPoint("BOTTOMRIGHT", -1, 1)
+	base.Power:SetPoint("BOTTOMLEFT", 1, 1)
 	base.Power.colorClass = true
 	base.Power.colorDisconnected = true
 	base.Power.frequentUpdates = true
@@ -285,7 +285,7 @@ local function create_nameplate_style(base)
 	name_string:SetPoint("BOTTOMLEFT", base.Health, "TOPLEFT", 1, 1)
 
 	local hp_string = cui.util.gen_string(base.Health, cui.config.font_size_lrg, nil, nil, "RIGHT", "TOP")
-	base:Tag(hp_string, "[city:color][perhp]")
+	base:Tag(hp_string, "[city:color][city:hp:perc]")
 	hp_string:SetPoint("RIGHT", base.Health, "BOTTOMRIGHT", -1, 0)
 
 	-- cast
@@ -333,14 +333,14 @@ local function create_focus_style(base)
 	base:SetHeight(base.stack_height)
 
 	-- strings
-	local name_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "RIGHT", "TOP")
-	name_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 1, 1)
+	local name_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "LEFT", "TOP")
+	name_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, -1)
 	base:Tag(name_string, "[city:color][name]")
 
 	-- auras
 	base.Debuffs = lib.gen_auras(base, focus_cfg.size.w, cfg.auras.focus, "Debuffs")
 	lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
-	base.Debuffs:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", 0, 1)
+	base.Debuffs:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 0, 1)
 	
 	-- cast
 	base.Castbar = lib.gen_cast_bar(base, focus_cfg.size.w, focus_cfg.cast.h, cui.config.font_size_med)
@@ -356,21 +356,18 @@ local function create_boss_style(base)
 	base:SetWidth(boss_cfg.size.w)
 	lib.enable_mouse(base)
 	
-	-- health
-	base.Health = cui.util.gen_statusbar(base, boss_cfg.size.w, boss_cfg.size.h)
-	base.Health.colorReaction = true
-	base.Health.PostUpdate = lib.invert_color
-	lib.push_bar(base, base.Health)
-	
-	-- cast
-	base.Castbar = lib.gen_cast_bar(base, boss_cfg.size.w, boss_cfg.cast.h, cui.config.font_size_med)
-	base.Castbar:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 0, -(cui.config.font_size_med + 2))
-	
 	-- power
 	base.Power = cui.util.gen_statusbar(base, boss_cfg.size.w, boss_cfg.power.h)
 	base.Power.colorReaction = true
 	base.Power.colorPower = true
 	lib.push_bar(base, base.Power)
+
+	-- health
+	base.Health = cui.util.gen_statusbar(base, boss_cfg.size.w, boss_cfg.size.h)
+	base.Health.colorReaction = true
+	base.Health.frequentUpdates = true
+	base.Health.PostUpdate = lib.invert_color
+	lib.push_bar(base, base.Health)
 
 	-- alt power
 	base.AlternativePower = cui.util.gen_statusbar(base, boss_cfg.size.w, boss_cfg.power.h)
@@ -378,24 +375,28 @@ local function create_boss_style(base)
 	base.AlternativePower:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -2, -2)
 	
 	base:SetHeight(base.stack_height)
+	
+	-- cast
+	base.Castbar = lib.gen_cast_bar(base, boss_cfg.size.w, boss_cfg.cast.h, cui.config.font_size_med)
+	base.Castbar:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 0, 1)
 
 	-- strings
-	local hp_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "LEFT", "BOTTOM")
-	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 1)
-	base:Tag(hp_string, "[city:color][perhp]%")
-	
-	local power_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "RIGHT", "BOTTOM")
-	power_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", 1, 1)
-	base:Tag(power_string, "[city:color][perpp]%")
-	
-	local altp_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "RIGHT", "TOP")
-	altp_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", -1, -1)
-	base:Tag(altp_string, "[city:color][city:altpower]")
+	local altp_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "RIGHT", "BOTTOM")
+	altp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
+	base:Tag(altp_string, "[city:color][city:altp:perc]")
 	
 	local name_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "LEFT", "TOP")
-	name_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, -1)
+	name_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 1)
 	name_string:SetPoint("RIGHT", altp_string, "LEFT", -5, 0)
 	base:Tag(name_string, "[city:color][name]")
+
+	local hp_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "LEFT", "TOP")
+	hp_string:SetPoint("TOPLEFT", base, "TOPRIGHT", 1, -1)
+	base:Tag(hp_string, "[city:color][city:hp:curr-perc]")
+	
+	local power_string = cui.util.gen_string(base, cui.config.font_size_med, nil, nil, "LEFT", "TOP")
+	power_string:SetPoint("BOTTOMLEFT", base, "BOTTOMRIGHT", 1, 1)
+	base:Tag(power_string, "[city:color][city:pp:curr-perc]")
 	
 	-- auras
 	base.Debuffs = lib.gen_auras(base, boss_cfg.size.w , cfg.auras.boss, "Debuffs")
@@ -481,7 +482,7 @@ local function create_party_style(base)
 	local hp_string = cui.util.gen_string(base.Health, cui.config.font_size_med, nil, nil, "CENTER", "TOP")
 	hp_string:SetPoint("TOPLEFT", name_string, "BOTTOMLEFT")
 	hp_string:SetPoint("TOPRIGHT", name_string, "BOTTOMRIGHT")
-	base:Tag(hp_string, "[city:color][city:info][city:hpraid]")
+	base:Tag(hp_string, "[city:color][city:hp:group]")
 	
 	-- auras
 	base.Debuffs = lib.gen_auras(base, party_cfg.size.w, cfg.auras.party, "Debuffs")
@@ -581,7 +582,7 @@ local function create_raid_style(role)
 			local hp_string = cui.util.gen_string(base.Health, cui.config.font_size_med, nil, nil, "CENTER", "TOP")
 			hp_string:SetPoint("TOPLEFT", name_string, "BOTTOMLEFT")
 			hp_string:SetPoint("TOPRIGHT", name_string, "BOTTOMRIGHT")
-			base:Tag(hp_string, "[city:color][city:info][city:hpraid]")
+			base:Tag(hp_string, "[city:color][city:hp:group]")
 			
 			-- auras
 			base.Debuffs = lib.gen_auras(base, raid_cfg.size.healer.w, cfg.auras.healer, "Debuffs")
@@ -671,7 +672,7 @@ oUF:Factory(function(self)
 		local w = cfg.frames.party.size.w
 		local h = cfg.frames.party.size.h + cfg.frames.party.power.h - 1
 		local mover = cui.util.get_mover_frame("Party", cfg.frames.party.pos)
-		mover:SetSize(w * 5 - 4, h)
+		mover:SetSize(w, h * 5 - 4)
 
 		oUF:RegisterStyle("CityParty", create_party_style)
 		oUF:SetActiveStyle("CityParty")
@@ -682,15 +683,15 @@ oUF:Factory(function(self)
 			"showPlayer",         true,
 			"showSolo",           true,
 			"showParty",          true,
-			"point",              "LEFT",
-			"yoffset",            0,
-			"xoffset",            -1,
+			"point",              "BOTTOM",
+			"yoffset",            -1,
+			"xoffset",            0,
 			"oUF-initialConfigFunction", ([[
 				self:SetWidth(%d)
 				self:SetHeight(%d)
 			]]):format(w, h)
 		)
-		party:SetPoint("TOPLEFT", mover)
+		party:SetPoint("BOTTOMLEFT", mover)
 	end
 
 	if cfg.enabled.tank then
@@ -704,7 +705,7 @@ oUF:Factory(function(self)
 		oUF:SetActiveStyle("CityTank")
 		local tank = oUF:SpawnHeader(
 			"oUF_CityTank", 	nil,
-			'raid, party, solo',
+			'raid',
 			'showRaid', 		true,
 			"groupFilter", 		"MAINTANK",
 			'yoffset', 			1,
@@ -728,9 +729,9 @@ oUF:Factory(function(self)
 		oUF:RegisterStyle("CityRaid", create_raid_style(role))
 		oUF:SetActiveStyle("CityRaid")
    
-		local raid = oUF:SpawnHeader(
-			"oUF_CityRaid", nil,
-			"custom [@raid1,exists] show; hide",
+		local raid_small = oUF:SpawnHeader(
+			"oUF_CityRaidSmall", nil,
+			"custom [@raid21,exists] hide; [@raid1,exists] show; hide",
 			"showPlayer",         true,
 			"showSolo",           true,
 			"showRaid",           true,
@@ -739,18 +740,42 @@ oUF:Factory(function(self)
 			"xoffset",            -1,
 			"columnSpacing",      -1,
 			"columnAnchorPoint",  "BOTTOM",
-			"groupFilter",        "1,2,3,4,5,6",
+			"groupFilter",        "1,2,3,4",
 			"groupBy",            "GROUP",
-			"groupingOrder",      "1,2,3,4,5,6",
+			"groupingOrder",      "1,2,3,4",
 			"sortMethod",         "INDEX",
-			"maxColumns",         8,
+			"maxColumns",         4,
 			"unitsPerColumn",     5,
 			"oUF-initialConfigFunction", ([[
 				self:SetWidth(%d)
 				self:SetHeight(%d)
 			]]):format(w, h)
 		)
-		raid:SetPoint("BOTTOMLEFT", mover)
+		raid_small:SetPoint("BOTTOMLEFT", mover)
+
+		local raid_big = oUF:SpawnHeader(
+			"oUF_CityRaidBig", nil,
+			"custom [@raid21,exists] show; hide",
+			"showPlayer",         true,
+			"showSolo",           true,
+			"showRaid",           true,
+			"point",              "LEFT",
+			"yoffset",            0,
+			"xoffset",            -1,
+			"columnSpacing",      -1,
+			"columnAnchorPoint",  "BOTTOM",
+			"groupFilter",        "1,2,3,4",
+			"groupBy",            "GROUP",
+			"groupingOrder",      "1,2,3,4",
+			"sortMethod",         "INDEX",
+			"maxColumns",         4,
+			"unitsPerColumn",     5,
+			"oUF-initialConfigFunction", ([[
+				self:SetWidth(%d)
+				self:SetHeight(%d)
+			]]):format(w, h)
+		)
+		raid_big:SetPoint("BOTTOMLEFT", mover)
 	end
 end)
 

@@ -1,4 +1,4 @@
-local CityUi = CityUi
+local cui = CityUi
 
 local data_parent = CityDataPanel
 local class_colors = RAID_CLASS_COLORS
@@ -11,11 +11,11 @@ local format_mem = function(mem)
 	local new_mem = mem > 1024 and mem / 1024 or mem
 	local size = mem > 1024 and "mb" or "kb"
 	if value > 1 then value = 1 end
-	return string.format("%.1f|c%s%s|r", new_mem, CityUi.player.color_str, size)
+	return string.format("%.1f|c%s%s|r", new_mem, cui.player.color_str, size)
 end
 local function sortdesc(a, b) return a[2] > b[2] end
 
-local mem_text = CityUi.util.gen_string(data_parent, CityUi.config.font_size_med)
+local mem_text = cui.util.gen_string(data_parent, cui.config.font_size_med)
 mem_text:SetPoint("BOTTOMLEFT", data_parent, "BOTTOMLEFT", 7, 5)
 
 local mem_frame = CreateFrame("Button", "CityMem", UIParent)
@@ -97,7 +97,7 @@ end)
 
 -- friends --------------
 
-local friend_text = CityUi.util.gen_string(data_parent, CityUi.config.font_size_med)
+local friend_text = cui.util.gen_string(data_parent, cui.config.font_size_med)
 friend_text:SetPoint("BOTTOMLEFT", mem_text, "BOTTOMRIGHT", 5, 0)
 
 local friend_frame = CreateFrame("Button", "CityFriends", UIParent)
@@ -176,7 +176,7 @@ friend_frame:RegisterEvent"BN_FRIEND_LIST_SIZE_CHANGED"
 friend_frame:SetScript("OnEvent", function(self, event)
 	local all_friends, online_friends = GetNumFriends()
 	local all_bn_friends, online_bn_friends = BNGetNumFriends()
-	friend_text:SetText(string.format("%d|c%sf|r", online_friends + online_bn_friends, CityUi.player.color_str))
+	friend_text:SetText(string.format("%d|c%sf|r", online_friends + online_bn_friends, cui.player.color_str))
 	if friend_frame.ttopen then
 		gen_friend_tt(friend_frame)
 	end
@@ -190,7 +190,7 @@ friend_frame:SetScript("OnClick", function(_, button) if button == "LeftButton" 
 
 -- latency --------------
 
-local net_text = CityUi.util.gen_string(data_parent, CityUi.config.font_size_med)
+local net_text = cui.util.gen_string(data_parent, cui.config.font_size_med)
 net_text:SetPoint("BOTTOMLEFT", friend_text, "BOTTOMRIGHT", 5, 0)
 
 local net_frame = CreateFrame("Frame", "CityNet", UIParent)
@@ -200,20 +200,20 @@ net_frame.last = 0
 net_frame:RegisterEvent"PLAYER_LOGIN"
 net_frame:SetScript("OnEvent", function(self, event)
 	local _,_,home,world = GetNetStats()
-	net_text:SetText(string.format("%s|c%sh|r %s|c%sw|r", home, CityUi.player.color_str, world, CityUi.player.color_str))
+	net_text:SetText(string.format("%s|c%sh|r %s|c%sw|r", home, cui.player.color_str, world, cui.player.color_str))
 end)
 net_frame:SetScript("OnUpdate", function(self, last)
 	self.last = self.last + last
 	if self.last >= 3 then
 		local _,_,home,world = GetNetStats()
-		net_text:SetText(string.format("%s|c%sh|r %s|c%sw|r", home, CityUi.player.color_str, world, CityUi.player.color_str))
+		net_text:SetText(string.format("%s|c%sh|r %s|c%sw|r", home, cui.player.color_str, world, cui.player.color_str))
 		self.last = self.last - 3
 	end
 end)
 
 -- framerate ------------
 
-local fps_text = CityUi.util.gen_string(data_parent, CityUi.config.font_size_med)
+local fps_text = cui.util.gen_string(data_parent, cui.config.font_size_med)
 fps_text:SetPoint("BOTTOMLEFT", net_text, "BOTTOMRIGHT", 5, 0)
 
 local fps_frame = CreateFrame("Frame", "CityFps", UIParent)
@@ -223,14 +223,14 @@ fps_frame.last = 0
 fps_frame:RegisterEvent"PLAYER_LOGIN"
 fps_frame:SetScript("OnEvent", function(self, event)
 	local fps = GetFramerate()
-	fps_text:SetText(string.format("%d|c%sfps|r", floor(fps), CityUi.player.color_str, "fps"))
+	fps_text:SetText(string.format("%d|c%sfps|r", floor(fps), cui.player.color_str, "fps"))
 end)
 fps_frame:SetScript("OnUpdate", function(self, last)
 	self.last = self.last + last
 	if self.last >= .25 then
 		self.last = self.last - .25
 		local fps = GetFramerate()
-		fps_text:SetText(string.format("%d|c%sfps|r", floor(fps), CityUi.player.color_str, "fps"))
+		fps_text:SetText(string.format("%d|c%sfps|r", floor(fps), cui.player.color_str, "fps"))
 	end
 end)
 
@@ -241,15 +241,15 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:SetScript("OnEvent", function(self, event, addon)
 	if addon == "CityStats" then
 		if not CityRealmGold then CityRealmGold = {} end
-		if not CityRealmGold[CityUi.player.realm] then CityRealmGold[CityUi.player.realm] = {} end
+		if not CityRealmGold[cui.player.realm] then CityRealmGold[cui.player.realm] = {} end
 	end
 end)
 
 local format_gold = function(rawgold)
-	return string.format("%d.%d.%d|c%sg|r", floor(rawgold * 0.0001), floor(mod(rawgold * 0.01, 100)), floor(mod(rawgold, 100)), CityUi.player.color_str)
+	return string.format("%d.%d.%d|c%sg|r", floor(rawgold * 0.0001), floor(mod(rawgold * 0.01, 100)), floor(mod(rawgold, 100)), cui.player.color_str)
 end
 
-local gold_text = CityUi.util.gen_string(data_parent, CityUi.config.font_size_med)
+local gold_text = cui.util.gen_string(data_parent, cui.config.font_size_med)
 gold_text:SetPoint("BOTTOMRIGHT", data_parent, "BOTTOMRIGHT", -7, 5)
 
 local gold_frame = CreateFrame("Button", "CityGold", UIParent)
@@ -260,16 +260,16 @@ gold_frame:RegisterEvent"PLAYER_MONEY"
 gold_frame:SetScript("OnEvent", function(self, event)
 		local new_gold = GetMoney()
 		gold_text:SetText(format_gold(new_gold))
-		CityRealmGold[CityUi.player.realm][CityUi.player.name] = new_gold
+		CityRealmGold[cui.player.realm][cui.player.name] = new_gold
 	end
 )
 gold_frame:SetScript("OnEnter", function(self)
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 	GameTooltip:ClearLines()
-	GameTooltip:AddLine(format("Gold on |c%s%s|r", CityUi.player.color_str, CityUi.player.realm), 1, 1, 1)
+	GameTooltip:AddLine(format("Gold on |c%s%s|r", cui.player.color_str, cui.player.realm), 1, 1, 1)
 	GameTooltip:AddLine" "
 	local sum = 0
-	for player, gold in pairs(CityRealmGold[CityUi.player.realm]) do
+	for player, gold in pairs(CityRealmGold[cui.player.realm]) do
 		GameTooltip:AddDoubleLine(player, format_gold(gold), 1, 1, 1, 1, 1, 1)
 		sum = sum + gold
 	end
@@ -287,7 +287,7 @@ end)
 
 -- azerite -----------------
 
-local azerite_text = CityUi.util.gen_string(data_parent, CityUi.config.font_size_med)
+local azerite_text = cui.util.gen_string(data_parent, cui.config.font_size_med)
 azerite_text:SetPoint("BOTTOMRIGHT", gold_text, "BOTTOMLEFT", -5, 0)
 
 local azerite_frame = CreateFrame("Frame", "CityAzerite", UIParent)
@@ -307,17 +307,17 @@ azerite_frame:SetScript("OnEvent", function(self, event)
 	self.currentLevel = C_AzeriteItem.GetPowerLevel(azeriteItemLocation)
 	self.xpToNextLevel = self.totalLevelXP - self.xp;
 	
-	azerite_text:SetText(format("%s - %d|c%s%s|r", self.currentLevel, floor(100 * self.xp / self.totalLevelXP), CityUi.player.color_str, "%"))
+	azerite_text:SetText(format("%s - %d|c%s%s|r", self.currentLevel, floor(100 * self.xp / self.totalLevelXP), cui.player.color_str, "%"))
 end)
 
 azerite_frame:SetScript("OnEnter", function(self)
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 	GameTooltip:ClearLines()
-	GameTooltip:AddLine(format("Level |c%s%d|r", CityUi.player.color_str, self.currentLevel), 1, 1, 1)
+	GameTooltip:AddLine(format("Level |c%s%d|r", cui.player.color_str, self.currentLevel), 1, 1, 1)
 	GameTooltip:AddLine""
 	GameTooltip:AddLine(format("%d / %d", self.xp, self.totalLevelXP), 1, 1, 1)
 	GameTooltip:AddLine""
-	GameTooltip:AddLine(format("|c%s%d|r to next level", CityUi.player.color_str, self.xpToNextLevel), 1, 1, 1)
+	GameTooltip:AddLine(format("|c%s%d|r to next level", cui.player.color_str, self.xpToNextLevel), 1, 1, 1)
 	GameTooltip:Show()
 end)
 

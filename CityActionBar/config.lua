@@ -22,7 +22,7 @@ cfg.bars = {
 			size = 35,
 			margin = 5,
 		},
-		pos = {"BOTTOM", UIParent, "BOTTOM", 0, 5},
+		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 5},
 		visibility = "[petbattle] hide; show"
 	},
 	MultiBarBottomLeft = {
@@ -31,7 +31,7 @@ cfg.bars = {
 			size = 35,
 			margin = 5,
 		},
-		pos = {"BOTTOM", UIParent, "BOTTOM", 0, 45},
+		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 45},
 		visibility = "[petbattle][overridebar][vehicleui][possessbar][shapeshift] hide; show"
 	},
 	MultiBarBottomRight = {
@@ -40,7 +40,7 @@ cfg.bars = {
 			size = 35,
 			margin = 5,
 		},
-		pos = {"BOTTOM", UIParent, "BOTTOM", 0, 85},
+		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 85},
 		visibility = "[petbattle][overridebar][vehicleui][possessbar][shapeshift] hide; show"
 	},
 	MultiBarLeft = {
@@ -50,7 +50,7 @@ cfg.bars = {
 			margin = 2,
 		},
 		short = true,
-		pos = {"BOTTOM", UIParent, "BOTTOM", 0, 200},
+		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 200},
 		visibility = "[petbattle][overridebar][vehicleui][possessbar][shapeshift] hide; show"
 	},
 	MultiBarRight = {
@@ -60,7 +60,7 @@ cfg.bars = {
 			margin = 2,
 		},
 		short = true,
-		pos = {"BOTTOM", UIParent, "BOTTOM", 0, 284},
+		pos = {"BOTTOM", "UIParent", "BOTTOM", 0, 284},
 		visibility = "[petbattle][overridebar][vehicleui][possessbar][shapeshift] hide; show"
 	},
 	Stance = {
