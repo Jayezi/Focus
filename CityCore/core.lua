@@ -333,6 +333,7 @@ SlashCmdList.ROLE = function(arg)
 end
 
 -- combatlog reminder
+
 local combatlog_checker = CreateFrame("Button", nil, UIParent)
 combatlog_checker:Hide()
 combatlog_checker:SetPoint("CENTER")
@@ -380,6 +381,7 @@ combatlog_checker:SetScript("OnClick", function(self, button)
 end)
 
 -- tooltips
+
 GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT = cui.config.frame_backdrop
 GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT.backdropBorderColor = tooltip_frame_border_color
 
@@ -418,11 +420,6 @@ cui.util.gen_panel({
 local afk = CreateFrame("Frame")
 afk:SetAllPoints(WorldFrame)
 cui.util.gen_backdrop(afk, 0, 0, 0, .75)
-local name = cui.util.gen_string(afk, 50, nil, nil, "LEFT")
-name:SetText(cui.player.name)
-name:SetPoint("LEFT", WorldFrame, "CENTER")
-name:SetPoint("RIGHT", WorldFrame, "RIGHT")
-name:SetTextColor(unpack(cui.player.color))
 afk:Hide()
 
 local anims = {
@@ -431,17 +428,57 @@ local anims = {
 }
 
 local character_frame = CreateFrame("DressUpModel", "CityPlayerModel", nil)
-character_frame:SetSize(600, 700)
-character_frame:SetPoint("RIGHT", WorldFrame, "CENTER")
+character_frame:SetSize(700, 750)
+character_frame:SetPoint("CENTER", WorldFrame)
+
+local pet_frame = CreateFrame("PlayerModel", "CityPetModel", nil)
+pet_frame:SetSize(600, 600)
+pet_frame:SetPoint("BOTTOMRIGHT", character_frame, "BOTTOM", 0, -100)
+pet_frame:SetFrameLevel(character_frame:GetFrameLevel() + 1)
+
+local afk_name = cui.util.gen_string(afk, 50, nil, nil, "CENTER")
+afk_name:SetText(cui.player.name)
+afk_name:SetPoint("LEFT", WorldFrame, "CENTER")
+afk_name:SetPoint("RIGHT", WorldFrame, "RIGHT")
+afk_name:SetTextColor(unpack(cui.player.color))
+
+local rotate_model = function(model, add_distance, add_yaw, add_pitch)
+	
+	model:SetPortraitZoom(0)
+	model:SetCamDistanceScale(1)
+	model:SetPosition(0, 0, 0)
+	model:SetRotation(0)
+	model:RefreshCamera()
+	model:SetCustomCamera(1)
+
+	local x, y, z = model:GetCameraPosition()
+	local tx, ty, tz = model:GetCameraTarget()
+	model:SetCameraTarget(0, ty, tz)
+	
+	local distance = math.sqrt(x * x + y * y + z * z) + add_distance
+	local yaw = -math.atan(y / x) + add_yaw
+	local pitch = -math.atan(z / x) + add_pitch
+
+	local x = distance * math.cos(yaw) * math.cos(pitch)
+	local y = distance * math.sin(-yaw) * math.cos(pitch)
+	local z = distance * math.sin(-pitch)
+	model:SetCameraPosition(x, y, z)
+end
 
 local start_afk = function()
-	character_frame:SetUnit("player")
-	character_frame:SetRotation(math.rad(25))
-	character_frame:SetSheathed(true)
 	character_frame:Show()
-
+	character_frame:SetUnit("player")
+	character_frame:SetSheathed(true)
+	rotate_model(character_frame, .5, math.rad(25), math.rad(0))
 	if anims[cui.player.class] then
 		character_frame:SetAnimation(anims[cui.player.class])
+	end
+
+	if UnitExists("pet") then
+		pet_frame:Show()
+		pet_frame:SetUnit("pet")
+		rotate_model(pet_frame, .5, math.rad(30), math.rad(0))
+		afk_name:SetText(cui.player.name.."\nand\n"..UnitName("pet"))
 	end
 
 	afk:Show()
@@ -451,6 +488,7 @@ end
 
 local end_afk = function()
 	character_frame:Hide()
+	pet_frame:Hide()
 	afk:Hide()
 	UIParent:SetAlpha(1)
 	WorldFrame:SetAlpha(1)
@@ -475,16 +513,6 @@ afk:SetScript("OnEvent", function(event)
 end)
 
 ChatBubbleFont:SetFont(cui.config.default_font, cui.config.font_size_lrg, cui.config.font_flags)
-
-local talking_head_frame = CreateFrame("Frame")
-talking_head_frame:RegisterEvent("ADDON_LOADED")
-talking_head_frame:SetScript("OnEvent", function()
-	if addon == "Blizzard_TalkingHeadUI" then
-		TalkingHeadFrame:ClearAllPoints()
-		TalkingHeadFrame:SetPoint("TOPLEFT", 10, -10)
-		TalkingHeadFrame.ignoreFramePositionManager = true
-	end
-end)
 
 local login_frame = CreateFrame("Frame")
 login_frame:RegisterEvent("PLAYER_LOGIN")
