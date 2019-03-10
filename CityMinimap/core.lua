@@ -35,8 +35,6 @@ Minimap:SetMaskTexture(cui.media.textures.blank)
 MinimapBackdrop:SetAllPoints(Minimap)
 function GetMinimapShape() return "SQUARE" end
 
-
-
 local clockFrame, clockTime = TimeManagerClockButton:GetRegions()
 clockFrame:Hide()
 cui.util.fix_string(clockTime, cui.config.font_size_med)
@@ -52,9 +50,9 @@ TimeManagerClockButton:SetAllPoints(clockTime)
 
 cui.util.fix_string(MinimapZoneText, cui.config.font_size_med)
 MinimapZoneText:ClearAllPoints()
-MinimapZoneText:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 5, -5)
-MinimapZoneText:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -5, -5)
-
+MinimapZoneText:SetPoint("TOP", Minimap, "TOP", 0, -5)
+MinimapZoneText:SetPoint("LEFT", MiniMapMailFrame, "RIGHT", 5, 0)
+MinimapZoneText:SetPoint("RIGHT", MiniMapTracking, "LEFT", -5, 0)
 MinimapZoneTextButton:SetAllPoints(MinimapZoneText)
 
 MiniMapInstanceDifficulty:ClearAllPoints()
@@ -82,11 +80,12 @@ GameTimeFrame:SetPushedTexture(nil)
 GameTimeFrame:SetHighlightTexture(nil)
 GameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
 
-MiniMapMailFrame:SetSize(45, 45)
+MiniMapMailFrame:SetSize(25, 25)
 MiniMapMailFrame:ClearAllPoints()
-MiniMapMailFrame:SetPoint("TOPLEFT")
-strip_textures(MiniMapMailFrame)
-MiniMapMailIcon:SetTexture("Interface\\Minimap\\TRACKING\\Mailbox")
+MiniMapMailFrame:SetPoint("TOPLEFT", 5, -5)
+MiniMapMailIcon:SetAllPoints()
+MiniMapMailIcon:SetTexture("Interface\\Minimap\\Tracking\\Mailbox")
+MiniMapMailBorder:Hide()
 
 GarrisonLandingPageMinimapButton:SetSize(45, 45)
 GarrisonLandingPageMinimapButton:ClearAllPoints()
@@ -101,17 +100,21 @@ QueueStatusMinimapButtonBorder:Hide()
 MiniMapTracking:ClearAllPoints()
 MiniMapTracking:SetPoint("TOPRIGHT", -5, -5)
 MiniMapTracking:SetSize(25, 25)
-
 MiniMapTrackingButton:SetAllPoints(MiniMapTracking)
-MiniMapTrackingIcon:SetAllPoints(MiniMapTracking)
-MiniMapTrackingIcon.oldSetPoint = MiniMapTrackingIcon.SetPoint
-MiniMapTrackingIcon.SetPoint = function(self) return end
+MiniMapTrackingIcon:SetAllPoints()
 MiniMapTrackingBackground:Hide()
 MiniMapTrackingIconOverlay:Hide()
 MiniMapTrackingButtonBorder:Hide()
-MiniMapTrackingIconOverlay.oldShow = MiniMapTrackingIconOverlay.Show
-MiniMapTrackingIconOverlay.Show = function(self) return end
 strip_textures(MiniMapTrackingButton)
+strip_textures(MiniMapTracking)
+MiniMapTrackingIcon:SetTexture("Interface\\Minimap\\Tracking\\None")
+
+MiniMapTrackingButton:HookScript("OnMouseDown", function()
+	MiniMapTrackingIcon:SetAllPoints()
+end);
+MiniMapTrackingButton:HookScript("OnMouseUp", function()
+	MiniMapTrackingIcon:SetAllPoints()
+end);
 
 ObjectiveTrackerFrame:ClearAllPoints()
 ObjectiveTrackerFrame.oldSetPoint = ObjectiveTrackerFrame.SetPoint
@@ -119,7 +122,8 @@ ObjectiveTrackerFrame.SetPoint = function(self)
 	self:oldSetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -10)
 	self:oldSetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", 0, -10)
 end
-ObjectiveTrackerFrame:SetHeight(500)
+ObjectiveTrackerFrame:SetHeight(750)
+style_children(ObjectiveTrackerBlocksFrame)
 
 DurabilityFrame:ClearAllPoints()
 DurabilityFrame.oldSetPoint = DurabilityFrame.SetPoint
@@ -132,8 +136,6 @@ VehicleSeatIndicator.oldSetPoint = VehicleSeatIndicator.SetPoint
 VehicleSeatIndicator.SetPoint = function(self) 
 	self:oldSetPoint("TOPRIGHT", MinimapCluster, "BOTTOMLEFT", -20, -5)
 end
-
-style_children(ObjectiveTrackerBlocksFrame)
 
 Minimap:EnableMouseWheel(true)
 Minimap:SetScript("OnMouseWheel", function(self, delta)

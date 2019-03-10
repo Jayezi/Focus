@@ -207,6 +207,7 @@ cfg.pet_buff_whitelist = {
 
 cfg.nameplate_buff_whitelist = {
 	[277242] = true,		--Symbiote of G'huun
+	[288219] = true,		--Refractive Ice
 }
 
 cfg.player_buff_whitelist = {
@@ -227,6 +228,7 @@ cfg.player_buff_whitelist = {
 	[188024] = true,		--Skystep Potion
 	[287916] = true,		--V.I.G.O.R Engaged
 	[268311] = true,		--Galecaller's Boon
+	[279152] = true,		--Battle Potion of Agility
 
 	-- Paladin
 	[132403] = true,		--Shield of the Righteous

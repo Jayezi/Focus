@@ -141,10 +141,10 @@ local function create_target_style(base)
 	lib.push_bar(base, base.Health)
 
 	-- alternate power
-	base.AlternativePower = cui.util.gen_statusbar(base, target_cfg.size.w, target_cfg.power.h)
-	base.AlternativePower:SetFrameLevel(base.Health:GetFrameLevel() + 1)
-	base.AlternativePower:SetPoint("TOPLEFT", base.Health, "TOPLEFT", 2, -2)
-	base.AlternativePower:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -2, -2)
+	--base.AlternativePower = cui.util.gen_statusbar(base, target_cfg.size.w, target_cfg.power.h)
+	--base.AlternativePower:SetFrameLevel(base.Health:GetFrameLevel() + 1)
+	--base.AlternativePower:SetPoint("TOPLEFT", base.Health, "TOPLEFT", 2, -2)
+	--base.AlternativePower:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -2, -2)
 	
 	-- cast
 	base.Castbar = lib.gen_cast_bar(base, target_cfg.cast.size.w, target_cfg.cast.size.h, cui.config.font_size_med, false, true)
@@ -371,6 +371,7 @@ local function create_boss_style(base)
 
 	-- alt power
 	base.AlternativePower = cui.util.gen_statusbar(base, boss_cfg.size.w, boss_cfg.power.h)
+	base.AlternativePower:SetFrameLevel(base.Health:GetFrameLevel() + 1)
 	base.AlternativePower:SetPoint("TOPLEFT", base.Health, "TOPLEFT", 2, -2)
 	base.AlternativePower:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -2, -2)
 	
@@ -723,8 +724,8 @@ oUF:Factory(function(self)
 		local role = _G["CityFrameRole"][cui.player.realm][cui.player.name]
 		local w = cfg.frames.raid.size[role].w
 		local h = cfg.frames.raid.size[role].h + cfg.frames.raid.power.h - 1
-		local mover = cui.util.get_mover_frame("Raid", cfg.frames.raid.pos)
-		mover:SetSize(w * 5 - 4, h * 6 - 5)
+		local mover_small = cui.util.get_mover_frame("RaidSmall", cfg.frames.raid.pos)
+		mover_small:SetSize(w * 5 - 4, h * 4 - 3)
 
 		oUF:RegisterStyle("CityRaid", create_raid_style(role))
 		oUF:SetActiveStyle("CityRaid")
@@ -739,7 +740,7 @@ oUF:Factory(function(self)
 			"yoffset",            0,
 			"xoffset",            -1,
 			"columnSpacing",      -1,
-			"columnAnchorPoint",  "BOTTOM",
+			"columnAnchorPoint",  "TOP",
 			"groupFilter",        "1,2,3,4",
 			"groupBy",            "GROUP",
 			"groupingOrder",      "1,2,3,4",
@@ -751,8 +752,10 @@ oUF:Factory(function(self)
 				self:SetHeight(%d)
 			]]):format(w, h)
 		)
-		raid_small:SetPoint("BOTTOMLEFT", mover)
+		raid_small:SetPoint("TOPLEFT", mover_small)
 
+		local mover_big = cui.util.get_mover_frame("RaidBig", cfg.frames.raid.pos)
+		mover_big:SetSize(w * 5 - 4, h * 8 - 7)
 		local raid_big = oUF:SpawnHeader(
 			"oUF_CityRaidBig", nil,
 			"custom [@raid21,exists] show; hide",
@@ -763,19 +766,19 @@ oUF:Factory(function(self)
 			"yoffset",            0,
 			"xoffset",            -1,
 			"columnSpacing",      -1,
-			"columnAnchorPoint",  "BOTTOM",
-			"groupFilter",        "1,2,3,4",
+			"columnAnchorPoint",  "TOP",
+			"groupFilter",        "1,2,3,4,5,6,7,8",
 			"groupBy",            "GROUP",
-			"groupingOrder",      "1,2,3,4",
+			"groupingOrder",      "1,2,3,4,5,6,7,8",
 			"sortMethod",         "INDEX",
-			"maxColumns",         4,
+			"maxColumns",         8,
 			"unitsPerColumn",     5,
 			"oUF-initialConfigFunction", ([[
 				self:SetWidth(%d)
 				self:SetHeight(%d)
 			]]):format(w, h)
 		)
-		raid_big:SetPoint("BOTTOMLEFT", mover)
+		raid_big:SetPoint("TOPLEFT", mover_big)
 	end
 end)
 

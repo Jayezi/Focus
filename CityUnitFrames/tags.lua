@@ -16,16 +16,7 @@ local hex = function(r, g, b)
 	end
 end
 
-local formatTime = function(rawTime)
-	if rawTime > 60 then 
-		endTime = math.math.floor(rawTime / 60)
-	else 
-		endTime = math.math.floor(rawTime)
-	end
-	return endTime
-end
-
-local numFormat = function(v)
+local num_format = function(v)
 	if (v >= 1e9) then
 		return ("%.1fb"):format(v / 1e9)
 	elseif (v >= 1e6) then
@@ -80,8 +71,8 @@ oUF.Tags.Events['city:color'] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION UNIT
 oUF.Tags.Methods["city:hp:curr/max state"] = function(unit)
 	local curr, max = UnitHealth(unit), UnitHealthMax(unit)
 
-	local shortcurr = numFormat(curr)
-	local shortmax = numFormat(max)
+	local shortcurr = num_format(curr)
+	local shortmax = num_format(max)
 	
 	local str = shortcurr.."/"..shortmax
 	
@@ -104,7 +95,7 @@ oUF.Tags.Methods["city:hp:curr-perc"] = function(unit)
 		perc = math.floor(UnitHealth(unit) / max * 100 + 0.5)
 	end
 
-	local str = numFormat(curr).."-"..perc.."%"
+	local str = num_format(curr).."-"..perc.."%"
 	
 	return str
 end
@@ -138,7 +129,7 @@ end
 oUF.Tags.Events["city:hp:perc."] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH"
 
 oUF.Tags.Methods["city:hp:curr"] = function(unit)
-	return numFormat(UnitHealth(unit))
+	return num_format(UnitHealth(unit))
 end
 oUF.Tags.Events["city:hp:curr"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH"
 
@@ -149,7 +140,7 @@ oUF.Tags.Methods["city:hp:group"] = function(unit)
 
 	local heal_absorb = UnitGetTotalHealAbsorbs(unit)
 	if heal_absorb > 0 then
-		return hex(1, .25, .25)..numFormat(heal_absorb)
+		return hex(1, .25, .25)..num_format(heal_absorb)
 	end
 
 	return ""
@@ -164,7 +155,7 @@ oUF.Tags.Methods["city:pp:curr/max-perc"] = function(unit)
 	if max > 0 then
 		per = math.floor(curr / max * 100 + 0.5)
 	end
-	return numFormat(curr).."/"..numFormat(max).."-"..per.."%"
+	return num_format(curr).."/"..num_format(max).."-"..per.."%"
 end
 oUF.Tags.Events["city:pp:curr/max-perc"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER"
 
@@ -174,12 +165,12 @@ oUF.Tags.Methods["city:pp:curr-perc"] = function(unit)
 	if max > 0 then
 		per = math.floor(curr / max * 100 + 0.5)
 	end
-	return numFormat(curr).."-"..per.."%"
+	return num_format(curr).."-"..per.."%"
 end
 oUF.Tags.Events["city:pp:curr-perc"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER"
 
 oUF.Tags.Methods["city:pp:curr"] = function(unit)
-	return numFormat(UnitPower(unit))
+	return num_format(UnitPower(unit))
 end
 oUF.Tags.Events["city:pp:curr"] = "UNIT_POWER_FREQUENT"
 
