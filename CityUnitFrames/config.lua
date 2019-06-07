@@ -176,20 +176,21 @@ cfg.raid_role = {
 }
 
 cfg.nameplate_cfg = {
+	["nameplateMotion"] = 1,
 	["nameplateMinScale"] = 1,
 	["nameplateMinScaleDistance"] = 10,
 	["nameplateMaxScale"] = 1,
 	["nameplateMaxScaleDistance"] = 90,
 	["nameplateGlobalScale"] = 1,
-	["nameplateMaxAlpha"] = .6,
-	["nameplateMinAlpha"] = .6,
+	["nameplateMaxAlpha"] = 0.6,
+	["nameplateMinAlpha"] = 0.6,
 	["nameplateLargerScale"] = 1,
 	["nameplateLargeBottomInset"] = -.01,
 	["nameplateLargeTopInset"] = .03,
 	["nameplateOtherBottomInset"] = -.01,
 	["nameplateOtherTopInset"] = .03,
-	["nameplateOverlapH"] = .5,
-    ["nameplateOverlapV"] = .8,
+	["nameplateOverlapH"] = 0.5,
+    ["nameplateOverlapV"] = 0.8,
 	["nameplateSelectedAlpha"] = 1,
 	["nameplateSelectedScale"] = 1,
 	["nameplateSelfAlpha"] = 1,
@@ -198,7 +199,8 @@ cfg.nameplate_cfg = {
 	["nameplateSelfBottomInset"] = .4,
 	["nameplateMaxDistance"] = 60,
     ["nameplateHorizontalScale"] = 1,
-    ["nameplateVerticalScale"] = 1
+	["nameplateVerticalScale"] = 1,
+	["nameplateOccludedAlphaMult"] = 0.2
 }
 
 cfg.pet_buff_whitelist = {
@@ -229,6 +231,10 @@ cfg.player_buff_whitelist = {
 	[287916] = true,		--V.I.G.O.R Engaged
 	[268311] = true,		--Galecaller's Boon
 	[279152] = true,		--Battle Potion of Agility
+	[268899] = true,		--Masterful Navigation
+	[268898] = true,		--Masterful Navigation
+	[274443] = true,		--Dance of Death
+	--[271711] = true,		--Overwhelming Power
 
 	-- Paladin
 	[132403] = true,		--Shield of the Righteous
@@ -264,6 +270,7 @@ cfg.player_buff_whitelist = {
 	[288613] = true,		--Trueshot
 	[269576] = true,		--Master Marksman
 	[257622] = true,		--Trick Shots
+	[272733] = true,		--In The Rhythm
 	
 	-- Monk
 	[137639] = true, 		--Storm, Earth, and Fire

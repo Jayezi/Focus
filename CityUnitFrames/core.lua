@@ -611,7 +611,7 @@ oUF:Factory(function(self)
 		C_NamePlate.SetNamePlateEnemySize(cfg.frames.nameplate.size.w, cfg.frames.nameplate.size.h * 4)
 		C_NamePlate.SetNamePlateFriendlySize(cfg.frames.nameplate.size.w, cfg.frames.nameplate.size.h * 4)
 		oUF:RegisterStyle("CityNameplate", create_nameplate_style)
-		oUF:SpawnNamePlates("City", nil, cfg.nameplate_config)
+		oUF:SpawnNamePlates("City", nil, cfg.nameplate_cfg)
 	end
 
 	if cfg.enabled.player then

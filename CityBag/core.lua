@@ -161,7 +161,7 @@ local function create(name, ...)
 			bag:SetNormalTexture("")
 			bag:SetPushedTexture("")
 			bag:SetHighlightTexture("")
-			bag:SetCheckedTexture("");
+			--bag:SetCheckedTexture("");
 			
 			local blank = cui.media.textures.blank
 			local border = bag.IconBorder

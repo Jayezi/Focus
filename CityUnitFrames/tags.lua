@@ -117,11 +117,7 @@ oUF.Tags.Methods["city:hp:perc."] = function(unit)
 	local str = 0
 	if max > 0 then
 		local perc = UnitHealth(unit) / max * 100
-		if perc < 10 then
-			str = ("%.1f"):format(perc)
-		else
-			str = math.floor(perc + 0.5)
-		end
+		str = ("%.1f"):format(perc)
 	end
 	
 	return str

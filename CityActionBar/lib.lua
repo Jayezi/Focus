@@ -40,15 +40,17 @@ local skin_textures = function(button, icon, normal)
 
 	local blank = cui.media.textures.blank
 	
-	local checked = button:GetCheckedTexture()
-	checked:SetAllPoints(icon)
-	checked:SetTexture(blank)
-	checked:SetVertexColor(unpack(cfg.color.checked))
-	hooksecurefunc(checked, "SetAlpha", function(self, a)
-		if a ~= 0.5 then
-			self:SetAlpha(0.5)
-		end
-	end)
+	if (button.GetCheckedTexture) then
+		local checked = button:GetCheckedTexture()
+		checked:SetAllPoints(icon)
+		checked:SetTexture(blank)
+		checked:SetVertexColor(unpack(cfg.color.checked))
+		hooksecurefunc(checked, "SetAlpha", function(self, a)
+			if a ~= 0.5 then
+				self:SetAlpha(0.5)
+			end
+		end)
+	end
 	
 	local pushed = button:GetPushedTexture()
 	pushed:SetDrawLayer("OVERLAY", -6)

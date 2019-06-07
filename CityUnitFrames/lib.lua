@@ -86,8 +86,8 @@ lib.gen_cast_bar = function(base, w, h, text_size, latency, interrupt, color)
 	
 	local cast_icon = cast_bar:CreateTexture()
 	cast_icon:SetDrawLayer("OVERLAY", -6)
-	cast_icon:SetSize(h * 3 / 2, h * 3 / 4)
-	cast_icon:SetPoint("CENTER", cast_bar, "TOP", 0, 0)
+	cast_icon:SetSize(Round(h * 3 / 2), Round(h * 3 / 4))
+	cast_icon:SetPoint("LEFT", cast_bar, "TOP", -Round(cast_icon:GetWidth() / 2), 0)
 	cast_icon:SetTexCoord(0.1, 0.9, 0.30, 0.70)
 	cast_bar.Icon = cast_icon
 	
