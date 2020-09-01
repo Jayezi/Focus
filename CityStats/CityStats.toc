@@ -1,7 +1,0 @@
-## Interface: 80100
-## Author: Jayeasy
-## Title: CityStats
-## SavedVariables: CityRealmGold
-## RequiredDeps: CityCore
-
-core.lua

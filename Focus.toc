@@ -1,0 +1,32 @@
+## Interface: 80300
+## Title: Focus
+## Author: Jayeasy
+## SavedVariables: FocusFrameRoles, FocusFramePositions, FocusStatsRealmGold, FocusBindsLayouts
+## RequiredDeps: oUF, oUF_Experience
+
+core.lua
+
+Bars\config.lua
+Bars\styles.lua
+Bars\bars.lua
+
+Units\libs\oUF_AuraWatch.lua
+Units\config.lua
+Units\tags.lua
+Units\lib.lua
+Units\units.lua
+
+Buffs\config.lua
+Buffs\buffs.lua
+
+Chat\config.lua
+Chat\chat.lua
+Chat\links.lua
+
+Map\map.lua
+
+Stats\stats.lua
+
+Bag\bag.lua
+
+Binds\binds.lua

@@ -1,7 +1,0 @@
-## Interface: 80100
-## Author: Jayeasy
-## Title: CityBinds
-## RequiredDeps: CityCore
-## SavedVariables: CityBindLayouts
-
-core.lua

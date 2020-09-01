@@ -1,8 +1,0 @@
-## Interface: 80100
-## Author: Jayeasy
-## Title: CityChat
-## RequiredDeps: CityCore
-
-config.lua
-core.lua
-links.lua
