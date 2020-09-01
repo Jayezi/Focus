@@ -86,7 +86,7 @@ oUF.Tags.Methods["city:hp:curr/max state"] = function(unit)
 	
 	return str
 end
-oUF.Tags.Events["city:hp:curr/max state"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
+oUF.Tags.Events["city:hp:curr/max state"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 
 oUF.Tags.Methods["city:hp:curr-perc"] = function(unit)
 	local curr, max = UnitHealth(unit), UnitHealthMax(unit)
@@ -99,7 +99,7 @@ oUF.Tags.Methods["city:hp:curr-perc"] = function(unit)
 	
 	return str
 end
-oUF.Tags.Events["city:hp:curr-perc"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
+oUF.Tags.Events["city:hp:curr-perc"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 
 oUF.Tags.Methods["city:hp:perc"] = function(unit)
 	local max = UnitHealthMax(unit)
@@ -110,7 +110,7 @@ oUF.Tags.Methods["city:hp:perc"] = function(unit)
 	
 	return str
 end
-oUF.Tags.Events["city:hp:perc"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH"
+oUF.Tags.Events["city:hp:perc"] = "UNIT_HEALTH UNIT_MAXHEALTH"
 
 oUF.Tags.Methods["city:hp:perc."] = function(unit)
 	local max = UnitHealthMax(unit)
@@ -122,12 +122,12 @@ oUF.Tags.Methods["city:hp:perc."] = function(unit)
 	
 	return str
 end
-oUF.Tags.Events["city:hp:perc."] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH"
+oUF.Tags.Events["city:hp:perc."] = "UNIT_HEALTH UNIT_MAXHEALTH"
 
 oUF.Tags.Methods["city:hp:curr"] = function(unit)
 	return num_format(UnitHealth(unit))
 end
-oUF.Tags.Events["city:hp:curr"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH"
+oUF.Tags.Events["city:hp:curr"] = "UNIT_HEALTH UNIT_MAXHEALTH"
 
 oUF.Tags.Methods["city:hp:group"] = function(unit)
 	if not UnitIsConnected(unit) then return "OFF" end

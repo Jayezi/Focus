@@ -65,8 +65,8 @@ cfg.frames = {
 			h = 8,
 		},
 		alt_power = {
-			size = {w = 500, h = 20},
-			pos = {"TOP", UIParent, "TOP", 0, -10},
+			size = {w = 300, h = 20},
+			pos = {"TOPLEFT", UIParent, "TOPLEFT", 10, -10},
 		},
 	},
 	pet = {
@@ -210,6 +210,7 @@ cfg.pet_buff_whitelist = {
 cfg.nameplate_buff_whitelist = {
 	[277242] = true,		--Symbiote of G'huun
 	[288219] = true,		--Refractive Ice
+	[300635] = true,		--Gathering Nightmare
 }
 
 cfg.player_buff_whitelist = {
@@ -234,7 +235,8 @@ cfg.player_buff_whitelist = {
 	[268899] = true,		--Masterful Navigation
 	[268898] = true,		--Masterful Navigation
 	[274443] = true,		--Dance of Death
-	--[271711] = true,		--Overwhelming Power
+	[303570] = true,		--Razor Coral
+	[315763] = true,		--Void Titanshard
 
 	-- Paladin
 	[132403] = true,		--Shield of the Righteous

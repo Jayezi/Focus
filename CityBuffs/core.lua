@@ -2,10 +2,11 @@ local addon, ns = ...
 local cfg = ns.cfg
 local cui = CityUi
 
-HOUR_ONELETTER_ABBR = "%dh"
-DAY_ONELETTER_ABBR = "%dd"
-MINUTE_ONELETTER_ABBR = "%dm"
-SECOND_ONELETTER_ABBR = "%ds"
+-- taint spam :(
+-- HOUR_ONELETTER_ABBR = "%dh"
+-- DAY_ONELETTER_ABBR = "%dd"
+-- MINUTE_ONELETTER_ABBR = "%dm"
+-- SECOND_ONELETTER_ABBR = "%ds"
 
 local style_button = function(button)
 	if not button or (button and button.styled) then return end

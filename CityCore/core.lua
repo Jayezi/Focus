@@ -1,7 +1,7 @@
 ﻿local cui = {}
 CityUi = cui
 
-local player_class = select(2, UnitClass("player"))
+local _, player_class = UnitClass("player")
 local player_color = RAID_CLASS_COLORS[player_class]
 
 cui.player = {
@@ -47,8 +47,12 @@ cui.config = {
 		tile = false,
 		tileSize = 0,
 		edgeSize = 1,
-		insets = {left = 0, right = 0, top = 0, bottom = 0},
-
+		insets = {
+			left = 0,
+			right = 0,
+			top = 0,
+			bottom = 0
+		},
 		backdropColor = frame_background_color,
 		backdropBorderColor = frame_border_color
 	},
@@ -63,8 +67,30 @@ local saved_positions
 
 cui.util = {
 
+	pretty_number = function(v)
+		if not v then return "" end
+		if (v >= 1e9) then
+			return ("%.2fb"):format(v / 1e9)
+		elseif (v >= 1e6) then
+			return ("%.2fm"):format(v / 1e6)
+		elseif (v >= 1e3) then
+			return ("%.2fk"):format(v / 1e3)
+		else
+			return ("%d"):format(v)
+		end
+	end,
+
+	pretty_time = function(v)
+		if not v then return "" end
+		if (v > 60) then
+			return ("%dm %ds"):format(math.floor(v / 60), v % 60)
+		else
+			return ("%ds"):format(v)
+		end
+	end,
+
     gen_statusbar = function(parent, w, h, fg_color, bg_color)
-        local bar = CreateFrame("StatusBar", nil, parent)
+		local bar = CreateFrame("StatusBar", nil, parent, BackdropTemplateMixin and "BackdropTemplate")
 		bar:SetSize(w, h)
 	    bar:SetStatusBarTexture(cui.media.textures.blank)
 		bar:SetBackdrop(cui.config.frame_backdrop)
@@ -85,6 +111,9 @@ cui.util = {
     end,
 
 	gen_backdrop = function(frame, ...)
+		if not frame.SetBackdrop then
+			Mixin(frame, BackdropTemplateMixin)
+		end
 		frame:SetBackdrop(cui.config.frame_backdrop)
 		frame:SetBackdropBorderColor(unpack(cui.config.frame_border))
 		if (...) then
@@ -94,7 +123,10 @@ cui.util = {
 		end
 	end,
 
-    gen_border = function(frame, ...)
+	gen_border = function(frame, ...)
+		if not frame.SetBackdrop then
+			Mixin(frame, BackdropTemplateMixin)
+		end
 		frame:SetBackdrop(cui.config.frame_backdrop)
 		frame:SetBackdropColor({0, 0, 0, 0})
 		if (...) then
@@ -105,6 +137,9 @@ cui.util = {
 	end,
 
 	gen_backdrop_borderless = function(frame, h, ...)
+		if not frame.SetBackdrop then
+			Mixin(frame, BackdropTemplateMixin)
+		end
 		frame:SetBackdrop({
 			bgFile = cui.media.textures.blank,
 			edgeFile = cui.media.textures.blank,
@@ -142,7 +177,7 @@ cui.util = {
 	end,
 
 	gen_panel = function(panel)
-		local frame = CreateFrame("Frame", "City"..panel.name, panel.parent)
+		local frame = CreateFrame("Frame", "City"..panel.name, panel.parent, BackdropTemplateMixin and "BackdropTemplate")
 		frame:SetFrameStrata(panel.strata)
 
 		if panel.w then frame:SetWidth(panel.w) end
@@ -218,7 +253,7 @@ cui.util = {
 
 	get_mover_frame = function(name, default_pos)
 		local frame_name = "City"..name.."Mover"
-		local mover_frame = CreateFrame("Frame", frame_name, UIParent)
+		local mover_frame = CreateFrame("Frame", frame_name, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 	
 		local pos = saved_positions and saved_positions[name]
 		if pos then
@@ -334,7 +369,7 @@ end
 
 -- combatlog reminder
 
-local combatlog_checker = CreateFrame("Button", nil, UIParent)
+local combatlog_checker = CreateFrame("Button", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 combatlog_checker:Hide()
 combatlog_checker:SetPoint("CENTER")
 combatlog_checker:SetHeight(150)
@@ -417,7 +452,7 @@ cui.util.gen_panel({
 
 -- afk screen
 
-local afk = CreateFrame("Frame")
+local afk = CreateFrame("Frame", nil, nil, BackdropTemplateMixin and "BackdropTemplate")
 afk:SetAllPoints(WorldFrame)
 cui.util.gen_backdrop(afk, 0, 0, 0, .75)
 afk:Hide()
@@ -541,119 +576,5 @@ login_frame:SetScript("OnEvent", function()
 				end
 			end
 		end
-	end
-end)
-
--- BW skin
-
-local f = CreateFrame("Frame")
-local register_bw_skin = function()
-
-	local backdropBorder = {
-		bgFile = cui.media.textures.blank,
-		edgeFile = cui.media.textures.blank,
-		tile = false, tileSize = 0, edgeSize = 1,
-		insets = {left = 0, right = 0, top = 0, bottom = 0}
-	}
-
-	local function removeStyle(bar)
-		bar.candyBarBackdrop:Hide()
-		local height = bar:Get("bigwigs:restoreheight")
-		if height then
-			bar:SetHeight(height)
-		end
-
-		local tex = bar:Get("bigwigs:restoreicon")
-		if tex then
-			bar:SetIcon(tex)
-			bar:Set("bigwigs:restoreicon", nil)
-
-			bar.candyBarIconFrameBackdrop:Hide()
-		end
-
-		bar.candyBarDuration:ClearAllPoints()
-		bar.candyBarDuration:SetPoint("TOPLEFT", bar.candyBarBar, "TOPLEFT", 2, 0)
-		bar.candyBarDuration:SetPoint("BOTTOMRIGHT", bar.candyBarBar, "BOTTOMRIGHT", -2, 0)
-
-		bar.candyBarLabel:ClearAllPoints()
-		bar.candyBarLabel:SetPoint("TOPLEFT", bar.candyBarBar, "TOPLEFT", 2, 0)
-		bar.candyBarLabel:SetPoint("BOTTOMRIGHT", bar.candyBarBar, "BOTTOMRIGHT", -2, 0)
-	end
-
-	local function styleBar(bar)
-		local height = bar:GetHeight()
-		bar:Set("bigwigs:restoreheight", height)
-		bar:SetHeight(height / 2)
-
-		local bd = bar.candyBarBackdrop
-
-		bd:SetBackdrop(backdropBorder)
-		bd:SetBackdropColor(unpack(cui.config.frame_background_transparent))
-		bd:SetBackdropBorderColor(unpack(cui.config.frame_border))
-
-		cui.util.set_outside(bd, bar)
-		bd:Show()
-
-		local tex = bar:GetIcon()
-		if tex then
-			local icon = bar.candyBarIconFrame
-			bar:SetIcon(nil)
-			icon:SetTexture(tex)
-			icon:Show()
-			if bar.iconPosition == "RIGHT" then
-				icon:SetPoint("BOTTOMLEFT", bar, "BOTTOMRIGHT", 5, 0)
-			else
-				icon:SetPoint("BOTTOMRIGHT", bar, "BOTTOMLEFT", -5, 0)
-			end
-			icon:SetSize(height, height)
-			bar:Set("bigwigs:restoreicon", tex)
-
-			local icon_bd = bar.candyBarIconFrameBackdrop
-			icon_bd:SetBackdrop(backdropBorder)
-			icon_bd:SetBackdropColor(unpack(cui.config.frame_background_transparent))
-			icon_bd:SetBackdropBorderColor(unpack(cui.config.frame_border))
-
-			cui.util.set_outside(icon_bd, icon)
-			icon_bd:Show()
-		end
-
-		bar.candyBarLabel:ClearAllPoints()
-		bar.candyBarLabel:SetPoint("BOTTOMLEFT", bar.candyBarBar, "TOPLEFT", 2, 2)
-
-		bar.candyBarDuration:ClearAllPoints()
-		bar.candyBarDuration:SetPoint("BOTTOMRIGHT", bar.candyBarBar, "TOPRIGHT", -2, 2)
-	end
-
-	if not BigWigs then return end
-	local bars = BigWigs:GetPlugin("Bars", true)
-	if not bars then return end
-
-	f:UnregisterEvent("ADDON_LOADED")
-	f:UnregisterEvent("PLAYER_LOGIN")
-
-	bars:RegisterBarStyle("identifier", {
-		apiVersion = 1,
-		version = 1,
-		barHeight = 20,
-		fontSizeNormal = 16,
-		fontSizeEmphasized = 16,
-		GetSpacing = function(bar) return bar:GetHeight() + 10 end,
-		ApplyStyle = styleBar,
-		BarStopped = removeStyle,
-		GetStyleName = function() return "CityUI" end,
-	})
-end
-
-f:RegisterEvent("ADDON_LOADED")
-f:RegisterEvent("PLAYER_LOGIN")
-local reason = nil
-f:SetScript("OnEvent", function(self, event, msg)
-	if event == "ADDON_LOADED" then
-		if not reason then reason = (select(6, GetAddOnInfo("BigWigs_Plugins"))) end
-		if (reason == "MISSING" and msg == "BigWigs") or msg == "BigWigs_Plugins" then
-			register_bw_skin()
-		end
-	elseif event == "PLAYER_LOGIN" then
-		register_bw_skin()
 	end
 end)

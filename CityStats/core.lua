@@ -71,15 +71,17 @@ mem_frame:SetScript("OnEnter", function(self)
 	mem_text:SetText(format_mem(mem_sum))
 end)
 mem_frame:SetScript("OnUpdate", function(self, last)
-	self.last = self.last + last
-	if self.last >= 5 then
-		local mem_sum = 0
-		UpdateAddOnMemoryUsage()
-		for i = 1, mem_frame.num do
-			mem_sum = mem_sum + GetAddOnMemoryUsage(i)
+	if mem_frame.num then
+		self.last = self.last + last
+		if self.last >= 5 then
+			local mem_sum = 0
+			UpdateAddOnMemoryUsage()
+			for i = 1, mem_frame.num do
+				mem_sum = mem_sum + GetAddOnMemoryUsage(i)
+			end
+			mem_text:SetText(format_mem(mem_sum))
+			self.last = self.last - 5
 		end
-		mem_text:SetText(format_mem(mem_sum))
-		self.last = self.last - 5
 	end
 end)
 mem_frame:SetScript("OnLeave", function(self) GameTooltip:Hide() end)
@@ -246,7 +248,7 @@ frame:SetScript("OnEvent", function(self, event, addon)
 end)
 
 local format_gold = function(rawgold)
-	return string.format("%d.%d.%d|c%sg|r", floor(rawgold * 0.0001), floor(mod(rawgold * 0.01, 100)), floor(mod(rawgold, 100)), cui.player.color_str)
+	return string.format("%d|c%sg|r", floor(rawgold * 0.0001), cui.player.color_str)
 end
 
 local gold_text = cui.util.gen_string(data_parent, cui.config.font_size_med)
@@ -314,10 +316,34 @@ azerite_frame:SetScript("OnEnter", function(self)
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 	GameTooltip:ClearLines()
 	GameTooltip:AddLine(format("Level |c%s%d|r", cui.player.color_str, self.currentLevel), 1, 1, 1)
-	GameTooltip:AddLine""
 	GameTooltip:AddLine(format("%d / %d", self.xp, self.totalLevelXP), 1, 1, 1)
-	GameTooltip:AddLine""
 	GameTooltip:AddLine(format("|c%s%d|r to next level", cui.player.color_str, self.xpToNextLevel), 1, 1, 1)
+	GameTooltip:AddLine" "
+
+	-- reputations
+	reps = {
+		[2164] = "Champions",
+		[2157] = "Honorbound",
+		[2391] = "Rustbolt",
+		[2163] = "Tortollan",
+		[2373] = "Unshackled",
+		[2158] = "Voldunai",
+		[2103] = "Zandalari",
+		[2156] = "Talanji's",
+	}
+
+	for id, name in pairs(reps) do
+		if (C_Reputation.IsFactionParagon(id)) then
+			local currentValue, threshold, _, hasRewardPending = C_Reputation.GetFactionParagonInfo(id);
+			local value = currentValue % threshold;
+			if ( hasRewardPending ) then 
+				value = value + threshold;
+			end
+			
+			GameTooltip:AddDoubleLine(name, format("|c%s%d / %d|r", cui.player.color_str, value, threshold), 1, 1, 1, 1, 1, 1)
+		end
+	end
+
 	GameTooltip:Show()
 end)
 

@@ -127,7 +127,7 @@ end
 
 local function create(name, ...)
 
-	local frame = CreateFrame("Frame", "CityBag"..name, UIParent)
+	local frame = CreateFrame("Frame", "CityBag"..name, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 	frame:SetWidth(((config.size + config.spacing) * config.bpr) + 20 - config.spacing)
 	frame:SetPoint(...)
 	frame:SetFrameStrata("HIGH")
@@ -343,6 +343,8 @@ local function set_bank(show)
 		BankFrameTab1Text:ClearAllPoints()
 		BankFrameTab2Text:ClearAllPoints()
 
+		BankFrameTab1:ClearAllPoints()
+		BankFrameTab2:ClearAllPoints()
 		BankFrameTab1:SetPoint("TOPLEFT", bank, "TOPLEFT", 10, -10)
 		BankFrameTab2:SetPoint("LEFT", BankFrameTab1Text, "RIGHT", 10, 0)
 
@@ -429,6 +431,7 @@ local function set_reagents(show)
 	ReagentBankFrameText:SetJustifyV("BOTTOM")
 	
 	local deposit = ReagentBankFrame:GetChildren()
+	deposit:ClearAllPoints()
 	deposit:SetAllPoints(ReagentBankFrameText)
 	strip_textures(deposit, true)
 
@@ -496,6 +499,7 @@ function BankFrame_ShowPanel(sidePanelName, selection)
 	end
 end
 
+--taint?
 function ContainerFrame_GenerateFrame(frame, size, id)
 	frame.size = size
 	for i = 1, size do
@@ -523,7 +527,9 @@ BankFrame:HookScript("OnShow", function() OpenAllBags() end)
 BankFrame:HookScript("OnHide", function() CloseAllBags() end)
 GameMenuFrame:HookScript("OnShow", function() CloseAllBags() end)
 
+-- taint?
 function UpdateContainerFrameAnchors() end
+
 function ToggleBag() ToggleAllBags() end
 function ToggleBackpack() ToggleAllBags() end
 

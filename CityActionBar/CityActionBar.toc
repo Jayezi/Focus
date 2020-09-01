@@ -4,6 +4,5 @@
 ## RequiredDeps: CityCore
 
 config.lua
-lib.lua
+styles.lua
 actionbars.lua
-vehicle.lua

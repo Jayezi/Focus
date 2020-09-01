@@ -1,164 +1,165 @@
 local _, cab = ...
 local cfg = cab.cfg
-local lib = cab.lib
+local styles = cab.styles
 local cui = CityUi
+
+local create_bar = function(name, num, bar_cfg)
+
+	local per_row = num / (bar_cfg.rows or 1)
+	local bar = CreateFrame("Frame", "City"..name.."Bar", UIParent)
+
+	if bar_cfg.buttons.size then
+		bar:SetWidth((bar_cfg.buttons.size * (bar_cfg.buttons.width_scale or 1) + bar_cfg.buttons.margin) * per_row - bar_cfg.buttons.margin)
+		bar:SetHeight(((bar_cfg.buttons.height or bar_cfg.buttons.size) + bar_cfg.buttons.margin) * (bar_cfg.rows or 1) - bar_cfg.buttons.margin)
+	end
+
+	local point = bar_cfg.pos
+	if point[2] == "UIParent" then
+		point = {cui.util.to_tl_anchor(bar, point)}
+	end
+	if type(point[2]) == "string" then
+		point[2] = _G[point[2]]
+	end
+	bar:SetPoint(unpack(point))
+
+	return bar
+end
+
+local setup_bar = function(name, bar, num, bar_cfg, style_func, buttons)
+	local cols = num / (bar_cfg.rows or 1)
+
+	local col = 1
+	for i = 1, num do
+		local button = buttons and buttons[i] or _G[name.."Button"..i]
+
+		if bar_cfg.buttons.size then
+			button:SetSize(bar_cfg.buttons.size * (bar_cfg.buttons.width_scale or 1), bar_cfg.buttons.height or bar_cfg.buttons.size)
+		end
+
+		button:ClearAllPoints()
+
+		if i == 1 then
+			button:SetPoint("TOPLEFT", bar)
+			button:SetAttribute("flyoutDirection", "LEFT");
+		else
+			if col == 1 then
+				button:SetPoint("TOPLEFT", buttons and buttons[i - cols] or _G[name.."Button"..(i - cols)], "BOTTOMLEFT", 0, -bar_cfg.buttons.margin)
+				button:SetAttribute("flyoutDirection", "LEFT");
+			else
+				button:SetPoint("TOPLEFT", buttons and buttons[i - 1] or _G[name.."Button"..(i - 1)], "TOPRIGHT", bar_cfg.buttons.margin, 0)
+				if col == cols then
+					button:SetAttribute("flyoutDirection", "RIGHT");
+				else
+					button:SetAttribute("flyoutDirection", "UP");
+				end
+			end
+		end
+		if col == cols then col = 0 end
+		col = col + 1
+
+		style_func(button, bar_cfg)
+	end
+end
+
+local setup_actionbars = function()
+
+	local bars = {
+		"Action",
+		"MultiBarBottomLeft",
+		"MultiBarBottomRight",
+		"MultiBarLeft",
+		"MultiBarRight",
+	}
+
+	for _, name in ipairs(bars) do
+		local bar_cfg = cfg.bars[name]
+
+		local bar = create_bar(name, NUM_ACTIONBAR_BUTTONS, bar_cfg)
+		setup_bar(name, bar, NUM_ACTIONBAR_BUTTONS, bar_cfg, styles.actionbutton)
+	end
+
+	MainMenuBarArtFrameBackground:Hide()
+	MainMenuBarArtFrame.LeftEndCap:Hide()
+	MainMenuBarArtFrame.RightEndCap:Hide()
+	MainMenuBarArtFrame.PageNumber:Hide()
+	StatusTrackingBarManager:Hide()
+	ActionBarUpButton:Hide()
+	ActionBarDownButton:Hide()
+	MicroButtonAndBagsBar.MicroBagBar:Hide()
+	MainMenuBar:EnableMouse(false)
+end
+
+local setup_stancebar = function()
+	local name = "Stance"
+	local num = NUM_STANCE_SLOTS
+	local bar_cfg = cfg.bars[name]
+
+	local bar = create_bar(name, num, bar_cfg)
+	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+
+	for _, texture in ipairs({StanceBarFrame:GetRegions()}) do
+		texture:SetTexture()
+	end
+	StanceBarFrame:EnableMouse(false)
+end
+
+local setup_petbar = function()
+	local name = "PetAction"
+	local num = NUM_PET_ACTION_SLOTS
+	local bar_cfg = cfg.bars[name]
+
+	local bar = create_bar(name, num, bar_cfg)
+	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+
+	PetActionBarFrame:EnableMouse(false)
+end
+
+local setup_possessbar = function()
+	-- can test possess bar with remote control toys
+	local name = "Possess"
+	local num = NUM_POSSESS_SLOTS
+	local bar_cfg = cfg.bars[name]
+
+	local bar = create_bar(name, num, bar_cfg)
+	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+
+	PossessBackground1:SetTexture()
+	PossessBackground2:SetTexture()
+	PossessBarFrame:EnableMouse(false)
+end
+
+local setup_bagbar = function()
+	local name = "Bag"
+	local bar_cfg = cfg.bars.bag
+
+	local bags = {
+		MainMenuBarBackpackButton,
+		CharacterBag0Slot,
+		CharacterBag1Slot,
+		CharacterBag2Slot,
+		CharacterBag3Slot,
+	}
+
+	local bar = create_bar(name, #bags, bar_cfg)
+	setup_bar(name, bar, #bags, bar_cfg, styles.bagbutton, bags)
+end
+
+local setup_microbar = function()
+	for _, name in ipairs(MICRO_BUTTONS) do
+		local button = _G[name]
+		styles.microbutton(button)
+	end
+end
 
 local loader = CreateFrame("Frame")
 loader:RegisterEvent("PLAYER_LOGIN")
 loader:SetScript("OnEvent", function(self, event)
-	do
-		lib.hide_blizzard()
-	
-		local num = NUM_ACTIONBAR_BUTTONS
-		local bars = {
-			"MultiBarBottomLeft",
-			"MultiBarBottomRight",
-			"MultiBarLeft",
-			"MultiBarRight",
-		}
-	
-		do
-			local name = "Action"
-			local bar_cfg = cfg.bars[name]
-			
-			local bar = lib.create_bar(name, num, bar_cfg)
-			lib.setup_bar(name, bar, num, bar_cfg, lib.style_action)
-			for i = 1, num do
-				local button = _G["ActionButton"..i]
-				button:SetParent(bar)
-				bar:SetFrameRef("ActionButton"..i, button)
-			end
-	
-			bar:Execute(([[
-				buttons = table.new()
-				for i=1, %d do
-					table.insert(buttons, self:GetFrameRef("%s"..i))
-				end
-			]]):format(num, "ActionButton"))
-	
-			bar:SetAttribute("_onstate-page", [[
-				for i, button in next, buttons do
-					button:SetAttribute("actionpage", newstate)
-				end
-			]])
-	
-			RegisterStateDriver(bar, "page", "[bar:6]6;[bar:5]5;[bar:4]4;[bar:3]3;[bar:2]2;[overridebar]14;[shapeshift]13;[vehicleui]12;[possessbar]12;[bonusbar:5]11;[bonusbar:4]10;[bonusbar:3]9;[bonusbar:2]8;[bonusbar:1]7;1")
-	
-			bar:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
-			bar:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
-			bar:SetScript("OnEvent", function(self, event, unit, ...)
-				for i = 1, num do
-					local button = _G["ActionButton"..i]
-					local action = button.action
-					local icon = button.icon
-	
-					if action >= 120 then
-						local texture = GetActionTexture(action)
-	
-						if (texture) then
-							icon:SetTexture(texture)
-							icon:Show()
-						else
-							if icon:IsShown() then
-								icon:Hide()
-							end
-						end
-					end
-				end
-			end)
-		end
-	
-		for _, name in ipairs(bars) do
-			local bar_cfg = cfg.bars[name]
-	
-			local bar = lib.create_bar(name, num, bar_cfg)
-			_G[name]:SetParent(bar)
-			_G[name]:EnableMouse(false)
-			lib.setup_bar(name, bar, num, bar_cfg, lib.style_action)
-		end
-	end
-	
-	do
-		-- can test possess bar with remote control toys
-		local name = "Possess"
-		local num = NUM_POSSESS_SLOTS
-		local bar_cfg = cfg.bars[name]
-	
-		PossessBackground1:SetTexture("")
-		PossessBackground2:SetTexture("")
-	
-		local bar = lib.create_bar(name, num, bar_cfg)
-		PossessBarFrame:SetParent(bar)
-		lib.setup_bar(name, bar, num, bar_cfg, lib.style_stance)
-	end
-	
-	do
-		local name = "PetAction"
-		local num = NUM_PET_ACTION_SLOTS
-		local bar_cfg = cfg.bars[name]
-		local per_row = num / bar_cfg.rows
-	
-		local bar = lib.create_bar(name, num, bar_cfg)
-		PetActionBarFrame:SetParent(bar)
-		lib.setup_bar(name, bar, num, bar_cfg, lib.style_pet)
-	end
-	
-	do
-		local name = "Stance"
-		local num = NUM_STANCE_SLOTS
-		local bar_cfg = cfg.bars[name]
-	
-		local bar = lib.create_bar(name, num, bar_cfg)
-		StanceBarFrame:SetParent(bar)
-		lib.setup_bar(name, bar, num, bar_cfg, lib.style_stance)
-	end
-	
-	do
-		local name = "MicroMenu"
-		local bar_cfg = cfg.bars[name]
-	
-		local buttons = {}
-		for i, name in next, MICRO_BUTTONS do
-			local button = _G[name]
-			if button and button:IsShown() then
-				table.insert(buttons, button)
-			end
-		end
-	
-		local bar = lib.create_bar(name, #buttons, bar_cfg)
-		for i = 1, #buttons do
-			buttons[i]:SetParent(bar)
-		end
-		lib.setup_bar(name, bar, #buttons, bar_cfg, lib.style_menu, buttons)
-	
-		GuildMicroButtonTabard:SetAllPoints(GuildMicroButton)
-		GuildMicroButtonTabardEmblem:SetSize(bar_cfg.buttons.size * bar_cfg.buttons.width_scale / 2, bar_cfg.buttons.size / 2)
-		GuildMicroButtonTabardBackground:SetAllPoints(GuildMicroButtonTabard)
-		PetBattleFrame.BottomFrame.MicroButtonFrame:SetScript("OnShow", nil)
-	end
-	
-	do
-		local bags = {
-			MainMenuBarBackpackButton,
-			CharacterBag0Slot,
-			CharacterBag1Slot,
-			CharacterBag2Slot,
-			CharacterBag3Slot,
-		}
-	
-		local name = "Bag"
-		local bar_cfg = cfg.bars[name]
-	
-		local bar = lib.create_bar(name, #bags, bar_cfg)
-		for i = 1, #bags do
-			bags[i]:SetParent(bar)
-		end
-		lib.setup_bar(name, bar, #bags, bar_cfg, lib.style_bag, bags)
-		
-		MainMenuBarBackpackButtonCount:SetFont(cui.config.default_font, cui.config.font_size_med, cui.config.font_flags)
-		MainMenuBarBackpackButtonCount:SetDrawLayer("OVERLAY", 7)
-		MainMenuBarBackpackButtonCount:SetPoint("BOTTOMRIGHT")
-	end
+	setup_actionbars()
+	setup_microbar()
+	setup_stancebar()
+	setup_petbar()
+	setup_possessbar()
+	setup_bagbar()
 end)
 
 ExtraActionBarFrame:SetParent(UIParent)
@@ -188,7 +189,7 @@ hooksecurefunc("ActionButton_SetTooltip", function(self)
 	end
 
 	local name = GetActionText(action)
-	
+
 	local key1, key2 = GetBindingKey(button_type..id)
 	local key = key2 or key1
 	local bind = GetBindingText(key, 1)
@@ -201,7 +202,7 @@ hooksecurefunc("ActionButton_SetTooltip", function(self)
 	end
 end)
 
-hooksecurefunc(getmetatable(ActionButton1Cooldown).__index, 'SetCooldown', function(self, start, duration, modRate)
+hooksecurefunc(getmetatable(ActionButton1Cooldown).__index, 'SetCooldown', function(self)
 	if self:GetDebugName():find("ChargeCooldown") then
 		self:SetHideCountdownNumbers(false)
 		self:SetDrawEdge(false)
@@ -218,11 +219,75 @@ hooksecurefunc('ActionButton_UpdateCooldown', function(self)
 	end
 end)
 
-SpellFlyoutBackgroundEnd:SetTexture("")
-SpellFlyoutHorizontalBackground:SetTexture("")
-SpellFlyoutVerticalBackground:SetTexture("")
+SpellFlyoutBackgroundEnd:SetTexture()
+SpellFlyoutHorizontalBackground:SetTexture()
+SpellFlyoutVerticalBackground:SetTexture()
 SpellFlyout:HookScript("OnShow", function(self)
-	for i = 1, 10 do
-		lib.style_action(_G["SpellFlyoutButton"..i])
+	print("show")
+	local flyout_buttons = {self:GetChildren()}
+	for _, button in ipairs(flyout_buttons) do
+		if button.styled ~= true then
+			print("styling")
+			styles.actionbutton(button)
+			button.styled = true
+		end
+	end
+end)
+
+-- adjust the vertical distance for squashed buttons
+
+local AUTOCAST_SHINES = {}
+
+hooksecurefunc('AutoCastShine_AutoCastStart', function(button, r, g, b)
+	if AUTOCAST_SHINES[button] then
+		return
+	end
+
+	AUTOCAST_SHINES[button] = true
+end)
+
+hooksecurefunc('AutoCastShine_AutoCastStop', function(button, r, g, b)
+	AUTOCAST_SHINES[button] = nil
+end)
+
+hooksecurefunc('AutoCastShine_OnUpdate', function()
+	for button in next, AUTOCAST_SHINES do
+		local parent, distance = button, button:GetWidth()
+		local height = button:GetHeight()
+
+		if distance == height then return end
+
+		local mult = height / distance
+
+		for i = 1, 4 do
+			local timer = AUTOCAST_SHINE_TIMERS[i]
+			local speed = AUTOCAST_SHINE_SPEEDS[i]
+
+			if ( timer <= speed ) then
+				local basePosition = timer / speed * distance
+				button.sparkles[0 + i]:SetPoint("CENTER", parent, "TOPLEFT", basePosition, 0)
+				button.sparkles[4 + i]:SetPoint("CENTER", parent, "BOTTOMRIGHT", -basePosition, 0)
+				button.sparkles[8 + i]:SetPoint("CENTER", parent, "TOPRIGHT", 0, -basePosition * mult)
+				button.sparkles[12 + i]:SetPoint("CENTER", parent, "BOTTOMLEFT", 0, basePosition * mult)
+			elseif ( timer <= speed * 2 ) then
+				local basePosition = (timer-speed) / speed * distance
+				button.sparkles[0 + i]:SetPoint("CENTER", parent, "TOPRIGHT", 0, -basePosition * mult)
+				button.sparkles[4 + i]:SetPoint("CENTER", parent, "BOTTOMLEFT", 0, basePosition * mult)
+				button.sparkles[8 + i]:SetPoint("CENTER", parent, "BOTTOMRIGHT", -basePosition, 0)
+				button.sparkles[12 + i]:SetPoint("CENTER", parent, "TOPLEFT", basePosition, 0)
+			elseif ( timer <= speed * 3 ) then
+				local basePosition = (timer-speed*2) / speed * distance
+				button.sparkles[0 + i]:SetPoint("CENTER", parent, "BOTTOMRIGHT", -basePosition, 0)
+				button.sparkles[4 + i]:SetPoint("CENTER", parent, "TOPLEFT", basePosition, 0)
+				button.sparkles[8 + i]:SetPoint("CENTER", parent, "BOTTOMLEFT", 0, basePosition * mult)
+				button.sparkles[12 + i]:SetPoint("CENTER", parent, "TOPRIGHT", 0, -basePosition * mult)
+			else
+				local basePosition = (timer-speed * 3) / speed * distance
+				button.sparkles[0 + i]:SetPoint("CENTER", parent, "BOTTOMLEFT", 0, basePosition  * mult)
+				button.sparkles[4 + i]:SetPoint("CENTER", parent, "TOPRIGHT", 0, -basePosition  * mult)
+				button.sparkles[8 + i]:SetPoint("CENTER", parent, "TOPLEFT", basePosition, 0)
+				button.sparkles[12 + i]:SetPoint("CENTER", parent, "BOTTOMRIGHT", -basePosition, 0)
+			end
+		end
 	end
 end)
