@@ -9,7 +9,6 @@ addon.chat = { enabled = true }
 addon.map = { enabled = true }
 addon.stats = { enabled = true }
 addon.bag = { enabled = true }
-
 addon.binds = { enabled = true }
 
 local _, player_class = UnitClass("player")
@@ -167,7 +166,7 @@ core.util = {
 	end,
 
 	fix_string = function(fs, size, flags, font)
-		fs:SetFont(font or core.config.default_font, size, flags or core.config.font_flags)
+		fs:SetFont(font or core.config.default_font, size or core.config.font_size_med, flags or core.config.font_flags)
 		fs:SetShadowOffset(0, 0)
 	end,
 
@@ -250,8 +249,8 @@ core.util = {
 
 	set_outside = function(outer, inner, offest)
 		outer:ClearAllPoints()
-		outer:SetPoint("TOPLEFT", inner, "TOPLEFT", inset and -inset or -1, inset or 1)
-		outer:SetPoint("BOTTOMRIGHT", inner, "BOTTOMRIGHT", inset or 1, inset and -inset or -1)
+		outer:SetPoint("TOPLEFT", inner, "TOPLEFT", offest and -offest or -1, offest or 1)
+		outer:SetPoint("BOTTOMRIGHT", inner, "BOTTOMRIGHT", offest or 1, offest and -offest or -1)
 	end,
 
 	set_inside = function(inner, outer, inset)

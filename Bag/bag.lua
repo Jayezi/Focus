@@ -1,577 +1,813 @@
 local _, addon = ...
 local core = addon.core
 
-BACKPACK_HEIGHT = 22
-
-local config = {
+local cfg = {
+	inset = 10,
+	header = 50,
+	footer = 40,
 	size = 45,
 	bag_size = 30,
 	spacing = 5,
-	bpr = 12,
-	backdrop_color = {.1, .1, .1, .7},
-	pressed = {.3, .3, .3, .5},
-	highlight = {.6, .6, .6, .3},
-	quest = {1, 1, 0, 1},
+	per_row = 12,
+	edit_size = 200,
+	edit_letters = 15,
+	color = {
+		pressed = {.3, .3, .3, .3},
+		highlight = {.6, .6, .6, .3},
+		checked = {.6, .6, 0, .3},
+		backdrop = {.1, .1, .1, .7},
+	},
 	backdrop = {
 		bgFile = "Interface\\Buttons\\WHITE8x8",
-		edgeFile = "Interface\\Buttons\\WHITE8x8", 
+		edgeFile = "Interface\\Buttons\\WHITE8x8",
 		edgeSize = 1,
 	},
 }
 
-local function strip_textures(object, keep_strings)
-	local regions = {object:GetRegions()}
-	for i = 1, #regions do
-		local region = regions[i]
-		if region:GetObjectType() == "Texture" then
-			region:SetTexture(nil)
-			region.Show = function() end
-			region:SetAlpha(0)
-		elseif not keep_strings then
-			region:Hide()
-		end
+--if true then return end
+
+local style_bank_itembutton = function(button)
+	if button.styled then return end
+	button.styled = true
+
+	button:SetSize(cfg.size, cfg.size)
+	core.util.gen_backdrop(button, unpack(core.config.frame_background_transparent))
+	local blank = core.media.textures.blank
+
+	-- ItemButton (ContainerFrameItemButtonTemplate)
+	--   Layers
+	--     BORDER
+	local icon = button.icon -- $parentIconTexture
+	--     ARTWORK 2
+	local count = button.Count -- $parentCount
+	--local stock = _G[name.."Stock"]
+	--     OVERLAY
+	local border = button.IconBorder
+	--     OVERLAY 1
+	--local overlay = button.IconOverlay -- Azerite/Corruption
+	--     OVERLAY 2
+	--local levellock = button.LevelLinkLockTexture
+	--     OVERLAY 4
+	--local search = button.searchOverlay -- $parentSearchOverlay
+	--     OVERLAY 5
+	--local context = button.ItemContextOverlay
+
+	-- Normal
+	-- Pushed
+	-- Highlight
+
+	-- BankItemButtonGenericTemplate
+	--   Layers
+	--     OVERLAY
+	local quest = button.IconQuestTexture
+	--   Frames
+	--local cooldown = button.Cooldown -- $parentCooldown
+
+
+	-- BankItemButtonBagTemplate
+	--   Layers
+	--     OVERLAY
+	local slot_highlight = button.SlotHighlightTexture
+	--local cooldown = button.Cooldown -- $parentCooldown
+
+	-------------------------------
+
+	-- Layers
+
+	-- BORDER
+
+	icon:SetDrawLayer("ARTWORK", -7)
+	icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+	core.util.set_inside(icon, button)
+
+	-- ARTWORK 2
+
+	count:ClearAllPoints()
+	count:SetPoint("BOTTOMRIGHT")
+	core.util.fix_string(count)
+
+	-- OVERLAY
+
+	border:SetTexture(blank)
+	border:SetAllPoints(button)
+	border:SetDrawLayer("BORDER")
+	border:SetBlendMode("ADD")
+
+	border.alt_SetTexture = border.SetTexture
+	hooksecurefunc(border, "SetTexture", function(self)
+		self:alt_SetTexture(blank)
+	end)
+
+	quest:SetAllPoints(icon)
+	quest:SetTexCoord(.07, .93, .07, .93)
+
+	if slot_highlight then
+		slot_highlight:SetTexCoord(.07, .93, .07, .93)
 	end
+
+	------------------------------
+
+	local normal = button:GetNormalTexture()
+	normal:SetAllPoints(icon)
+	normal:SetTexture()
+
+	local pushed = button:GetPushedTexture()
+	pushed:SetAllPoints(icon)
+	pushed:SetTexture(blank)
+	pushed:SetVertexColor(unpack(cfg.color.pressed))
+	pushed:SetDrawLayer("ARTWORK", -6)
+
+	local highlight = button:GetHighlightTexture()
+	highlight:SetAllPoints(icon)
+	highlight:SetTexture(blank)
+	highlight:SetVertexColor(unpack(cfg.color.highlight))
+
 end
 
-local function make_movable(frame)
+local style_itembutton = function(button)
+	if button.styled then return end
+	button.styled = true
+
+	button:SetSize(cfg.size, cfg.size)
+	core.util.gen_backdrop(button, unpack(core.config.frame_background_transparent))
+	local blank = core.media.textures.blank
+	local name = button:GetName()
+
+	-- ItemButton (ContainerFrameItemButtonTemplate)
+	--   Layers
+	--     BORDER
+	local icon = button.icon -- $parentIconTexture
+	--     ARTWORK 2
+	local count = button.Count -- $parentCount
+	--local stock = _G[name.."Stock"]
+	--     OVERLAY
+	local border = button.IconBorder
+	--     OVERLAY 1
+	--local overlay = button.IconOverlay -- Azerite/Corruption
+	--     OVERLAY 2
+	--local levellock = button.LevelLinkLockTexture
+	--     OVERLAY 4
+	--local search = button.searchOverlay -- $parentSearchOverlay
+	--     OVERLAY 5
+	--local context = button.ItemContextOverlay
+
+	-- Normal
+	-- Pushed
+	-- Highlight
+
+	-- ContainerFrameItemButtonTemplate
+	--   Frames
+	--local cooldown = _G[name.."Cooldown"]
+
+	--   Layers
+	--     OVERLAY 1
+	--local upgrade = button.UpgradeIcon
+	local bagbottom = button.BagStaticBottom
+	local bagtop = button.BagStaticTop
+
+	--     OVERLAY 2
+	local quest = _G[name.."IconQuestTexture"]
+	local flash = button.flash
+	local new = button.NewItemTexture
+	local battlepay = button.BattlepayItemTexture
+	local extended = button.ExtendedSlot
+
+	--     OVERLAY 4
+	local extended_overlay = button.ExtendedOverlay
+	local extended_overlay2 = button.ExtendedOverlay2
+
+	--     OVERLAY 5
+	--local junk = button.JunkIcon
+
+	-------------------------------
+
+	-- Layers
+
+	-- BORDER
+
+	icon:SetDrawLayer("ARTWORK", -7)
+	icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+	core.util.set_inside(icon, button)
+
+	-- ARTWORK 2
+	count:ClearAllPoints()
+	count:SetPoint("BOTTOMRIGHT")
+	core.util.fix_string(count)
+
+	-- OVERLAY
+	border:SetAllPoints(button)
+	border:SetTexture(blank)
+	border:SetDrawLayer("BORDER")
+	border:SetBlendMode("ADD")
+
+	border.alt_SetTexture = border.SetTexture
+	hooksecurefunc(border, "SetTexture", function(self)
+		self:alt_SetTexture(blank)
+	end)
+
+	-- OVERLAY 1
+	bagbottom:SetTexture()
+	bagtop:SetTexture()
+
+	-- OVERLAY 2
+	quest:SetAllPoints(icon)
+	quest:SetTexCoord(.07, .93, .07, .93)
+
+	flash:SetAllPoints(icon)
+
+	new:SetAllPoints(icon)
+	new:SetTexture(blank)
+	new:SetVertexColor(unpack(cfg.color.highlight))
+
+	hooksecurefunc(new, "SetAtlas", function(self)
+		self:SetTexture(blank)
+	end)
+
+
+	battlepay:SetAllPoints()
+	extended:SetAllPoints()
+
+	-- OVERLAY 4
+	extended:SetTexture()
+	extended_overlay:SetAllPoints()
+	extended_overlay2:SetAllPoints()
+
+	------------------------------
+
+	local normal = button:GetNormalTexture()
+	normal:SetAllPoints(icon)
+	normal:SetTexture()
+
+	local pushed = button:GetPushedTexture()
+	pushed:SetAllPoints(icon)
+	pushed:SetTexture(blank)
+	pushed:SetVertexColor(unpack(cfg.color.pressed))
+	pushed:SetDrawLayer("ARTWORK", -6)
+
+	local highlight = button:GetHighlightTexture()
+	highlight:SetAllPoints(icon)
+	highlight:SetTexture(blank)
+	highlight:SetVertexColor(unpack(cfg.color.highlight))
+end
+
+local make_movable = function(frame)
 	frame:SetClampedToScreen(true)
 	frame:SetMovable(true)
-	--frame:SetUserPlaced(true)
 	frame:EnableMouse(true)
 	frame:RegisterForDrag("LeftButton")
+	frame:SetScript("OnDragStart", function(self)
+		self:StartMoving()
+	end)
+	frame:SetScript("OnDragStop", function(self)
+		self:StopMovingOrSizing()
+		self:SetUserPlaced(false)
+
+		local left, top = self:GetLeft(), self:GetTop()
+		self:ClearAllPoints()
+		self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+	end)
 end
 
-local bag_colors = {
-	[0x0008] = {0.56, 0.42, 0.33},	-- Leatherworking Bag
-	[0x0010] = {1, 1, 1},			-- Inscription Bag
-	[0x0020] = {0, 1, 0},			-- Herb Bag
-	[0x0040] = {1, 0, 1},			-- Enchanting Bag
-	[0x0080] = {0.5, 0.5, 0.5},		-- Engineering Bag
-	[0x0200] = {1, 0, 0},			-- Gem Bag
-	[0x0400] = {1, 1, 0},			-- Mining Bag
-	[0x0800] = {1, 1, 1},			-- Unused
-	[0x100000] = {0, 1, 1},			-- Tackle Box
-}
+local focus_backpack = CreateFrame("Frame", "FocusBagCharacterBag", UIParent, BackdropTemplateMixin and "BackdropTemplate")
+focus_backpack:SetWidth(((cfg.size + cfg.spacing) * cfg.per_row) - cfg.spacing + cfg.inset * 2)
+focus_backpack:SetHeight(1)
+focus_backpack:SetPoint("BOTTOMRIGHT")
+focus_backpack:SetFrameStrata("DIALOG")
+focus_backpack:Raise()
+focus_backpack:Hide()
+focus_backpack.min_id = 0
+focus_backpack.max_id = 4
+core.util.gen_backdrop(focus_backpack)
+make_movable(focus_backpack)
 
-local function skin_colors(size, frame, bag_id)
-	local bag_type = select(2, GetContainerNumFreeSlots(bag_id - 1))
-	local bag_color
-		
-	if (not bag_type) then
-		bag_type = 0
+local focus_bank = CreateFrame("Frame", "FocusBagBankBag", UIParent, BackdropTemplateMixin and "BackdropTemplate")
+focus_bank:SetWidth(((cfg.size + cfg.spacing) * cfg.per_row) - cfg.spacing + cfg.inset * 2)
+focus_bank:SetHeight(1)
+focus_bank:SetPoint("TOPLEFT")
+focus_bank:SetFrameStrata("HIGH")
+focus_bank:Raise()
+focus_bank:Hide()
+focus_bank.min_id = 5
+focus_bank.max_id = 11
+core.util.gen_backdrop(focus_bank)
+make_movable(focus_bank)
+
+local bank_bag_bg = CreateFrame("Frame", nil, focus_bank, BackdropTemplateMixin and "BackdropTemplate")
+bank_bag_bg:SetPoint("BOTTOMLEFT", focus_bank, "TOPLEFT", 0, -1)
+bank_bag_bg:SetWidth(cfg.inset + (cfg.bag_size + cfg.spacing) * NUM_BANKBAGSLOTS + cfg.bag_size)
+bank_bag_bg:SetHeight(cfg.bag_size + cfg.inset * 2)
+core.util.gen_backdrop(bank_bag_bg)
+
+local add_reagent_item_to_bag = function(item, bag, style)
+	style(item)
+
+	local start = -cfg.header + (-cfg.size + -cfg.spacing) * bag.num_rows + ((-cfg.header + cfg.spacing) * (bag.num_rows > 0 and 1 or 0))
+
+	if bag.num_reagent_items == 0 then
+		item:SetPoint("TOPLEFT", bag, "TOPLEFT", cfg.inset, start)
+		bag.num_reagent_items = 1
+		bag.num_reagent_rows = 1
+	elseif bag.num_reagent_items == cfg.per_row then
+		item:SetPoint("TOPLEFT", bag, "TOPLEFT", cfg.inset, start + (-cfg.size + -cfg.spacing) * bag.num_reagent_rows)
+		bag.num_reagent_rows = bag.num_reagent_rows + 1
+		bag.num_reagent_items = 1
+	else
+		item:SetPoint("TOPLEFT", bag, "TOPLEFT", cfg.inset + (cfg.size + cfg.spacing) * bag.num_reagent_items, start + (-cfg.size + -cfg.spacing) * (bag.num_reagent_rows - 1))
+		bag.num_reagent_items = bag.num_reagent_items + 1
 	end
-		
-	local bag_color = bag_colors[bag_type]
-	for i = 1, size do
-		core.util.gen_backdrop(_G[frame..i], bag_color)
+end
+
+local add_item_to_bag = function(item, bag, style)
+	style(item)
+
+	if bag.num_items == 0 then
+		item:SetPoint("BOTTOMRIGHT", bag, "TOPLEFT", cfg.inset + cfg.size, -cfg.header + -cfg.size)
+		bag.num_items = 1
+		bag.num_rows = 1
+	elseif bag.num_items == cfg.per_row then
+		item:SetPoint("BOTTOMRIGHT", bag, "TOPLEFT", cfg.inset + cfg.size, -cfg.header + -cfg.size + (-cfg.size + -cfg.spacing) * bag.num_rows)
+		bag.num_rows = bag.num_rows + 1
+		bag.num_items = 1
+	else
+		item:SetPoint("BOTTOMRIGHT", bag, "TOPLEFT", cfg.inset + cfg.size + (cfg.size + cfg.spacing) * bag.num_items, -cfg.header + -cfg.size + (-cfg.size + -cfg.spacing) * (bag.num_rows - 1))
+		bag.num_items = bag.num_items + 1
 	end
 end
 
-local function skin_items(index, frame)
-    for i = 1, index do
-        local item = _G[frame..i]
-		local icon = _G[frame..i.."IconTexture"]
-		local count = _G[frame..i.."Count"]
-		local cooldown = _G[frame..i.."Cooldown"]
-		local border = item.IconBorder
-		local new = item.NewItemTexture
-		local quest = _G[frame..i.."IconQuestTexture"]
+local add_container_to_bag = function(container, bag)
+	local id = container:GetID()
+	local name = container:GetName()
+	local slots = ContainerFrame_GetContainerNumSlots(id)
+	local portrait = container.PortraitButton
+	if not bag.last_portrait then
+		portrait:SetPoint("TOPLEFT", bag, cfg.inset, -cfg.inset)
+	else
+		portrait:SetPoint("TOPLEFT", bag.last_portrait, "TOPRIGHT", cfg.spacing, 0)
+	end
+	bag.last_portrait = portrait
 
-		count:SetDrawLayer("OVERLAY")
-		core.util.fix_string(count, core.config.font_size_med)
-		count:SetJustifyH("RIGHT")
-		count:SetJustifyV("BOTTOM")
-		count:ClearAllPoints()
-		count:SetPoint("BOTTOMRIGHT", 0, 3)
-
-		icon:SetDrawLayer("OVERLAY", -8)
-		icon:SetTexCoord(.1, .9, .1, .9)
-		core.util.set_inside(icon, item)
-
-		cooldown:SetAllPoints(icon)
-		cooldown:SetHideCountdownNumbers(false)
-		cooldown:SetDrawEdge(false)
-		core.util.fix_string(cooldown:GetRegions(), core.config.font_size_lrg)
-
-		local blank = core.media.textures.blank
-		
-		if new then
-			new.Show = function() return end
-			new:Hide()
-		end
-		
-		local pushed = item:GetPushedTexture()
-		pushed:SetDrawLayer("OVERLAY", -7)
-		pushed:SetAllPoints(icon)
-		pushed:SetTexture(blank)
-		pushed:SetVertexColor(unpack(config.pressed))
-
-		local highlight = item:GetHighlightTexture()
-		highlight:SetAllPoints(icon)
-		highlight:SetTexture(blank)
-		highlight:SetVertexColor(unpack(config.highlight))
-
-		border:SetTexture(blank)
-		border.SetTexture = function() return end
-		border:SetAllPoints(item)
-		border:SetDrawLayer("BORDER", 7)
-
-		if (quest) then
-			quest:SetVertexColor(unpack(config.quest))
-			quest:SetAllPoints(icon)
-			quest:SetTexCoord(.1, .9, .1, .9)
-		end
-
-        item:SetNormalTexture("")
-    end
+	for i = slots, 1, -1 do
+		add_item_to_bag(_G[name.."Item"..i], bag, style_itembutton)
+	end
 end
 
-local function create(name, ...)
+local update_bag_items = function(bag)
 
-	local frame = CreateFrame("Frame", "FocusBag"..name, UIParent, BackdropTemplateMixin and "BackdropTemplate")
-	frame:SetWidth(((config.size + config.spacing) * config.bpr) + 20 - config.spacing)
-	frame:SetPoint(...)
-	frame:SetFrameStrata("HIGH")
-	frame:SetFrameLevel(2)
-	frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
-	frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
-	frame:Hide()
+	bag.num_items = 0
+	bag.num_rows = 0
 
-	core.util.gen_backdrop(frame)
-	make_movable(frame)
-	
-	if name == "Bank" then
-		local last_bag
-		for i = 1, 7 do
-			local bag = BankSlotsFrame["Bag"..i]
-			bag:ClearAllPoints()
-			bag:SetSize(config.bag_size, config.bag_size)
+	bag.num_reagent_items = 0
+	bag.num_reagent_rows = 0
 
-			if last_bag then
-				bag:SetPoint("LEFT", last_bag, "RIGHT", config.spacing, 0)
-			else
-				bag:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, 10)
+	bag.last_portrait = nil
+
+	if bag == focus_bank then
+		if BankSlotsFrame:IsVisible() then
+			for i = 1, NUM_BANKGENERIC_SLOTS, 1 do
+				local button = BankSlotsFrame["Item"..i];
+				button:ClearAllPoints()
+				button:Raise()
+				add_item_to_bag(button, bag, style_bank_itembutton)
 			end
-			last_bag = bag
-
-			local icon = bag.icon
-			icon:SetTexCoord(.1, .9, .1, .9)
-			icon:SetPoint("TOPLEFT", bag, 1, -1)
-			icon:SetPoint("BOTTOMRIGHT", bag, -1, 1)
-
-			bag:SetNormalTexture("")
-			bag:SetPushedTexture("")
-			bag:SetHighlightTexture("")
-			--bag:SetCheckedTexture("");
-			
-			local blank = core.media.textures.blank
-			local border = bag.IconBorder
-			hooksecurefunc(border, "SetTexture", function(self, tex)
-				if tex ~= blank then
-					self:SetTexture(blank)
-				end
-			end)
-			border:SetTexture(blank)
-			border:SetAllPoints(bag)
-			border:SetDrawLayer("BACKGROUND", 7)
 		end
 	end
-	return frame
+
+	for id = bag.min_id, bag.max_id do
+		for i = 1, NUM_CONTAINER_FRAMES do
+			local container = _G["ContainerFrame"..i]
+			if container:GetID() == id and container:IsShown() then
+				add_container_to_bag(container, bag)
+				break
+			end
+		end
+	end
+
+	if bag == focus_bank then
+		if ReagentBankFrame:IsVisible() then
+			for i = 1, ReagentBankFrame.size do
+				local button = ReagentBankFrame["Item"..i];
+
+				button:ClearAllPoints()
+				button:Raise()
+				add_reagent_item_to_bag(button, bag, style_bank_itembutton)
+			end
+		end
+	end
+
+	if bag.num_rows + bag.num_reagent_rows > 0 then
+		local height = 0
+		if bag.num_rows > 0 then
+			height = height + cfg.header + bag.num_rows * (cfg.size + cfg.spacing) - cfg.spacing
+		end
+		if bag.num_reagent_rows > 0 then
+			height = height + cfg.header + bag.num_reagent_rows * (cfg.size + cfg.spacing) - cfg.spacing
+		end
+		bag:SetHeight(height + cfg.footer)
+		bag:Show()
+	else
+		bag:Hide()
+	end
 end
 
-local function skin_edit_box(frame)
-	frame.Left:Hide()
-	frame.Middle:Hide()
-	frame.Right:Hide()
-	frame:SetSize(150, 20)
-	
-	core.util.gen_backdrop(frame)
+local skin_edit_box = function(frame)
+	if frame.styled then return end
+	frame.styled = true
 
-	_G[frame:GetName().."SearchIcon"]:Hide()
-	frame:SetTextInsets(5, 20, 0, 2);
-	frame.Instructions:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, 2)
-	core.util.fix_string(frame.Instructions, core.config.font_size_med)
+	-- SearchBoxTemplate
+	--   Layers
+	--     OVERLAY
+	local search_icon = frame.searchIcon -- $parentSearchIcon
+	--   Frames
+	--local clear_button = frame.clearButton -- $parentClearButton
+	--     Layers
+	--       ARTWORK
+	--local clear_button_texture = clear_button.texture
+
+
+	-- InputBoxInstructionsTemplate (SearchBoxTemplate)
+	--   Layers
+	--     ARTWORK
+	local instructions = frame.Instructions
+
+
+	-- InputBoxTemplate (InputBoxInstructionsTemplate)
+	--   Layers
+	--     BACKGROUND
+	local left = frame.Left
+	local right = frame.Right
+	local middle = frame.Middle
+
+	---------------------------------
+
+	left:Hide()
+	middle:Hide()
+	right:Hide()
+	search_icon:Hide()
+
+	core.util.gen_backdrop(frame)
+	
+	frame:SetWidth(cfg.edit_size)
+	frame:SetHeight(cfg.bag_size)
+	frame:SetMaxLetters(cfg.edit_letters)
+	frame:SetTextInsets(5, 0, 0, 0);
+	instructions:SetPoint("TOPLEFT", 5, 0)
+	core.util.fix_string(instructions, core.config.font_size_med)
 	core.util.fix_string(frame, core.config.font_size_med)
 end
 
-skin_items(28, "BankFrameItem")
-for i = 1, 12 do
-    skin_items(MAX_CONTAINER_ITEMS, "ContainerFrame"..i.."Item")
+local skin_cleanup_button = function(button)
+	if button.styled then return end
+	button.styled = true
+
+	button:SetSize(cfg.bag_size, cfg.bag_size)
+	
+	local normal = button:GetNormalTexture()
+	normal:SetTexCoord(.18, .82, .18, .82)
+	core.util.set_inside(normal, button)
+
+	local pushed = button:GetPushedTexture()
+	pushed:SetAllPoints(normal)
+	pushed:SetTexCoord(.18, .82, .18, .82)
+
+	local highlight = button:GetHighlightTexture()
+	highlight:SetAllPoints(normal)
+	highlight:SetTexture(core.media.textures.blank)
+	highlight:SetVertexColor(unpack(cfg.color.highlight))
+
+	button.bg = button:CreateTexture(nil, "BACKGROUND")
+	button.bg:SetAllPoints()
+	button.bg:SetTexture(core.media.textures.blank)
+	button.bg:SetVertexColor(unpack(core.config.frame_border))
 end
 
-local backpack = create("Backpack", "BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -30, 30)
-local bank = create("Bank", "TOPLEFT", UIParent, "TOPLEFT", 30, -30)
+hooksecurefunc("ContainerFrame_Update", function(bag)
+	local id = bag:GetID()
 
-hooksecurefunc("ContainerFrame_Update", function(frame)
-	local id = frame:GetID()
-
-	if id == 1 then
+	if id == BACKPACK_CONTAINER then
 		BagItemSearchBox:ClearAllPoints()
-		BagItemSearchBox:SetPoint("TOPRIGHT", backpack, "TOPRIGHT", -10, -10)
-		
+		BagItemSearchBox:SetPoint("TOPRIGHT", focus_backpack, "TOPRIGHT", -cfg.inset, -cfg.inset)
+		skin_edit_box(BagItemSearchBox)
+
 		BagItemAutoSortButton:ClearAllPoints()
-		BagItemAutoSortButton:SetPoint("TOPLEFT", backpack, "TOPLEFT", 10, -10)
-
-		BankItemSearchBox:ClearAllPoints()
-		BankItemSearchBox:SetPoint("TOPRIGHT", bank, "TOPRIGHT", -10, -10)
-
-		BankItemAutoSortButton:ClearAllPoints()
-		BankItemAutoSortButton:SetPoint("TOPRIGHT", BankItemSearchBox, "TOPLEFT", -5, 0)
+		BagItemAutoSortButton:SetPoint("TOPRIGHT", BagItemSearchBox, "TOPLEFT", -cfg.spacing, 0)
+		skin_cleanup_button(BagItemAutoSortButton)
 	end
 end)
 
-SetSortBagsRightToLeft(true)
-SetInsertItemsLeftToRight(false)
+hooksecurefunc("ContainerFrame_OnHide", function(bag)
+	local id = bag:GetID()
+	if id > focus_backpack.max_id then
+		update_bag_items(focus_bank)
+	else
+		update_bag_items(focus_backpack)
+	end
+end)
 
-skin_edit_box(BagItemSearchBox)
+hooksecurefunc("ContainerFrame_GenerateFrame", function(bag)
+	local id = bag:GetID()
+	
+	local name = bag:GetName()
+
+	-- Frames
+	local money = _G[name.."MoneyFrame"]
+	--   Frames
+	--local money_trial_error_button = money.trialErrorButton -- $parentTrialErrorButton
+	--     Layers
+	--       ARTWORK
+	--local money_trial_error_button_texture = _G[money_trial_error_button:GetName().."Texture"]
+
+	local copper = _G[money:GetName().."CopperButton"]
+	local copper_text = copper.Text -- $parentText
+
+	local silver = _G[money:GetName().."SilverButton"]
+	local silver_text = silver.Text -- $parentText
+	
+	local gold = _G[money:GetName().."GoldButton"]
+	local gold_text = gold.Text -- $parentText
+
+	local portrait_button = bag.PortraitButton -- $parentPortraitButton
+	--   Layers
+	--     OVERLAY
+	local portrait_button_highlight = portrait_button.Highlight
+
+	local filter_icon = bag.FilterIcon
+	--   Layers
+	--     OVERLAY
+	--local filter_icon_icon = filter_icon.Icon
+
+	local add_slots = _G[name.."AddSlotsButton"]
+	--   Layers
+	--     BACKGROUND
+	--     OVERLAY
+	--local add_slots_border = add_slots.Border
+	--     ARTWORK
+	--local add_slots_icon = add_slots.Icon
+	--    HighlightTexture
+
+	--local extra_slots_help = bag.ExtraBagSlotsHelpBox -- $parentExtraBagSlotsHelpBox
+	--   Layers
+	--     ARTWORK
+	--local extra_slots_help_arrow = extra_slots_help.Arrow
+	--     BORDER
+	--local extra_slots_help_arrow_glow = extra_slots_help.ArrowGlow
+	--     OVERLAY
+	--local extra_slots_help_text = extra_slots_help.Text
+	--   Frames
+	--local extra_slots_help_close = extra_slots_help.CloseButton
+
+	local close = _G[name.."CloseButton"]
+	--local filter_dropdown = bag.FilterDropDown -- $parentFilterDropDown
+	local title = bag.ClickableTitleFrame
+
+	-- Layers
+	--   BACKGROUND
+	local portrait = bag.Portrait -- $parentPortrait
+	--   ARTWORK
+	local bgtop = _G[name.."BackgroundTop"]
+	local bgmiddle1 = _G[name.."BackgroundMiddle1"]
+	local bgmiddle2 = _G[name.."BackgroundMiddle2"]
+	local bgbottom = _G[name.."BackgroundBottom"]
+	local bagname = _G[name.."Name"]
+	local bg1slot = _G[name.."Background1Slot"]
+
+	-------------------------------
+
+	bag:EnableMouse(false)
+	filter_icon:SetPoint("CENTER", portrait, "BOTTOMRIGHT", -5, 5)
+
+	close:Hide()
+	title:Hide()
+	bgtop:Hide()
+	bgmiddle1:Hide()
+	bgmiddle2:Hide()
+	bgbottom:Hide()
+	bagname:Hide()
+	bg1slot:Hide()
+
+	portrait_button:SetSize(cfg.bag_size, cfg.bag_size)
+	core.util.set_inside(portrait, portrait_button)
+	portrait_button_highlight:SetAllPoints(portrait)
+	portrait_button_highlight:SetTexture(core.media.textures.blank)
+	portrait_button_highlight:SetVertexColor(unpack(cfg.color.highlight))
+
+	if not bag.portrait_bg then
+		bag.portrait_bg = bag:CreateTexture()
+		local layer, level = portrait:GetDrawLayer()
+		bag.portrait_bg:SetDrawLayer(layer, level - 1)
+		bag.portrait_bg:SetAllPoints(portrait_button)
+		bag.portrait_bg:SetTexture(core.media.textures.blank)
+		bag.portrait_bg:SetVertexColor(unpack(core.config.frame_border))
+	end
+
+	-- backpack doesn't actually have a portrait
+	if id == BACKPACK_CONTAINER then
+		portrait:SetTexture("Interface\\Buttons\\Button-Backpack-Up")
+		portrait:SetTexCoord(.1, .9, .1, .9)
+
+		add_slots:ClearAllPoints()
+		add_slots:SetPoint("CENTER", focus_backpack, "TOPLEFT", 0, 0)
+
+		local money_size = 15
+
+		money:ClearAllPoints()
+		money:SetPoint("TOPRIGHT", focus_backpack, "BOTTOMRIGHT", -cfg.inset, cfg.inset + money_size)
+
+		--copper:SetPoint("RIGHT")
+		copper:GetNormalTexture():SetSize(money_size, money_size)
+		copper_text:ClearAllPoints()
+		copper_text:SetPoint("BOTTOMRIGHT", copper:GetNormalTexture(), "BOTTOMLEFT", 0, 0)
+		core.util.fix_string(copper_text)
+		copper:Show()
+	
+		silver:SetPoint("RIGHT", copper_text, "LEFT", -5, 0)
+		silver:GetNormalTexture():SetSize(money_size, money_size)
+		silver_text:ClearAllPoints()
+		silver_text:SetPoint("BOTTOMRIGHT", silver:GetNormalTexture(), "BOTTOMLEFT", 0, 0)
+		core.util.fix_string(silver_text)
+	
+		gold:SetPoint("RIGHT", silver_text, "LEFT", -5, 0)
+		gold:GetNormalTexture():SetSize(money_size, money_size)
+		gold_text:ClearAllPoints()
+		gold_text:SetPoint("BOTTOMRIGHT", gold:GetNormalTexture(), "BOTTOMLEFT", 0, 0)
+		core.util.fix_string(gold_text)
+	else
+		portrait:SetTexCoord(.15, .85, .15, .85)
+	end
+
+	if bag.extendedOverlay then
+		bag.extendedOverlay:SetTexture()
+	end
+
+	if id > focus_backpack.max_id then
+		bag:SetFrameStrata(focus_bank:GetFrameStrata())
+		update_bag_items(focus_bank)
+	else
+		bag:SetFrameStrata(focus_backpack:GetFrameStrata())
+		update_bag_items(focus_backpack)
+	end
+	bag:Raise()
+end)
+
+ContainerFrame1MoneyFrameCopperButton.alt_SetPoint = ContainerFrame1MoneyFrameCopperButton.SetPoint
+hooksecurefunc(ContainerFrame1MoneyFrameCopperButton, "SetPoint", function(self)
+	self:alt_SetPoint("RIGHT")
+end)
+BankFrameMoneyFrameCopperButton.alt_SetPoint = BankFrameMoneyFrameCopperButton.SetPoint
+hooksecurefunc(BankFrameMoneyFrameCopperButton, "SetPoint", function(self)
+	self:alt_SetPoint("RIGHT")
+end)
+
+if not IsAddOnLoaded("Blizzard_TokenUI") then
+	LoadAddOn("Blizzard_TokenUI")
+end
+
+hooksecurefunc("ManageBackpackTokenFrame", function()
+	-- BackpackTokenFrame
+	--   Layers
+	--     BACKGROUND
+	--   Frames
+	local tokens = {
+		BackpackTokenFrameToken1,
+		BackpackTokenFrameToken2,
+		BackpackTokenFrameToken3
+	}
+
+	BackpackTokenFrame:GetRegions():SetTexture()
+
+	for _, token in ipairs(tokens) do
+		-- BackpackTokenTemplate
+		--   Layers
+		--     ARTWORK
+		local icon = token.icon -- $parentIcon
+		local count = token.count -- $parentCount
+
+		token:SetSize(100, 15)
+
+		icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+		token.bg = token:CreateTexture(nil, "BACKGROUND")
+		core.util.set_outside(token.bg, icon)
+		token.bg:SetTexture(core.media.textures.blank)
+		token.bg:SetVertexColor(unpack(core.config.frame_border))
+
+		icon:SetSize(15, 15)
+		icon:ClearAllPoints()
+		icon:SetPoint("BOTTOMLEFT", token, "BOTTOMLEFT", 0, 0)
+
+		core.util.fix_string(count)
+		count:SetJustifyH("LEFT")
+		count:SetJustifyV("BOTTOM")
+		count:ClearAllPoints()
+		count:SetPoint("TOPLEFT", icon, "TOPRIGHT", 5, 0)
+		count:SetPoint("BOTTOMRIGHT", token, "BOTTOMRIGHT", 0, 0)
+	end
+
+	BackpackTokenFrameToken1:ClearAllPoints()
+	BackpackTokenFrameToken1:SetPoint("BOTTOMLEFT", focus_backpack, "BOTTOMLEFT", cfg.inset + 1, cfg.inset + 1)
+end)
+
+local strip_textures = function(frame, only_textures)
+	local regions = { frame:GetRegions() }
+	for _, region in ipairs(regions) do
+		if region:GetObjectType() ~= "Texture" then
+			if only_textures then return end
+		else
+			region:SetTexture()
+		end
+		region:Hide()
+	end
+end
+
+strip_textures(BankFrame)
+strip_textures(BankSlotsFrame)
+
+BankFrame.CloseButton:Hide()
+BankFrame.NineSlice:Hide()
+BankFrameMoneyFrameInset:Hide()
+BankFrameMoneyFrameBorder:Hide()
+
+BankItemSearchBox:ClearAllPoints()
+BankItemSearchBox:SetPoint("TOPRIGHT", focus_bank, "TOPRIGHT", -cfg.inset, -cfg.inset)
 skin_edit_box(BankItemSearchBox)
 
-for i = 1, 3 do
-	local frame = _G["BackpackTokenFrameToken"..i]
-	frame:SetSize(100, 20)
+BankItemAutoSortButton:ClearAllPoints()
+BankItemAutoSortButton:SetPoint("TOPRIGHT", BankItemSearchBox, "TOPLEFT", -cfg.spacing, 0)
+skin_cleanup_button(BankItemAutoSortButton)
 
-	local icon = _G["BackpackTokenFrameToken"..i.."Icon"]
-	icon:SetSize(20, 20)
-	icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-	icon:ClearAllPoints()
-	icon:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
+strip_textures(BankFramePurchaseInfo)
+BankFramePurchaseButton:ClearAllPoints()
+BankFramePurchaseButton:SetPoint("LEFT", BankSlotsFrame["Bag7"], "RIGHT")
+BankFramePurchaseButton:SetSize(cfg.bag_size, cfg.bag_size)
+strip_textures(BankFramePurchaseButton, true)
+core.util.fix_string(BankFramePurchaseButton.Text, core.config.font_size_lrg)
+BankFramePurchaseButton.Text:SetAllPoints()
+BankFramePurchaseButton.Text:SetText("+")
+BankFramePurchaseButton.Text:SetJustifyH("CENTER")
+BankFramePurchaseButton.Text:SetJustifyV("MIDDLE")
+BankFramePurchaseButton:GetHighlightTexture():SetTexture()
 
-	local count = _G["BackpackTokenFrameToken"..i.."Count"]
-	core.util.fix_string(count, core.config.font_size_med)
-	count:SetJustifyH("LEFT")
-	count:SetJustifyV("BOTTOM")
-	count:ClearAllPoints()
-	count:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT", 10, 0)
-	count:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+BankFrameDetailMoneyFrame:Hide()
+BankFrameMoneyFrame:SetPoint("BOTTOMRIGHT", focus_bank, "BOTTOMRIGHT", -cfg.inset, cfg.inset)
 
-	frame:ClearAllPoints()
-	if i == 1 then
-		frame:SetPoint("BOTTOMLEFT", backpack, "BOTTOMLEFT", 10, 10)
-	else
-		frame:SetPoint("LEFT", _G["BackpackTokenFrameToken"..(i - 1)], "RIGHT", 5, 0)
-	end
+style_bank_itembutton(BankSlotsFrame.Bag1)
+BankSlotsFrame.Bag1:SetSize(cfg.bag_size, cfg.bag_size)
+BankSlotsFrame.Bag1:ClearAllPoints()
+BankSlotsFrame.Bag1:SetPoint("TOPLEFT", bank_bag_bg, "TOPLEFT", cfg.inset, -cfg.inset)
+for i = 2, NUM_BANKBAGSLOTS do
+	local button = BankSlotsFrame["Bag"..i]
+	style_bank_itembutton(button)
+	button:SetSize(cfg.bag_size, cfg.bag_size)
+	button:SetPoint("TOPLEFT", BankSlotsFrame["Bag"..(i - 1)], "TOPRIGHT", cfg.spacing, 0)
 end
 
-local money_text = {
-	"ContainerFrame1MoneyFrameGoldButtonText",
-	"ContainerFrame1MoneyFrameSilverButtonText",
-	"ContainerFrame1MoneyFrameCopperButtonText",
-	"BankFrameMoneyFrameGoldButtonText",
-	"BankFrameMoneyFrameSilverButtonText",
-	"BankFrameMoneyFrameCopperButtonText"
-}
-
-for _, name in pairs(money_text) do
-	core.util.fix_string(_G[name], core.config.font_size_med)
+for t = 1, 2 do
+	local tab = _G["BankFrameTab"..t]
+	tab:ClearAllPoints()
+	core.util.gen_backdrop(tab)
+	strip_textures(tab, true)
+	tab:GetHighlightTexture():SetTexture()
+	core.util.fix_string(_G["BankFrameTab"..t.."Text"], core.config.font_size_med)
 end
+_G["BankFrameTab2"]:SetPoint("BOTTOMRIGHT", focus_bank, "TOPRIGHT", 0, -1)
+_G["BankFrameTab1"]:SetPoint("BOTTOMRIGHT", _G["BankFrameTab2"], "BOTTOMLEFT", 1, 0)
 
-ContainerFrame1MoneyFrame:ClearAllPoints()
-ContainerFrame1MoneyFrame:Show()
-ContainerFrame1MoneyFrame:SetPoint("BOTTOMRIGHT", backpack, "BOTTOMRIGHT", -5, 10)
+BankFrame:SetFrameStrata("HIGH")
+BankFrame:EnableMouse(false)
 
-local function set_bank(show)
-	if show then
-		local num_rows, last_row_first_item, num_items, last_item = 0, nil, 0, nil
+strip_textures(ReagentBankFrame.DespositButton, true)
+ReagentBankFrame.DespositButton:GetHighlightTexture():SetTexture()
+core.util.fix_string(ReagentBankFrame.DespositButton.Text, core.config.font_size_med)
+ReagentBankFrame.DespositButton.Text:ClearAllPoints()
+ReagentBankFrame.DespositButton:SetAllPoints(ReagentBankFrame.DespositButton.Text)
 
-		skin_colors(28, "BankFrameItem", 0)
-		
-		bank:SetID(BANK_CONTAINER)
-		for index = 1, 28 do
-			local item = _G["BankFrameItem"..index]
-			item:ClearAllPoints()
-			item:SetSize(config.size, config.size)
-			item:Show()
-			
-			if (not last_item) then
-				item:SetPoint("TOPLEFT", bank, "TOPLEFT", 10, -45)
-				last_row_first_item = item
-				num_items = num_items + 1
-			elseif num_items == config.bpr then
-				item:SetPoint("TOPLEFT", last_row_first_item, "BOTTOMLEFT", 0, -config.spacing)
-				last_row_first_item = item
-				num_rows = num_rows + 1
-				num_items = 1
-			else
-				item:SetPoint("TOPLEFT", last_item, "TOPRIGHT", config.spacing, 0)
-				num_items = num_items + 1
-			end
-			last_item = item
-		end
+ReagentBankFrame.UnlockInfo:EnableMouse(true)
+ReagentBankFrame.UnlockInfo:ClearAllPoints()
+ReagentBankFrame.UnlockInfo:SetPoint("BOTTOMLEFT", focus_bank)
+ReagentBankFrame.UnlockInfo:SetPoint("BOTTOMRIGHT", focus_bank)
+ReagentBankFrame.UnlockInfo:SetHeight(math.ceil(98 / cfg.per_row) * (cfg.size + cfg.spacing) - cfg.spacing - cfg.inset + cfg.header + cfg.footer)
 
-		for bag = 6, 12 do
-			local slots = GetContainerNumSlots(bag - 1)
-			skin_colors(MAX_CONTAINER_ITEMS, "ContainerFrame"..bag.."Item", bag)
-			
-			for item = slots, 1, -1 do
-				
-				local item = _G["ContainerFrame"..bag.."Item"..item]
-				item:ClearAllPoints()
-				item:SetSize(config.size, config.size)
-				item:Show()
-
-				if num_items == config.bpr then
-					item:SetPoint("TOPLEFT", last_row_first_item, "BOTTOMLEFT", 0, -config.spacing)
-					last_row_first_item = item
-					num_rows = num_rows + 1
-					num_items = 1
-				else
-					item:SetPoint("TOPLEFT", last_item, "TOPRIGHT", config.spacing, 0)
-					num_items = num_items + 1
-				end
-				last_item = item
-			end
-		end
-		bank:SetHeight(((config.size + config.spacing) * (num_rows + 1) + 100) - config.spacing)
-
-		BankFrame:EnableMouse(false)
-		BankFrame:SetFrameStrata("HIGH")
-		BankFrame:SetFrameLevel(3)
-		BankSlotsFrame:EnableMouse(false)
-
-		BankPortraitTexture:Hide()
-		BankFrameCloseButton:Hide()
-		BankFrameMoneyFrame:Hide()
-		BankFrameMoneyFrameInset:Hide()
-		BankFrameMoneyFrameBorder:Hide()
-		BankFrameMoneyFrame:Hide()
-		strip_textures(BankFrame)
-		strip_textures(BankSlotsFrame)
-		strip_textures(ReagentBankFrame)
-		BankFrame.NineSlice:Hide()
-		ReagentBankFrame:DisableDrawLayer("BACKGROUND")
-		ReagentBankFrame:DisableDrawLayer("ARTWORK")
-
-		BankFrameTab1Text:ClearAllPoints()
-		BankFrameTab2Text:ClearAllPoints()
-
-		BankFrameTab1:ClearAllPoints()
-		BankFrameTab2:ClearAllPoints()
-		BankFrameTab1:SetPoint("TOPLEFT", bank, "TOPLEFT", 10, -10)
-		BankFrameTab2:SetPoint("LEFT", BankFrameTab1Text, "RIGHT", 10, 0)
-
-		BankFrameTab1:SetSize(50, 20)
-		BankFrameTab2:SetSize(125, 20)
-
-		BankFrameTab1Text:SetJustifyH("CENTER")
-		BankFrameTab2Text:SetJustifyH("MIDDLE")
-		BankFrameTab1Text:SetJustifyV("CENTER")
-		BankFrameTab2Text:SetJustifyV("MIDDLE")
-
-		BankFrameTab1Text:SetAllPoints(BankFrameTab1)
-		BankFrameTab2Text:SetAllPoints(BankFrameTab2)
-
-		core.util.fix_string(BankFrameTab1Text, core.config.font_size_med)
-		core.util.fix_string(BankFrameTab2Text, core.config.font_size_med)
-
-		strip_textures(BankFrameTab1, true)
-		strip_textures(BankFrameTab2, true)
-
-		strip_textures(BankFramePurchaseInfo)
-		BankFrameDetailMoneyFrame:Hide()
-
-		BankFramePurchaseButton:SetSize(config.bag_size, config.bag_size)
-		BankFramePurchaseButton:ClearAllPoints()
-		BankFramePurchaseButton:SetPoint("LEFT", BankSlotsFrame["Bag7"], "RIGHT", 5, 0)
-		strip_textures(BankFramePurchaseButton, true)
-
-		core.util.fix_string(BankFramePurchaseButtonText, core.config.font_size_med)
-		BankFramePurchaseButtonText:SetAllPoints(BankFramePurchaseButton)
-		BankFramePurchaseButtonText:SetText("+")
-		BankFramePurchaseButtonText:SetJustifyH("CENTER")
-		BankFramePurchaseButtonText:SetJustifyV("MIDDLE")
-	else
-		for index = 1, 28 do
-			_G["BankFrameItem"..index]:Hide()
-		end
-		for bag = 6, 12 do
-			local slots = GetContainerNumSlots(bag - 1)
-			if slots < 40 then slots = 40 end
-			for item = 1, slots do
-				if (_G["ContainerFrame"..bag.."Item"..item]) then
-					_G["ContainerFrame"..bag.."Item"..item]:Hide()
-				end
-			end
+BankFrame:HookScript("OnShow", function(self)
+	if BankSlotsFrame:IsShown() then
+		bank_bag_bg:Show()
+		for id = 1, NUM_BANKBAGSLOTS do
+			OpenBag(id + NUM_BAG_SLOTS)
 		end
 	end
-end
+	update_bag_items(focus_bank)
+end)
 
-local function set_reagents(show)
+ReagentBankFrame:HookScript("OnShow", function(self)
+	update_bag_items(focus_bank)
+	ReagentBankFrame.DespositButton.Text:ClearAllPoints()
+	ReagentBankFrame.DespositButton.Text:SetPoint("BOTTOMLEFT", ReagentBankFrameItem1, "TOPLEFT", 0, cfg.inset)
+	strip_textures(ReagentBankFrame)
+	bank_bag_bg:Hide()
+end)
 
-	local num_rows, last_row_first_item, num_items, last_item = 0, nil, 0, nil
-	for i = 1, 98 do
-		local item = _G["ReagentBankFrameItem"..i]
-		if (not item) then return end
-		item:ClearAllPoints()
-		item:SetSize(config.size, config.size)
-		item:Show()
+ReagentBankFrame:HookScript("OnHide", function(self)
+	update_bag_items(focus_bank)
+	bank_bag_bg:Show()
+end)
 
-		if (not last_item) then
-			item:SetPoint("TOPLEFT", bank, "TOPLEFT", 10, -45)
-			last_row_first_item = item
-			num_items = num_items + 1
-		elseif num_items == config.bpr then
-			item:SetPoint("TOPLEFT", last_row_first_item, "BOTTOMLEFT", 0, -config.spacing)
-			last_row_first_item = item
-			num_rows = num_rows + 1
-			num_items = 1
-		else
-			item:SetPoint("TOPLEFT", last_item, "TOPRIGHT", config.spacing, 0)
-			num_items = num_items + 1
-		end
-		last_item = item
-	end
-	bank:SetHeight(((config.size + config.spacing) * (num_rows + 1) + 100) - config.spacing)
-
-	skin_colors(98, "ReagentBankFrameItem", 0)
-	skin_items(98, "ReagentBankFrameItem")
-	
-	core.util.fix_string(ReagentBankFrameText, core.config.font_size_med)
-	ReagentBankFrameText:ClearAllPoints()
-	ReagentBankFrameText:SetPoint("BOTTOMRIGHT", bank, "BOTTOMRIGHT", -10, 10)
-	ReagentBankFrameText:SetJustifyH("RIGHT")
-	ReagentBankFrameText:SetJustifyV("BOTTOM")
-	
-	local deposit = ReagentBankFrame:GetChildren()
-	deposit:ClearAllPoints()
-	deposit:SetAllPoints(ReagentBankFrameText)
-	strip_textures(deposit, true)
-
-	if (show) then
-		bank:SetID(REAGENTBANK_CONTAINER)
-	end
-end
-
-local function set_backpack()
-	local num_rows, last_row_first_item, num_items, last_item = 0, nil, 0, nil
-		
-	for bag = 1, (NUM_BAG_SLOTS + 1) do
-		local slots = GetContainerNumSlots(bag - 1)
-
-		skin_colors(slots, "ContainerFrame"..bag.."Item", bag)
-
-		for index = slots, 1, -1 do
-			local item = _G["ContainerFrame"..bag.."Item"..index]
-			item:ClearAllPoints()
-			item:SetWidth(config.size)
-			item:SetHeight(config.size)
-
-			if (not last_item) then
-				item:SetPoint("TOPLEFT", backpack, "TOPLEFT", 10, -50)
-				last_row_first_item = item
-				num_items = num_items + 1
-			elseif num_items == config.bpr then
-				item:SetPoint("TOPLEFT", last_row_first_item, "BOTTOMLEFT", 0, -config.spacing)
-				last_row_first_item = item
-				num_rows = num_rows + 1
-				num_items = 1
-			else
-				item:SetPoint("TOPLEFT", last_item, "TOPRIGHT", config.spacing, 0)
-				num_items = num_items + 1
-			end
-			last_item = item
-		end
-	end
-	backpack:SetHeight(((config.size + config.spacing) * (num_rows + 1) + 100) - config.spacing)
-	
-	ContainerFrame1MoneyFrameCopperButton:SetPoint("RIGHT", ContainerFrame1MoneyFrame, "RIGHT", 0, 0)
-end
-
-function BankFrame_ShowPanel(sidePanelName, selection)
-	local tabIndex;
-	
-	ShowUIPanel(BankFrame);
-	for index, data in pairs(BANK_PANELS) do
-		local panel = _G[data.name];
-
-		if data.name == sidePanelName then
-			panel:Show()
-			tabIndex = index;
-			BankFrame.activeTabIndex = tabIndex;
-			
-			if data.name == "ReagentBankFrame" then
-				set_reagents(true)
-				set_bank(false)
-			else
-				set_bank(true)
-			end
-		else
-			panel:Hide()
-		end
-	end
-end
-
---taint?
-function ContainerFrame_GenerateFrame(frame, size, id)
-	frame.size = size
-	for i = 1, size do
-		local index = size - i + 1
-	 	local item_button = _G[frame:GetName().."Item"..i]
-		item_button:SetID(index)
-		item_button:Show()
-	end
-	frame:SetID(id)
-	frame:Show()
-	
-	if (id == 0) then
-		set_backpack()
-	end
-
-	local frame = _G['ContainerFrame'..id+1]
-	frame:SetFrameStrata("HIGH")
-	frame:SetFrameLevel(3)
-	frame:EnableMouse(false)
-end
-
-ContainerFrame1Item1:HookScript("OnShow", function() backpack:Show() end)
-ContainerFrame1Item1:HookScript("OnHide", function() backpack:Hide() end)
-BankFrame:HookScript("OnShow", function() OpenAllBags() end)
-BankFrame:HookScript("OnHide", function() CloseAllBags() end)
-GameMenuFrame:HookScript("OnShow", function() CloseAllBags() end)
-
--- taint?
-function UpdateContainerFrameAnchors() end
-
-function ToggleBag() ToggleAllBags() end
-function ToggleBackpack() ToggleAllBags() end
-
-local open = false
-
-function OpenAllBags()
-	open = true
-	for i = 0, NUM_BAG_FRAMES do
-		OpenBag(i)
-	end
-	if BankFrame:IsShown() then
-		backpack:Show()
-		bank:Show()
-		for i = 0, NUM_CONTAINER_FRAMES do
-			OpenBag(i)
-		end
-	end
-end
-
-function CloseAllBags()
-	open = false
-	for i = 0, NUM_CONTAINER_FRAMES do
-		CloseBag(i)
-	end
-	backpack:Hide()
-	bank:Hide()
-	CloseBankFrame()
-end
-
-function OpenBackpack()
-	OpenAllBags()
-end
-
-function CloseBackpack()
-	CloseAllBags()
-end
-
-function ToggleAllBags()
-	if open then
-		CloseAllBags()
-	else
-		OpenAllBags()
-	end
-end
+BankFrame:HookScript("OnHide", function()
+	update_bag_items(focus_bank)
+end)

@@ -256,7 +256,8 @@ styles.bagbutton = function(button)
 	-- ARTWORK 2
 
 	count:ClearAllPoints()
-	count:SetPoint("BOTTOM", 0, 0)
+	count:SetPoint("BOTTOMRIGHT")
+	core.util.fix_string(count)
 
 	-- OVERLAY
 
@@ -270,9 +271,10 @@ styles.bagbutton = function(button)
 		self:alt_SetTexture(blank)
 	end)
 
-	slothighlight:SetAllPoints(icon)
-	slothighlight:SetTexture(blank)
-	slothighlight:SetVertexColor(unpack(cfg.color.highlight))
+	slothighlight:SetAllPoints()
+	--slothighlight:SetTexture(blank)
+	--slothighlight:SetVertexColor(unpack(cfg.color.highlight))
+	slothighlight:SetTexCoord(.07, .93, .07, .93)
 
 	------------------------------
 

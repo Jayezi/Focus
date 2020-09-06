@@ -235,6 +235,11 @@ SpellFlyout:HookScript("OnShow", function(self)
 	end
 end)
 
+MainMenuBarBackpackButtonCount.alt_SetText = MainMenuBarBackpackButtonCount.SetText
+hooksecurefunc(MainMenuBarBackpackButtonCount, "SetText", function(self)
+	self:alt_SetText(MainMenuBarBackpackButton.freeSlots)
+end)
+
 -- adjust the vertical distance for squashed buttons
 
 local AUTOCAST_SHINES = {}
