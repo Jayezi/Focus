@@ -16,12 +16,10 @@ Units\tags.lua
 Units\lib.lua
 Units\units.lua
 
-Buffs\config.lua
 Buffs\buffs.lua
 
 Chat\config.lua
 Chat\chat.lua
-Chat\links.lua
 
 Map\map.lua
 

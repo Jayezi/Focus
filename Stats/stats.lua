@@ -322,7 +322,7 @@ azerite_frame:SetScript("OnEnter", function(self)
 	GameTooltip:AddLine" "
 
 	-- reputations
-	reps = {
+	local reps = {
 		[2164] = "Champions",
 		[2157] = "Honorbound",
 		[2391] = "Rustbolt",

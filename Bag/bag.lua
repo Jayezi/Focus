@@ -98,8 +98,10 @@ local style_bank_itembutton = function(button)
 		self:alt_SetTexture(blank)
 	end)
 
-	quest:SetAllPoints(icon)
-	quest:SetTexCoord(.07, .93, .07, .93)
+	if quest then
+		quest:SetAllPoints(icon)
+		quest:SetTexCoord(.07, .93, .07, .93)
+	end
 
 	if slot_highlight then
 		slot_highlight:SetTexCoord(.07, .93, .07, .93)

@@ -1,107 +1,113 @@
 local _, addon = ...
 if not addon.buffs.enabled then return end
 local core = addon.core
-local cfg = addon.buffs.cfg
 
--- taint spam
--- HOUR_ONELETTER_ABBR = "%dh"
--- DAY_ONELETTER_ABBR = "%dd"
--- MINUTE_ONELETTER_ABBR = "%dm"
--- SECOND_ONELETTER_ABBR = "%ds"
+local cfg = {
+	row_spacing = 10,
+	col_spacing = 8,
+	per_row = 12,
+	size = 45,
+	duration_pos = {"BOTTOM", 0, -4},
+	count_pos = {"TOPRIGHT", 4, 4}
+}
 
-local style_button = function(button)
-	if not button or (button and button.styled) then return end
+local style_buff = function(button)
+	if button.styled then return end
+	button.styled = true
 
 	local name = button:GetName()
-	
-	local debuff = string.match(name, "Debuff")
+	local is_debuff = string.match(name, "Debuff")
 
-	button:SetSize(cfg.button_size, cfg.button_size)
+	-- AuraButtonTemplate
+	--   Layers
+	--     BACKGROUND
+	local icon = button.Icon -- $parentIcon
+	local count = button.count -- $parentCount
+	local duration = button.duration -- $parentDuration
 
-	local icon = _G[name.."Icon"]
+	-- DebuffButtonTemplate
+	--   Layers
+	--     OVERLAY
+	local border = button.Border -- $parentBorder
+	--local symbol = button.symbol
+
+	-- TempEnchantButtonTemplate
+	--   Layers
+	--     OVERLAY
+	--local border = button.Border -- $parentBorder
+
+	-----------------------------
+
+	button:SetSize(cfg.size, cfg.size)
+
 	icon:SetTexCoord(.1, .9, .1, .9)
 	core.util.set_inside(icon, button)
 	icon:SetDrawLayer("BACKGROUND", -7)
 	button.icon = icon
 
-	local border = _G[name.."Border"] or button:CreateTexture(name.."Border", "BACKGROUND", nil, -8)
+	if not border then
+		border = button:CreateTexture()
+	end
 	border:SetTexture(core.media.textures.blank)
 	border:SetTexCoord(0, 1, 0, 1)
 	border:SetDrawLayer("BACKGROUND", -8)
-	
-	if not debuff then
+	border:SetAllPoints(button)
+
+	if not is_debuff then
 		border:SetVertexColor(unpack(core.config.frame_border))
 	end
-	
-	border:ClearAllPoints()
-	border:SetAllPoints(button)
-	button.border = border
 
-	core.util.fix_string(button.duration, core.config.font_size_med)
-	button.duration:ClearAllPoints()
-	button.duration:SetPoint(unpack(cfg.duration_pos))
+	core.util.fix_string(duration)
+	duration:ClearAllPoints()
+	duration:SetPoint(unpack(cfg.duration_pos))
 
-	button.count:SetFont(core.config.default_font, core.config.font_size_med, core.config.font_flags)
-	button.count:ClearAllPoints()
-	button.count:SetPoint(unpack(cfg.count_pos))
-
-	button.styled = true
+	core.util.fix_string(count)
+	count:ClearAllPoints()
+	count:SetPoint(unpack(cfg.count_pos))
 end
 
 local update_debuffs = function(name, index)
+	local buff_rows = ceil((BUFF_ACTUAL_DISPLAY + BuffFrame.numEnchants) / cfg.per_row);
+	local button = BuffFrame[name][index]
 
-	local button = _G[name..index]
-	
-	if not button then return end
-	if not button.styled then style_button(button) end
-	
+	style_buff(button)
 	button:ClearAllPoints()
 	if index == 1 then
-		button:SetPoint("TOPRIGHT", BuffFrame, "BOTTOMRIGHT", 0, -cfg.row_gap * 2)
-	elseif index > 1 and mod(index, cfg.buttons_per_row) == 1 then
-		button:SetPoint("TOPRIGHT", _G[name..(index - cfg.buttons_per_row)], "BOTTOMRIGHT", 0, -cfg.row_gap)
+		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, buff_rows * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
+	elseif mod(index, cfg.per_row) == 1 then
+		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, (buff_rows + floor(index / cfg.per_row)) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
 	else
-		button:SetPoint("TOPRIGHT", _G[name..(index - 1)], "TOPLEFT", -cfg.col_gap, 0)
+		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", (mod(index, cfg.per_row) - 1) * -(cfg.size + cfg.col_spacing), (buff_rows + floor(index / cfg.per_row)) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
 	end
 end
 
 local update_buffs = function()
+	local num_buffs = BuffFrame.numEnchants
+	local num_rows = (num_buffs > 0 and 1) or 0
 
-	local name = "BuffButton"
-	local num_buffs = BUFF_ACTUAL_DISPLAY
-	local prev, above
-
-	local buff_count = 0
-	for index = 1, num_buffs do
-		local button = _G[name..index]
-		if not button then return end
-		if not button.consolidated then
-			buff_count = buff_count + 1
-			
-			if not button.styled then style_button(button) end
-			button:ClearAllPoints()
-			if index == 1 then
-				button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, 0)
-				above = button
-			elseif index > 1 and mod(index, cfg.buttons_per_row) == 1 then
-				button:SetPoint("TOPRIGHT", above, "BOTTOMRIGHT", 0, -cfg.row_gap)
-				above = button
-			else
-				button:SetPoint("TOPRIGHT", prev, "TOPLEFT", -cfg.col_gap, 0)
-			end
-			prev = button
+	for index = 1, BUFF_ACTUAL_DISPLAY do
+		local button = BuffFrame.BuffButton[index]
+		style_buff(button)
+		button:ClearAllPoints()
+		if num_buffs == 0 then
+			button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, 0)
+			num_buffs = 1
+			num_rows = 1
+		elseif num_buffs == cfg.per_row then
+			button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, num_rows * -(cfg.size + cfg.row_spacing))
+			num_buffs = 1
+			num_rows = num_rows + 1
+		else
+			button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", num_buffs * -(cfg.size + cfg.col_spacing), (num_rows - 1) * -(cfg.size + cfg.row_spacing))
+			num_buffs = num_buffs + 1
 		end
 	end
-
-	local height = (cfg.button_size + cfg.row_gap) * ceil(buff_count / cfg.buttons_per_row) - cfg.row_gap
-	local width = (cfg.button_size + cfg.col_gap) * min(cfg.buttons_per_row, num_buffs) - cfg.col_gap
-	BuffFrame:SetSize(width, height)
 end
 
-local buffs_setpoint = BuffFrame.SetPoint
+-- BuffFrame:SetPoint in UIParent_UpdateTopFramePositions()
+BuffFrame.alt_SetPoint = BuffFrame.SetPoint
 hooksecurefunc(BuffFrame, "SetPoint", function(self)
-	self:ClearAllPoints()
-	buffs_setpoint(self, "TOPRIGHT", Minimap, "TOPLEFT", -20, 0)
+	self:alt_SetPoint("TOPRIGHT", Minimap, "TOPLEFT", -20, 0)
 end)
 
 hooksecurefunc(GameTooltip, "SetUnitAura", function(self, unit, index, filter)

@@ -163,6 +163,18 @@ loader:SetScript("OnEvent", function(self, event)
 	setup_bagbar()
 end)
 
+-- TODO
+-- PlayerPowerBarAlt IsUserPlaced
+-- MainMenuBar isuserplaced
+-- MicroButtonAndBagsBar isuserplaced
+-- VehicleSeatIndicator
+-- DurabilityFrame
+
+-- ignoreFramePositionManager
+
+
+
+
 ExtraActionBarFrame:SetParent(UIParent)
 ExtraActionBarFrame:ClearAllPoints()
 ExtraActionBarFrame:SetPoint(unpack(cfg.bars.extra.pos))
@@ -224,11 +236,9 @@ SpellFlyoutBackgroundEnd:SetTexture()
 SpellFlyoutHorizontalBackground:SetTexture()
 SpellFlyoutVerticalBackground:SetTexture()
 SpellFlyout:HookScript("OnShow", function(self)
-	print("show")
 	local flyout_buttons = {self:GetChildren()}
 	for _, button in ipairs(flyout_buttons) do
 		if button.styled ~= true then
-			print("styling")
 			styles.actionbutton(button)
 			button.styled = true
 		end

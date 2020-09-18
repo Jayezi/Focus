@@ -35,8 +35,9 @@ core.media = {
 
 local frame_background_color = CreateColor(.15, .15, .15, 1)
 local frame_border_color = CreateColor(0, 0, 0, 1)
-local tooltip_frame_border_color = CreateColor(.5, .5, .5, 1)
-local azerite_frame_border_color = CreateColor(.5, .5, 0, 1)
+local tooltip_frame_border_color = CreateColor(.75, .75, .75, 1)
+local azerite_frame_border_color = CreateColor(.75, .75, 0, 1)
+local corruption_frame_border_color = CreateColor(.75, 0, .75, 1)
 
 core.config = {
 	default_font = core.media.fonts.gotham_ultra,
@@ -61,8 +62,6 @@ core.config = {
 			top = 0,
 			bottom = 0
 		},
-		backdropColor = frame_background_color,
-		backdropBorderColor = frame_border_color
 	},
 
 	ui_scale = PixelUtil.GetPixelToUIUnitFactor(),
@@ -425,15 +424,30 @@ end)
 
 -- tooltips
 
-GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT = core.config.frame_backdrop
-GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT.backdropBorderColor = tooltip_frame_border_color
+hooksecurefunc("GameTooltip_SetBackdropStyle", function(self, style)
+	self:SetBackdrop(core.config.frame_backdrop)
+	self:SetBackdropColor(unpack(core.config.frame_background))
+	local _, link = self:GetItem();
+	if link then
+		if C_AzeriteEmpoweredItem.IsAzeriteEmpoweredItemByID(link) or C_AzeriteItem.IsAzeriteItemByID(link) then
+			self:SetBackdropBorderColor(azerite_frame_border_color:GetRGB())
+		elseif IsCorruptedItem(link) then
+			self:SetBackdropBorderColor(corruption_frame_border_color:GetRGB())
+		else
+			self:SetBackdropBorderColor(tooltip_frame_border_color:GetRGB())
+		end
+	end
+end)
 
-for k, v in pairs(core.config.frame_backdrop) do
-	GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM[k] = v
-end
+-- GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT = core.config.frame_backdrop
+-- GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT.backdropBorderColor = tooltip_frame_border_color
 
-GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM.overlayAtlasTopScale = 1
-GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM.backdropBorderColor = azerite_frame_border_color
+-- for k, v in pairs(core.config.frame_backdrop) do
+-- 	GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM[k] = v
+-- end
+
+-- GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM.overlayAtlasTopScale = 1
+-- GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM.backdropBorderColor = azerite_frame_border_color
 
 GameTooltipStatusBar:SetStatusBarTexture(core.media.textures.blank)
 
@@ -450,9 +464,9 @@ core.util.gen_panel({
 	name = "DataPanel",
 	strata = "BACKGROUND",
 	parent = UIParent,
-	w = 460,
+	w = 500,
 	h = 25,
-	point1 = {"BOTTOMLEFT", "UIParent", "BOTTOMLEFT", 2, 2},
+	point1 = {"BOTTOMLEFT", UIParent, "BOTTOMLEFT", 2, 2},
 	backdrop = core.config.frame_backdrop,
 	bgcolor = core.config.frame_background_transparent,
 	bordercolor = core.config.frame_border,

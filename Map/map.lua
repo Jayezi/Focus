@@ -1,17 +1,18 @@
 local _, addon = ...
 local core = addon.core
 
-local function strip_textures(object)
+local strip_textures = function(object)
 	local regions = {object:GetRegions()}
 	for i = 1, #regions do
 		local region = regions[i]
 		if region:GetObjectType() == "Texture" then
-			region:SetTexture(nil)
+			region:SetTexture()
 		end
 	end
 end
 
-local function style_children(object)
+local style_children
+style_children = function(object)
 	strip_textures(object)
 	local children = {object:GetChildren()}
 	for _, child in pairs(children) do
@@ -19,124 +20,17 @@ local function style_children(object)
 	end
 end
 
-if not IsAddOnLoaded("Blizzard_TimeManager") then
-	LoadAddOn("Blizzard_TimeManager")
-end
+GetMinimapShape = function() return "SQUARE" end
 
-core.util.gen_border(MinimapCluster)
 MinimapCluster:SetSize(250, 250)
 MinimapCluster:ClearAllPoints()
 MinimapCluster:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
-
-Minimap:SetSize(249, 249)
+core.util.gen_border(MinimapCluster)
 core.util.set_inside(Minimap, MinimapCluster)
 Minimap:SetArchBlobRingScalar(0);
 Minimap:SetQuestBlobRingScalar(0);
 Minimap:SetMaskTexture(core.media.textures.blank)
 MinimapBackdrop:SetAllPoints(Minimap)
-function GetMinimapShape() return "SQUARE" end
-
-local clockFrame, clockTime = TimeManagerClockButton:GetRegions()
-clockFrame:Hide()
-core.util.fix_string(clockTime, core.config.font_size_med)
-clockTime:SetTextColor(1, 1, 1, 1)
-clockTime:SetJustifyH("RIGHT")
-clockTime:SetJustifyV("BOTTOM")
-clockTime:ClearAllPoints()
-clockTime:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -5, 5)
-clockTime:Show()
-
-TimeManagerClockButton:SetHitRectInsets(0, 0, 0, 0)
-TimeManagerClockButton:SetAllPoints(clockTime)
-
-core.util.fix_string(MinimapZoneText, core.config.font_size_med)
-MinimapZoneText:ClearAllPoints()
-MinimapZoneText:SetPoint("TOP", Minimap, "TOP", 0, -5)
-MinimapZoneText:SetPoint("LEFT", MiniMapMailFrame, "RIGHT", 5, 0)
-MinimapZoneText:SetPoint("RIGHT", MiniMapTracking, "LEFT", -5, 0)
-MinimapZoneTextButton:SetAllPoints(MinimapZoneText)
-
-MiniMapInstanceDifficulty:ClearAllPoints()
-MiniMapInstanceDifficulty:SetPoint("TOP", MinimapZoneText, "BOTTOM", 0, -5)
-
-MinimapBorder:Hide()
-MinimapBorderTop:Hide()
-MinimapZoomIn:Hide()
-MinimapZoomOut:Hide()
-MinimapNorthTag:SetTexture(nil)
-MiniMapWorldMapButton:Hide()
-
-local game_time_string = GameTimeFrame:GetFontString()
-game_time_string:SetFont(core.config.default_font, core.config.font_size_med, core.config.font_flags)
-game_time_string:SetTextColor(1, 1, 1, 1)
-game_time_string:ClearAllPoints()
-game_time_string:SetPoint("TOPRIGHT", clockTime, "TOPLEFT", -5, 0)
-game_time_string:SetPoint("BOTTOMRIGHT", clockTime, "BOTTOMLEFT", -5, 0)
-game_time_string:SetJustifyH("CENTER")
-game_time_string:SetJustifyV("MIDDLE")
-
-GameTimeFrame:SetAllPoints(game_time_string)
-GameTimeFrame:SetNormalTexture(nil)
-GameTimeFrame:SetPushedTexture(nil)
-GameTimeFrame:SetHighlightTexture(nil)
-GameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
-
-MiniMapMailFrame:SetSize(25, 25)
-MiniMapMailFrame:ClearAllPoints()
-MiniMapMailFrame:SetPoint("TOPLEFT", 5, -5)
-MiniMapMailIcon:SetAllPoints()
-MiniMapMailIcon:SetTexture("Interface\\Minimap\\Tracking\\Mailbox")
-MiniMapMailBorder:Hide()
-
-GarrisonLandingPageMinimapButton:SetSize(45, 45)
-GarrisonLandingPageMinimapButton:ClearAllPoints()
-GarrisonLandingPageMinimapButton:SetParent(Minimap)
-GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT")
-GarrisonLandingPageMinimapButton:SetHitRectInsets(0, 0, 0, 0)
-
-QueueStatusMinimapButton:ClearAllPoints()
-QueueStatusMinimapButton:SetPoint("LEFT", Minimap)
-QueueStatusMinimapButtonBorder:Hide()
-
-MiniMapTracking:ClearAllPoints()
-MiniMapTracking:SetPoint("TOPRIGHT", -5, -5)
-MiniMapTracking:SetSize(25, 25)
-MiniMapTrackingButton:SetAllPoints(MiniMapTracking)
-MiniMapTrackingIcon:SetAllPoints()
-MiniMapTrackingBackground:Hide()
-MiniMapTrackingIconOverlay:Hide()
-MiniMapTrackingButtonBorder:Hide()
-strip_textures(MiniMapTrackingButton)
-strip_textures(MiniMapTracking)
-MiniMapTrackingIcon:SetTexture("Interface\\Minimap\\Tracking\\None")
-
-MiniMapTrackingButton:HookScript("OnMouseDown", function()
-	MiniMapTrackingIcon:SetAllPoints()
-end);
-MiniMapTrackingButton:HookScript("OnMouseUp", function()
-	MiniMapTrackingIcon:SetAllPoints()
-end);
-
-ObjectiveTrackerFrame:ClearAllPoints()
-ObjectiveTrackerFrame.oldSetPoint = ObjectiveTrackerFrame.SetPoint
-ObjectiveTrackerFrame.SetPoint = function(self)
-	self:oldSetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -10)
-	self:oldSetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", 0, -10)
-end
-ObjectiveTrackerFrame:SetHeight(750)
-style_children(ObjectiveTrackerBlocksFrame)
-
-DurabilityFrame:ClearAllPoints()
-DurabilityFrame.oldSetPoint = DurabilityFrame.SetPoint
-DurabilityFrame.SetPoint = function(self) 
-	self:oldSetPoint("BOTTOMRIGHT", MinimapCluster, "BOTTOMLEFT", -20, 5)
-end
-
-VehicleSeatIndicator:ClearAllPoints()
-VehicleSeatIndicator.oldSetPoint = VehicleSeatIndicator.SetPoint
-VehicleSeatIndicator.SetPoint = function(self) 
-	self:oldSetPoint("TOPRIGHT", MinimapCluster, "BOTTOMLEFT", -20, -5)
-end
 
 Minimap:EnableMouseWheel(true)
 Minimap:SetScript("OnMouseWheel", function(self, delta)
@@ -145,4 +39,126 @@ Minimap:SetScript("OnMouseWheel", function(self, delta)
 	elseif delta < 0 then
 		MinimapZoomOut:Click()
 	end
+end)
+
+MiniMapInstanceDifficulty:ClearAllPoints()
+MiniMapInstanceDifficulty:SetPoint("TOP", MinimapZoneText, "BOTTOM", 0, -5)
+GuildInstanceDifficulty:ClearAllPoints()
+GuildInstanceDifficulty:SetPoint("TOP", MinimapZoneText, "BOTTOM", 0, -5)
+MiniMapChallengeMode:ClearAllPoints()
+MiniMapChallengeMode:SetPoint("TOP", MinimapZoneText, "BOTTOM", 0, -5)
+
+MinimapBorder:Hide()
+MinimapBorderTop:Hide()
+MinimapZoomIn:Hide()
+MinimapZoomOut:Hide()
+MinimapNorthTag:SetTexture()
+MinimapCompassTexture:SetTexture()
+MiniMapWorldMapButton:Hide()
+
+GarrisonLandingPageMinimapButton:SetSize(45, 45)
+GarrisonLandingPageMinimapButton:ClearAllPoints()
+GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT")
+GarrisonLandingPageMinimapButton:SetHitRectInsets(0, 0, 0, 0)
+
+QueueStatusMinimapButton:ClearAllPoints()
+QueueStatusMinimapButton:SetPoint("LEFT", Minimap)
+QueueStatusMinimapButtonBorder:Hide()
+
+MiniMapMailFrame:SetSize(25, 25)
+MiniMapMailFrame:ClearAllPoints()
+MiniMapMailFrame:SetPoint("TOPRIGHT", -5, -5)
+MiniMapMailIcon:SetAllPoints()
+MiniMapMailIcon:SetTexture("Interface\\Minimap\\Tracking\\Mailbox")
+MiniMapMailBorder:Hide()
+
+MiniMapTracking:SetSize(25, 25)
+MiniMapTracking:ClearAllPoints()
+MiniMapTracking:SetPoint("TOPLEFT", 5, -5)
+MiniMapTrackingButton:SetAllPoints(MiniMapTracking)
+MiniMapTrackingIcon:SetAllPoints()
+MiniMapTrackingBackground:Hide()
+MiniMapTrackingIconOverlay:Hide()
+MiniMapTrackingButtonBorder:Hide()
+MiniMapTrackingButtonShine:SetTexture()
+MiniMapTrackingButton:GetHighlightTexture():SetTexture()
+
+MiniMapTrackingButton:HookScript("OnMouseDown", function()
+	MiniMapTrackingIcon:SetAllPoints()
+end);
+MiniMapTrackingButton:HookScript("OnMouseUp", function()
+	MiniMapTrackingIcon:SetAllPoints()
+end);
+
+core.util.fix_string(MinimapZoneText, core.config.font_size_med)
+MinimapZoneText:ClearAllPoints()
+MinimapZoneText:SetPoint("TOP", Minimap, "TOP", 0, -5)
+MinimapZoneText:SetPoint("LEFT", MiniMapTracking, "RIGHT", 5, 0)
+MinimapZoneText:SetPoint("RIGHT", MiniMapMailFrame, "LEFT", -5, 0)
+MinimapZoneTextButton:SetAllPoints(MinimapZoneText)
+
+-- clock
+
+if not IsAddOnLoaded("Blizzard_TimeManager") then
+	LoadAddOn("Blizzard_TimeManager")
+end
+
+local clock_bg, clock_ticker, alarm_fired = TimeManagerClockButton:GetRegions()
+clock_bg:Hide()
+alarm_fired:SetTexture()
+core.util.fix_string(clock_ticker, core.config.font_size_med)
+clock_ticker:SetTextColor(1, 1, 1, 1)
+clock_ticker:SetJustifyH("RIGHT")
+clock_ticker:SetJustifyV("BOTTOM")
+clock_ticker:ClearAllPoints()
+clock_ticker:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -5, 5)
+clock_ticker:Show()
+TimeManagerClockButton:SetHitRectInsets(0, 0, 0, 0)
+TimeManagerClockButton:SetAllPoints(clock_ticker)
+
+-- calendar
+
+local game_time_string = GameTimeFrame:GetFontString()
+core.util.fix_string(game_time_string)
+game_time_string:SetTextColor(1, 1, 1, 1)
+game_time_string:ClearAllPoints()
+game_time_string:SetPoint("TOPRIGHT", clock_ticker, "TOPLEFT", -5, 0)
+game_time_string:SetPoint("BOTTOMRIGHT", clock_ticker, "BOTTOMLEFT", -5, 0)
+game_time_string:SetJustifyH("CENTER")
+game_time_string:SetJustifyV("MIDDLE")
+GameTimeCalendarInvitesTexture:SetTexture()
+GameTimeCalendarInvitesGlow:SetTexture()
+GameTimeCalendarEventAlarmTexture:SetTexture()
+GameTimeFrame:SetAllPoints(game_time_string)
+GameTimeFrame:SetNormalTexture(nil)
+GameTimeFrame:SetPushedTexture(nil)
+GameTimeFrame:SetHighlightTexture(nil)
+GameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
+
+-- objectives
+
+if not IsAddOnLoaded("Blizzard_ObjectiveTracker") then
+	LoadAddOn("Blizzard_ObjectiveTracker")
+end
+
+ObjectiveTrackerFrame.alt_SetPoint = ObjectiveTrackerFrame.SetPoint
+hooksecurefunc(ObjectiveTrackerFrame, "SetPoint", function(self)
+	self:ClearAllPoints()
+	self:alt_SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -10)
+	--self:alt_SetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", 0, -10)
+end)
+
+--ObjectiveTrackerFrame:SetHeight(750)
+--style_children(ObjectiveTrackerBlocksFrame)
+
+DurabilityFrame.alt_SetPoint = DurabilityFrame.SetPoint
+hooksecurefunc(DurabilityFrame, "SetPoint", function(self)
+	self:ClearAllPoints()
+	self:alt_SetPoint("BOTTOMRIGHT", MinimapCluster, "BOTTOMLEFT", -20, 5)
+end)
+
+VehicleSeatIndicator.alt_SetPoint = VehicleSeatIndicator.SetPoint
+hooksecurefunc(VehicleSeatIndicator, "SetPoint", function(self)
+	self:ClearAllPoints()
+	self:alt_SetPoint("TOPRIGHT", MinimapCluster, "BOTTOMLEFT", -20, -5)
 end)
