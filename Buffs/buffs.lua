@@ -2,6 +2,13 @@ local _, addon = ...
 if not addon.buffs.enabled then return end
 local core = addon.core
 
+local BUFF_ACTUAL_DISPLAY = BUFF_ACTUAL_DISPLAY
+local BuffFrame = BuffFrame
+local UnitAura = UnitAura
+local GameTooltip = GameTooltip
+local Minimap = Minimap
+local UnitName = UnitName
+
 local cfg = {
 	row_spacing = 10,
 	col_spacing = 8,
@@ -67,17 +74,17 @@ local style_buff = function(button)
 end
 
 local update_debuffs = function(name, index)
-	local buff_rows = ceil((BUFF_ACTUAL_DISPLAY + BuffFrame.numEnchants) / cfg.per_row);
+	local buff_rows = math.ceil((BUFF_ACTUAL_DISPLAY + BuffFrame.numEnchants) / cfg.per_row);
 	local button = BuffFrame[name][index]
 
 	style_buff(button)
 	button:ClearAllPoints()
 	if index == 1 then
 		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, buff_rows * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
-	elseif mod(index, cfg.per_row) == 1 then
-		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, (buff_rows + floor(index / cfg.per_row)) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
+	elseif math.mod(index, cfg.per_row) == 1 then
+		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, (buff_rows + math.floor(index / cfg.per_row)) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
 	else
-		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", (mod(index, cfg.per_row) - 1) * -(cfg.size + cfg.col_spacing), (buff_rows + floor(index / cfg.per_row)) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
+		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", (math.mod(index, cfg.per_row) - 1) * -(cfg.size + cfg.col_spacing), (buff_rows + math.floor(index / cfg.per_row)) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
 	end
 end
 

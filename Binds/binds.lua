@@ -1,6 +1,13 @@
 local _, addon = ...
 local core = addon.core
 
+local GetBindingKey = GetBindingKey
+local SetBinding = SetBinding
+local SaveBindings = SaveBindings
+local GetSpecializationInfo = GetSpecializationInfo
+local GetSpecialization = GetSpecialization
+local CreateFrame = CreateFrame
+
 local bar_list = {
 	"MultiActionBar1",
 	"MultiActionBar2",
@@ -62,7 +69,7 @@ end
 
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
-frame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 frame:SetScript("OnEvent", function(self, event, addon)
 	if event == "ADDON_LOADED" then
 		if addon == "Focus" then
@@ -70,14 +77,10 @@ frame:SetScript("OnEvent", function(self, event, addon)
 			if not FocusBindsLayouts[core.player.realm] then FocusBindsLayouts[core.player.realm] = {} end
 			if not FocusBindsLayouts[core.player.realm][core.player.name] then FocusBindsLayouts[core.player.realm][core.player.name] = {} end
 		end
-	elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
+	elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
 		local _, spec = GetSpecializationInfo(GetSpecialization())
 		load_layout(spec)
 	end
 end)
 
-SLASH_FOCUSBINDS1 = "/savebinds"
-local handle_command = function(arg)
-	save_layout()
-end
-SlashCmdList["FOCUSBINDS"] = handle_command
+core.settings:add_action("Save Binds", save_layout)

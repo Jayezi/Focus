@@ -4,6 +4,16 @@ local core = addon.core
 local cfg = addon.bars.cfg
 local styles = addon.bars.styles
 
+local CreateFrame = CreateFrame
+local UIParent = UIParent
+local GetActionText = GetActionText
+local GetBindingKey = GetBindingKey
+local GetBindingText = GetBindingText
+local GameTooltip = GameTooltip
+local MainMenuBarBackpackButton = MainMenuBarBackpackButton
+local AUTOCAST_SHINE_TIMERS = AUTOCAST_SHINE_TIMERS
+local AUTOCAST_SHINE_SPEEDS = AUTOCAST_SHINE_SPEEDS
+
 local create_bar = function(name, num, bar_cfg)
 
 	local per_row = num / (bar_cfg.rows or 1)
@@ -154,7 +164,7 @@ end
 
 local loader = CreateFrame("Frame")
 loader:RegisterEvent("PLAYER_LOGIN")
-loader:SetScript("OnEvent", function(self, event)
+loader:SetScript("OnEvent", function()
 	setup_actionbars()
 	setup_microbar()
 	setup_stancebar()
@@ -163,24 +173,10 @@ loader:SetScript("OnEvent", function(self, event)
 	setup_bagbar()
 end)
 
--- TODO
--- PlayerPowerBarAlt IsUserPlaced
--- MainMenuBar isuserplaced
--- MicroButtonAndBagsBar isuserplaced
--- VehicleSeatIndicator
--- DurabilityFrame
-
--- ignoreFramePositionManager
-
-
-
-
-ExtraActionBarFrame:SetParent(UIParent)
 ExtraActionBarFrame:ClearAllPoints()
 ExtraActionBarFrame:SetPoint(unpack(cfg.bars.extra.pos))
 ExtraActionBarFrame.ignoreFramePositionManager = true
 
-ZoneAbilityFrame:SetParent(UIParent)
 ZoneAbilityFrame:ClearAllPoints()
 ZoneAbilityFrame:SetPoint(unpack(cfg.bars.zone.pos))
 ZoneAbilityFrame.ignoreFramePositionManager = true
@@ -215,6 +211,7 @@ hooksecurefunc("ActionButton_SetTooltip", function(self)
 	end
 end)
 
+--TODO CooldownFrame_Set
 hooksecurefunc(getmetatable(ActionButton1Cooldown).__index, 'SetCooldown', function(self)
 	if self:GetDebugName():find("ChargeCooldown") then
 		self:SetHideCountdownNumbers(false)
@@ -252,22 +249,22 @@ end)
 
 -- adjust the vertical distance for squashed buttons
 
-local AUTOCAST_SHINES = {}
+local autocast_shines = {}
 
 hooksecurefunc('AutoCastShine_AutoCastStart', function(button, r, g, b)
-	if AUTOCAST_SHINES[button] then
+	if autocast_shines[button] then
 		return
 	end
 
-	AUTOCAST_SHINES[button] = true
+	autocast_shines[button] = true
 end)
 
 hooksecurefunc('AutoCastShine_AutoCastStop', function(button, r, g, b)
-	AUTOCAST_SHINES[button] = nil
+	autocast_shines[button] = nil
 end)
 
 hooksecurefunc('AutoCastShine_OnUpdate', function()
-	for button in next, AUTOCAST_SHINES do
+	for _, button in ipairs(autocast_shines) do
 		local parent, distance = button, button:GetWidth()
 		local height = button:GetHeight()
 

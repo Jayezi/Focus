@@ -1,6 +1,26 @@
 local _, addon = ...
 local core = addon.core
 
+local CreateFrame = CreateFrame
+local UIParent = UIParent
+local BackdropTemplateMixin = BackdropTemplateMixin
+local ContainerFrame_GetContainerNumSlots = ContainerFrame_GetContainerNumSlots
+local NUM_BANKBAGSLOTS = NUM_BANKBAGSLOTS
+local BankSlotsFrame = BankSlotsFrame
+local NUM_BANKGENERIC_SLOTS = NUM_BANKGENERIC_SLOTS
+local NUM_CONTAINER_FRAMES = NUM_CONTAINER_FRAMES
+local ReagentBankFrame = ReagentBankFrame
+local BACKPACK_CONTAINER = BACKPACK_CONTAINER
+local BagItemSearchBox = BagItemSearchBox
+local BagItemAutoSortButton = BagItemAutoSortButton
+local BackpackTokenFrameToken1 = BackpackTokenFrameToken1
+local BackpackTokenFrameToken2 = BackpackTokenFrameToken2
+local BackpackTokenFrameToken3 = BackpackTokenFrameToken3
+local BackpackTokenFrame = BackpackTokenFrame
+local OpenBag = OpenBag
+local NUM_BAG_SLOTS = NUM_BAG_SLOTS
+local ReagentBankFrameItem1 = ReagentBankFrameItem1
+
 local cfg = {
 	inset = 10,
 	header = 50,
@@ -23,8 +43,6 @@ local cfg = {
 		edgeSize = 1,
 	},
 }
-
---if true then return end
 
 local style_bank_itembutton = function(button)
 	if button.styled then return end
@@ -273,7 +291,7 @@ end
 local focus_backpack = CreateFrame("Frame", "FocusBagCharacterBag", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 focus_backpack:SetWidth(((cfg.size + cfg.spacing) * cfg.per_row) - cfg.spacing + cfg.inset * 2)
 focus_backpack:SetHeight(1)
-focus_backpack:SetPoint("BOTTOMRIGHT")
+focus_backpack:SetPoint("BOTTOMRIGHT", -200, 200)
 focus_backpack:SetFrameStrata("DIALOG")
 focus_backpack:Raise()
 focus_backpack:Hide()
@@ -285,7 +303,7 @@ make_movable(focus_backpack)
 local focus_bank = CreateFrame("Frame", "FocusBagBankBag", UIParent, BackdropTemplateMixin and "BackdropTemplate")
 focus_bank:SetWidth(((cfg.size + cfg.spacing) * cfg.per_row) - cfg.spacing + cfg.inset * 2)
 focus_bank:SetHeight(1)
-focus_bank:SetPoint("TOPLEFT")
+focus_bank:SetPoint("TOPLEFT", 200, -200)
 focus_bank:SetFrameStrata("HIGH")
 focus_bank:Raise()
 focus_bank:Hide()

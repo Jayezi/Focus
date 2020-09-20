@@ -18,7 +18,7 @@ cfg.bars = {
 		pos = {"LEFT", "UIParent", "LEFT", 50, 0}
 	},
 	zone = {
-		pos = {"TOP", "UIParent", "TOP", 0, -50}
+		pos = {"LEFT", "UIParent", "LEFT", 50, 0}
 	},
     bag = {
 		buttons = {

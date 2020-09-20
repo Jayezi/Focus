@@ -1,71 +1,31 @@
-local addon_name, addon = ...
+local _, addon = ...
 if not addon.chat.enabled then return end
 local core = addon.core
 local cfg = addon.chat.cfg
 
+local CreateFrame = CreateFrame
+local GENERAL_CHAT_DOCK = GENERAL_CHAT_DOCK
+local UIParent = UIParent
+local GeneralDockManager = GeneralDockManager
+local hooksecurefunc = hooksecurefunc
+local ChatFrame1 = ChatFrame1
+local ChatFrame2 = ChatFrame2
+local ChatFrame3 = ChatFrame3
+local ChatFrame4 = ChatFrame4
+local FCF_ResetChatWindows = FCF_ResetChatWindows
+local FCF_SetWindowName = FCF_SetWindowName
+local CombatConfig_SetCombatFiltersToDefault = CombatConfig_SetCombatFiltersToDefault
+local FCF_DockFrame = FCF_DockFrame
+local FCF_OpenNewWindow = FCF_OpenNewWindow
+local ChatFrame_AddMessageGroup = ChatFrame_AddMessageGroup
+local ChatFrame_RemoveAllMessageGroups = ChatFrame_RemoveAllMessageGroups
+local ChatFrame_AddChannel = ChatFrame_AddChannel
+local ToggleChatColorNamesByClassGroup = ToggleChatColorNamesByClassGroup
+local ReloadUI = ReloadUI
+local FCF_GetCurrentChatFrame = FCF_GetCurrentChatFrame
+
 if not IsAddOnLoaded("Blizzard_CombatLog") then
 	LoadAddOn("Blizzard_CombatLog")
-end
-
-local fix_scrollbar = function(scrollbar)
-	core.util.gen_backdrop(scrollbar)
-	scrollbar:SetWidth(20)
-
-	scrollbar.ThumbTexture:SetTexture(core.media.textures.blank)
-	scrollbar.ThumbTexture:SetWidth(18)
-	scrollbar.ThumbTexture:SetVertexColor(.5, .5, .5)
-
-	do
-		core.util.gen_backdrop(scrollbar.ScrollUpButton)
-		scrollbar.ScrollUpButton:SetSize(20, 15)
-		scrollbar.ScrollUpButton:SetPoint("BOTTOM", scrollbar, "TOP", 0, 1)
-
-		local highlight = scrollbar.ScrollUpButton:GetHighlightTexture()
-		highlight:SetTexture(core.media.textures.blank)
-		highlight:SetVertexColor(.6, .6, .6, .3)
-		core.util.set_inside(highlight, scrollbar.ScrollUpButton)
-
-		local normal = scrollbar.ScrollUpButton:GetNormalTexture()
-		normal:SetTexture([[interface/buttons/arrow-up-up]])
-		normal:SetTexCoord(-0.1, 1, 0.25, 1)
-		normal:SetAllPoints(highlight)
-
-		local pushed = scrollbar.ScrollUpButton:GetPushedTexture()
-		pushed:SetTexture([[interface/buttons/arrow-up-down]])
-		pushed:SetTexCoord(0, 1.1, 0.35, 1.05)
-		pushed:SetAllPoints(highlight)
-
-		local disabled = scrollbar.ScrollUpButton:GetDisabledTexture()
-		disabled:SetTexture([[interface/buttons/arrow-up-disabled]])
-		disabled:SetTexCoord(-0.1, 1, 0.25, 1)
-		disabled:SetAllPoints(highlight)
-	end
-
-	do
-		core.util.gen_backdrop(scrollbar.ScrollDownButton)
-		scrollbar.ScrollDownButton:SetSize(20, 15)
-		scrollbar.ScrollDownButton:SetPoint("TOP", scrollbar, "BOTTOM", 0, -1)
-
-		local highlight = scrollbar.ScrollDownButton:GetHighlightTexture()
-		highlight:SetTexture(core.media.textures.blank)
-		highlight:SetVertexColor(.6, .6, .6, .3)
-		core.util.set_inside(highlight, scrollbar.ScrollDownButton)
-
-		local normal = scrollbar.ScrollDownButton:GetNormalTexture()
-		normal:SetTexture([[interface/buttons/arrow-down-up]])
-		normal:SetTexCoord(-0.1, 1, -0.1, 0.65)
-		normal:SetAllPoints(highlight)
-
-		local pushed = scrollbar.ScrollDownButton:GetPushedTexture()
-		pushed:SetTexture([[interface/buttons/arrow-down-down]])
-		pushed:SetTexCoord(0, 1.1, -0.05, 0.75)
-		pushed:SetAllPoints(highlight)
-
-		local disabled = scrollbar.ScrollDownButton:GetDisabledTexture()
-		disabled:SetTexture([[interface/buttons/arrow-down-disabled]])
-		disabled:SetTexCoord(-0.1, 1, -0.1, 0.65)
-		disabled:SetAllPoints(highlight)
-	end
 end
 
 local copy_scroll = CreateFrame('ScrollFrame', nil, UIParent, 'UIPanelScrollFrameTemplate')
@@ -73,8 +33,7 @@ copy_scroll:SetPoint("CENTER")
 copy_scroll:SetSize(800, 400)
 copy_scroll:EnableMouse(true)
 core.util.gen_backdrop(copy_scroll, unpack(core.config.frame_background_transparent))
-
-fix_scrollbar(copy_scroll.ScrollBar)
+core.util.fix_scrollbar(copy_scroll.ScrollBar)
 
 local copy_edit = CreateFrame('EditBox', nil, copy_scroll)
 copy_edit:SetSize(800, 400)
@@ -103,6 +62,25 @@ local copy_chat = function(frame)
 	copy_edit:SetText(table.concat(lines, "\n", 1, index - 1))
 end
 
+local update_background = function(frame)
+	local scrollbar = 0
+	if frame.ScrollBar then
+		scrollbar = frame.ScrollBar:GetWidth()
+	end
+
+	local quickbutton = 0
+	if frame.CombatLogQuickButtonFrame then
+		quickbutton = frame.CombatLogQuickButtonFrame:GetHeight()
+	end
+
+	frame.Background:SetPoint("TOPLEFT", frame, "TOPLEFT", -2, 3 + quickbutton)
+	frame.Background:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 2 + scrollbar, 3 + quickbutton)
+	frame.Background:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", -2, -6)
+	frame.Background:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 2 + scrollbar, -6)
+
+	frame:SetClampRectInsets(0, 0, 0, 0)
+end
+
 local frame_border_textures = {
 	"TopLeftTexture",
 	"BottomLeftTexture",
@@ -129,10 +107,9 @@ local button_frame_textures = {
 local fix_frame_size_pos = function(frame)
 	local left, bottom = frame:GetLeft(), frame:GetBottom()
 	local width, height = frame:GetSize()
-	frame:SetSize(floor(width + 0.5), floor(height + 0.5))
+	frame:SetSize(math.floor(width + 0.5), math.floor(height + 0.5))
 	frame:ClearAllPoints()
-	frame:SetPoint("BOTTOMLEFT", floor(left + 0.5), floor(bottom + 0.5))
-	FCF_SavePositionAndDimensions(frame)
+	frame:SetPoint("BOTTOMLEFT", math.floor(left + 0.5), math.floor(bottom + 0.5))
 end
 
 local skin_button = function(button, texture, ...)
@@ -142,11 +119,12 @@ local skin_button = function(button, texture, ...)
 		button.Icon = button:CreateTexture()
 		button.Icon:SetTexture(texture)
 		button.Icon:SetDrawLayer("BORDER")
-		if ... then
-			button.Icon:SetTexCoord(...)
-		end
 	end
 	core.util.set_inside(button.Icon, button)
+
+	if ... then
+		button.Icon:SetTexCoord(...)
+	end
 
 	local normal = button:GetNormalTexture()
 	normal:SetTexture()
@@ -195,10 +173,10 @@ local skin_chat_frame = function(frame)
 	--     Layers
 	--       OVERLAY
 	local bottom_flash = bottom.Flash
-	
+
 	local scrollbar = frame.ScrollBar
 	local thumb = scrollbar.ThumbTexture -- $parentThumbTexture
-	
+
 	local editbox = frame.editBox -- $parentEditBox
 	--header
 	--headerSuffix
@@ -215,11 +193,11 @@ local skin_chat_frame = function(frame)
 	frame.backdrop:SetFrameStrata(frame:GetFrameStrata())
 	frame.backdrop:SetFrameLevel(frame:GetFrameLevel() - 1)
 	core.util.gen_backdrop(frame.backdrop, unpack(core.config.frame_background_transparent))
-	
+
 	frame.copy = CreateFrame("Frame", nil, frame)
 	frame.copy:SetSize(20, 20)
 	frame.copy:SetPoint("TOPRIGHT", frame.backdrop, "TOPRIGHT", -2, -2)
-	frame.copy:SetScript("OnMouseUp", function(self)
+	frame.copy:SetScript("OnMouseUp", function()
 		copy_chat(frame)
 	end)
 
@@ -227,37 +205,37 @@ local skin_chat_frame = function(frame)
 	frame.copy.icon:SetTexture([[interface/buttons/ui-guildbutton-publicnote-up]])
 	frame.copy.icon:SetAllPoints()
 
+	local highlight = frame.copy:CreateTexture(nil, "HIGHLIGHT")
+	highlight:SetAllPoints()
+	highlight:SetTexture(core.media.textures.blank)
+	highlight:SetVertexColor(.6, .6, .6, .3)
+
 	frame_bg:SetTexture()
-	
+
 	minimize:ClearAllPoints()
 	minimize:SetPoint("TOPRIGHT")
 	minimize:SetSize(22, 22)
-	skin_button(minimize, minimize:GetNormalTexture():GetTexture(), .25, .74, .3, .7)
+	skin_button(minimize, minimize:GetNormalTexture():GetTexture(), 0.25, 0.74, 0.3, 0.7)
 
 	bottom:SetSize(20, 15)
 	bottom:ClearAllPoints()
-	bottom:SetPoint("BOTTOMRIGHT", resize, "TOPRIGHT", -2, 2)
-	
-	skin_button(bottom, [[interface/buttons/arrow-down-down]], .05, 1, 0, .7)
+	bottom:SetPoint("BOTTOMRIGHT", resize, "TOPRIGHT", -2, 5)
+	bottom_flash:SetTexture()
+	skin_button(bottom, [[interface/buttons/arrow-down-down]], 0.05, 1.0, 0.0, 0.7)
 
-	bottom_flash:SetTexCoord(.12, .85, .15, .85)
-
-	core.util.gen_backdrop(scrollbar)
 	scrollbar:SetWidth(20)
 
 	thumb:SetTexture(core.media.textures.blank)
 	thumb:SetWidth(18)
 	thumb:SetVertexColor(.5, .5, .5)
 
-	resize:SetPoint("BOTTOMRIGHT", frame.backdrop, "BOTTOMRIGHT")
+	resize:SetSize(20, 20)
 	resize:HookScript("OnMouseUp", function(self)
-		local frame
 		if( self:GetParent().isDocked ) then
-			frame = GENERAL_CHAT_DOCK.primary
+			fix_frame_size_pos(GENERAL_CHAT_DOCK.primary)
 		else
-			frame = self:GetParent()
+			fix_frame_size_pos(self:GetParent())
 		end
-		fix_frame_size_pos(frame)
 	end)
 
 	for _, texture in pairs(frame_border_textures) do
@@ -281,7 +259,7 @@ local skin_chat_frame = function(frame)
 	_G[editbox:GetName().."Left"]:Hide()
 	_G[editbox:GetName().."Mid"]:Hide()
 	_G[editbox:GetName().."Right"]:Hide()
-	
+
 	editbox.focusLeft:SetTexture()
 	editbox.focusRight:SetTexture()
 	editbox.focusMid:SetTexture()
@@ -321,17 +299,17 @@ local skin_chat_frame = function(frame)
 	tab_flash:SetAllPoints()
 
 	core.util.fix_string(tab_text)
-	tab.leftTexture:SetWidth(5)
+	tab.leftTexture:SetWidth(10)
 	tab.rightTexture:SetWidth(15)
 	tab:SetHeight(25)
 	tab_text:ClearAllPoints()
-	tab_text:SetPoint("LEFT", tab, "LEFT", 5, 0)
+	tab_text:SetPoint("LEFT", tab.leftTexture, "RIGHT", 0, 0)
 	tab_text:SetTextColor(unpack(core.player.color))
 
 	tab.alt_SetWidth = tab.SetWidth
 	hooksecurefunc(tab, "SetWidth", function(self)
-		self.Text:SetSize(0, 0);
-		local width, height = self.Text:GetSize()
+		self.Text:SetSize(0, 0)
+		local width = self.Text:GetSize()
 		self.middleTexture:SetWidth(width)
 		self:alt_SetWidth(width + 20)
 	end)
@@ -344,7 +322,7 @@ local skin_chat_frame = function(frame)
 		tab_text:SetTextColor(unpack(core.player.color))
 	end)
 
-	FloatingChatFrame_UpdateBackgroundAnchors(frame)
+	update_background(frame)
 end
 
 local dock_chat = function()
@@ -355,7 +333,6 @@ local dock_chat = function()
 	frame:SetPoint("BOTTOMLEFT", anchor, "TOPLEFT", 2, 8)
 	frame:SetPoint("BOTTOMRIGHT", anchor, "TOPRIGHT", -2 + -frame.ScrollBar:GetWidth(), 8)
 	frame:SetUserPlaced(true)
-	--FCF_SetLocked
 end
 
 local setup_chat = function()
@@ -430,26 +407,17 @@ hooksecurefunc("FCFTab_UpdateColors", function(tab, selected)
 	end
 end)
 
-hooksecurefunc("FloatingChatFrame_UpdateBackgroundAnchors", function(frame)
-	frame:SetClampRectInsets(0, 0, 0, 0)
-end)
+hooksecurefunc("FloatingChatFrame_UpdateBackgroundAnchors", update_background)
+hooksecurefunc("FCF_RestorePositionAndDimensions", dock_chat)
 
-hooksecurefunc("FCF_OpenTemporaryWindow", function()
-	skin_chat_frame(FCF_GetCurrentChatFrame())
-end)
-
-hooksecurefunc("FCF_RestorePositionAndDimensions", function()
-	dock_chat()
-end)
-
-hooksecurefunc("FCF_UpdateScrollbarAnchors", function(frame)
+local update_scrollbar = function(frame)
 	if frame.ScrollBar then
 		frame.ScrollBar:ClearAllPoints()
 
 		if frame.copy then
-			frame.ScrollBar:SetPoint("TOPRIGHT", frame.copy, "BOTTOMRIGHT")
+			frame.ScrollBar:SetPoint("TOPRIGHT", frame.copy, "BOTTOMRIGHT", 0, -2)
 		else
-			frame.ScrollBar:SetPoint("TOPRIGHT", frame.backdrop, "TOPRIGHT", -2, -2)
+			frame.ScrollBar:SetPoint("TOPRIGHT", frame.Background, "TOPRIGHT", -2, -2)
 		end
 
 		if frame.ScrollToBottomButton:IsShown() then
@@ -457,9 +425,17 @@ hooksecurefunc("FCF_UpdateScrollbarAnchors", function(frame)
 		elseif frame.ResizeButton:IsShown() then
 			frame.ScrollBar:SetPoint("BOTTOM", frame.ResizeButton, "TOP", 0, 2)
 		else
-			frame.ScrollBar:SetPoint("BOTTOM", frame.backdrop, "BOTTOM", 0, 2)
+			frame.ScrollBar:SetPoint("BOTTOM", frame.Background, "BOTTOM", 0, 2)
 		end
 	end
+end
+
+hooksecurefunc("FCF_UpdateScrollbarAnchors", update_scrollbar)
+
+hooksecurefunc("FCF_OpenTemporaryWindow", function()
+	local frame = FCF_GetCurrentChatFrame()
+	skin_chat_frame(frame)
+	update_scrollbar(frame)
 end)
 
 hooksecurefunc("FCF_CreateMinimizedFrame", function(frame)
@@ -482,7 +458,7 @@ hooksecurefunc("FCF_CreateMinimizedFrame", function(frame)
 
 	local max = _G[min:GetName().."MaximizeButton"]
 	max:SetSize(20, 20)
-	
+
 	local normal = max:GetNormalTexture()
 	normal:SetTexture([[interface/moneyframe/arrow-right-up]])
 	normal:SetTexCoord(-.1, .6, 0, 1)
@@ -499,9 +475,9 @@ end)
 
 hooksecurefunc("FCFMin_UpdateColors", function(frame)
 	local r, g, b = unpack(core.player.color)
-	frame:GetFontString():SetTextColor(r, g, b);
-	frame.glow:SetVertexColor(r, g, b);
-	frame.conversationIcon:SetVertexColor(r, g, b);
+	frame:GetFontString():SetTextColor(r, g, b)
+	frame.glow:SetVertexColor(r, g, b)
+	frame.conversationIcon:SetVertexColor(r, g, b)
 end)
 
 local fix_button_side = function(frame)
@@ -519,8 +495,8 @@ end
 
 ChatAlertFrame:SetPoint("BOTTOMLEFT", ChatFrame1.editBox, "TOPLEFT", 0, 5)
 
-GeneralDockManager:SetPoint("BOTTOMLEFT", ChatFrame1.backdrop, "TOPLEFT");
-GeneralDockManager:SetPoint("BOTTOMRIGHT", ChatFrame1.backdrop, "TOPRIGHT");
+GeneralDockManager:SetPoint("BOTTOMLEFT", ChatFrame1.backdrop, "TOPLEFT")
+GeneralDockManager:SetPoint("BOTTOMRIGHT", ChatFrame1.backdrop, "TOPRIGHT")
 
 ChatFrameMenuButton:ClearAllPoints()
 ChatFrameMenuButton:SetPoint("BOTTOMLEFT", ChatFrame1ButtonFrame, "BOTTOMLEFT")
@@ -530,7 +506,7 @@ skin_button(ChatFrameMenuButton, [[interface/gossipframe/chatbubblegossipicon]])
 ChatFrameChannelButton:ClearAllPoints()
 ChatFrameChannelButton:SetPoint("TOPLEFT", ChatFrame1ButtonFrame, "TOPLEFT")
 ChatFrameChannelButton:SetSize(24, 24)
-skin_button(ChatFrameChannelButton)
+skin_button(ChatFrameChannelButton, nil, -.1, 1, 0, 1.1)
 
 ChatFrameToggleVoiceDeafenButton:ClearAllPoints()
 ChatFrameToggleVoiceDeafenButton:SetPoint("TOPLEFT", ChatFrameChannelButton, "BOTTOMLEFT", 0, -1)
@@ -552,20 +528,5 @@ end
 
 fix_button_side(ChatFrame1)
 
-local options = CreateFrame("Frame")
-options.name = addon_name
-options.okay = dock_chat
-
-options.reset = CreateFrame("Button", nil, options)
-options.reset:SetSize(200, 50)
-options.reset:SetPoint("TOPLEFT", 10, -10)
-options.reset:SetScript("OnClick", function()
-	setup_chat()
-end)
-options.reset:RegisterForClicks("AnyUp")
-options.reset:SetText("Reset Chat")
-core.util.fix_string(options.reset:GetFontString())
-
-core.util.gen_backdrop(options.reset)
-
-InterfaceOptions_AddCategory(options)
+core.settings:add_action("Dock Chat", dock_chat)
+core.settings:add_action("Reset Chat", setup_chat)

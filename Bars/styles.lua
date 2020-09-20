@@ -6,6 +6,13 @@ local cfg = addon.bars.cfg
 local styles = {}
 addon.bars.styles = styles
 
+local CreateFrame = CreateFrame
+local hooksecurefunc = hooksecurefunc
+local CharacterMicroButton = CharacterMicroButton
+local MicroButtonPortrait = MicroButtonPortrait
+local Mixin = Mixin
+local BackdropTemplateMixin = BackdropTemplateMixin
+
 styles.actionbutton = function(button, bar_cfg)
 
 	local blank = core.media.textures.blank
@@ -272,9 +279,8 @@ styles.bagbutton = function(button)
 	end)
 
 	slothighlight:SetAllPoints()
-	--slothighlight:SetTexture(blank)
-	--slothighlight:SetVertexColor(unpack(cfg.color.highlight))
-	slothighlight:SetTexCoord(.07, .93, .07, .93)
+	slothighlight:SetTexture(blank)
+	slothighlight:SetVertexColor(unpack(cfg.color.checked))
 
 	------------------------------
 

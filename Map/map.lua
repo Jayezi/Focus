@@ -1,6 +1,9 @@
 local _, addon = ...
 local core = addon.core
 
+local MinimapZoomIn = MinimapZoomIn
+local MinimapZoomOut = MinimapZoomOut
+
 local strip_textures = function(object)
 	local regions = {object:GetRegions()}
 	for i = 1, #regions do
@@ -27,6 +30,7 @@ MinimapCluster:ClearAllPoints()
 MinimapCluster:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
 core.util.gen_border(MinimapCluster)
 core.util.set_inside(Minimap, MinimapCluster)
+Minimap:SetSize(249, 249)
 Minimap:SetArchBlobRingScalar(0);
 Minimap:SetQuestBlobRingScalar(0);
 Minimap:SetMaskTexture(core.media.textures.blank)
@@ -83,9 +87,11 @@ MiniMapTrackingButtonBorder:Hide()
 MiniMapTrackingButtonShine:SetTexture()
 MiniMapTrackingButton:GetHighlightTexture():SetTexture()
 
+--TODO MiniMapTracking_OnMouseDown
 MiniMapTrackingButton:HookScript("OnMouseDown", function()
 	MiniMapTrackingIcon:SetAllPoints()
 end);
+-- TODO MiniMapTracking_OnMouseUp
 MiniMapTrackingButton:HookScript("OnMouseUp", function()
 	MiniMapTrackingIcon:SetAllPoints()
 end);

@@ -2,6 +2,25 @@
 local core = {}
 addon.core = core
 
+local UIParent = UIParent
+local CreateFrame = CreateFrame
+local BackdropTemplateMixin = BackdropTemplateMixin
+local Mixin = Mixin
+local GetPhysicalScreenSize = GetPhysicalScreenSize
+local strfind = strfind
+local Round = Round
+local MouseIsOver = MouseIsOver
+local ReloadUI = ReloadUI
+local IsInInstance = IsInInstance
+local LoggingCombat = LoggingCombat
+local C_AzeriteEmpoweredItem = C_AzeriteEmpoweredItem
+local C_AzeriteItem = C_AzeriteItem
+local IsCorruptedItem = IsCorruptedItem
+local UnitExists = UnitExists
+local UnitName = UnitName
+local WorldFrame = WorldFrame
+local UnitIsAFK = UnitIsAFK
+
 addon.bars = { enabled = true }
 addon.units = { enabled = true }
 addon.buffs = { enabled = true }
@@ -103,7 +122,7 @@ core.util = {
 		bar:SetBackdrop(core.config.frame_backdrop)
 		bar:GetStatusBarTexture():SetDrawLayer("BORDER", -1);
 		bar:SetBackdropBorderColor(unpack(core.config.frame_border))
-		
+
 		if fg_color then
 			bar:SetStatusBarColor(unpack(fg_color))
 		end
@@ -169,9 +188,70 @@ core.util = {
 		fs:SetShadowOffset(0, 0)
 	end,
 
+	fix_scrollbar = function(scrollbar)
+		core.util.gen_backdrop(scrollbar)
+		scrollbar:SetWidth(20)
+
+		scrollbar.ThumbTexture:SetTexture(core.media.textures.blank)
+		scrollbar.ThumbTexture:SetWidth(18)
+		scrollbar.ThumbTexture:SetVertexColor(.5, .5, .5)
+
+		do
+			core.util.gen_backdrop(scrollbar.ScrollUpButton)
+			scrollbar.ScrollUpButton:SetSize(20, 15)
+			scrollbar.ScrollUpButton:SetPoint("BOTTOM", scrollbar, "TOP", 0, 1)
+
+			local highlight = scrollbar.ScrollUpButton:GetHighlightTexture()
+			highlight:SetTexture(core.media.textures.blank)
+			highlight:SetVertexColor(.6, .6, .6, .3)
+			core.util.set_inside(highlight, scrollbar.ScrollUpButton)
+
+			local normal = scrollbar.ScrollUpButton:GetNormalTexture()
+			normal:SetTexture([[interface/buttons/arrow-up-up]])
+			normal:SetTexCoord(-0.1, 1, 0.25, 1)
+			normal:SetAllPoints(highlight)
+
+			local pushed = scrollbar.ScrollUpButton:GetPushedTexture()
+			pushed:SetTexture([[interface/buttons/arrow-up-down]])
+			pushed:SetTexCoord(0, 1.1, 0.35, 1.05)
+			pushed:SetAllPoints(highlight)
+
+			local disabled = scrollbar.ScrollUpButton:GetDisabledTexture()
+			disabled:SetTexture([[interface/buttons/arrow-up-disabled]])
+			disabled:SetTexCoord(-0.1, 1, 0.25, 1)
+			disabled:SetAllPoints(highlight)
+		end
+
+		do
+			core.util.gen_backdrop(scrollbar.ScrollDownButton)
+			scrollbar.ScrollDownButton:SetSize(20, 15)
+			scrollbar.ScrollDownButton:SetPoint("TOP", scrollbar, "BOTTOM", 0, -1)
+
+			local highlight = scrollbar.ScrollDownButton:GetHighlightTexture()
+			highlight:SetTexture(core.media.textures.blank)
+			highlight:SetVertexColor(.6, .6, .6, .3)
+			core.util.set_inside(highlight, scrollbar.ScrollDownButton)
+
+			local normal = scrollbar.ScrollDownButton:GetNormalTexture()
+			normal:SetTexture([[interface/buttons/arrow-down-up]])
+			normal:SetTexCoord(-0.1, 1, -0.1, 0.65)
+			normal:SetAllPoints(highlight)
+
+			local pushed = scrollbar.ScrollDownButton:GetPushedTexture()
+			pushed:SetTexture([[interface/buttons/arrow-down-down]])
+			pushed:SetTexCoord(0, 1.1, -0.05, 0.75)
+			pushed:SetAllPoints(highlight)
+
+			local disabled = scrollbar.ScrollDownButton:GetDisabledTexture()
+			disabled:SetTexture([[interface/buttons/arrow-down-disabled]])
+			disabled:SetTexCoord(-0.1, 1, -0.1, 0.65)
+			disabled:SetAllPoints(highlight)
+		end
+	end,
+
 	gen_string = function(parent, size, flags, font, h_justify, v_justify, name)
 		local string = parent:CreateFontString(name, "OVERLAY")
-		string:SetFont(font or core.config.default_font, size, flags or core.config.font_flags)
+		string:SetFont(font or core.config.default_font, size or core.config.font_size_med, flags or core.config.font_flags)
         if h_justify then
 			if h_justify == "MIDDLE" then h_justify = "CENTER" end
 			string:SetJustifyH(h_justify)
@@ -261,28 +341,28 @@ core.util = {
 	get_mover_frame = function(name, default_pos)
 		local frame_name = "Focus"..name.."Mover"
 		local mover_frame = CreateFrame("Frame", frame_name, UIParent, BackdropTemplateMixin and "BackdropTemplate")
-	
+
 		local pos = saved_positions and saved_positions[name]
 		if pos then
 			mover_frame:SetPoint(unpack(pos))
 		elseif default_pos then
 			mover_frame:SetPoint(unpack(default_pos))
 		end
-	
+
 		mover_frame:SetSize(200, 50)
 		mover_frame:SetFrameStrata("TOOLTIP")
 		mover_frame:SetFrameLevel(20)
 		mover_frame:SetClampedToScreen(true)
 		mover_frame:SetMovable(true)
 		mover_frame:EnableMouse(true)
-	
+
 		mover_frame:SetScript("OnMouseDown", function(self, click)
 			if click == "LeftButton" and not self.isMoving then
 				self:StartMoving()
 				self.isMoving = true
 			end
 		end)
-	
+
 		mover_frame:SetScript("OnMouseUp", function(self, click)
 			if click == "LeftButton" and self.isMoving then
 				self:StopMovingOrSizing()
@@ -290,7 +370,7 @@ core.util = {
 				self.isMoving = false
 			end
 		end)
-	
+
 		mover_frame:SetScript("OnHide", function(self)
 			if ( self.isMoving ) then
 				self:StopMovingOrSizing()
@@ -298,19 +378,124 @@ core.util = {
 				self.isMoving = false
 			end
 		end)
-	
+
 		core.util.gen_backdrop(mover_frame)
-	
+
 		local note = core.util.gen_string(mover_frame, core.config.font_size_med)
 		note:SetPoint("CENTER")
 		note:SetText(name)
-	
+
 		mover_frame:Hide()
 		mover_frames[name] = mover_frame
-	
+
 		return mover_frame
 	end
 }
+
+-- panels
+
+local data_panel = core.util.gen_panel({
+	name = "DataPanel",
+	strata = "BACKGROUND",
+	parent = UIParent,
+	w = 500,
+	h = 24,
+	point1 = {"BOTTOMLEFT", UIParent, "BOTTOMLEFT", 2, 2},
+	backdrop = core.config.frame_backdrop,
+	bgcolor = core.config.frame_background_transparent,
+	bordercolor = core.config.frame_border,
+})
+data_panel.add_left = function(self, stat)
+	if self.left then
+		stat:SetPoint("BOTTOMLEFT", self.left, "BOTTOMRIGHT", 5, 0)
+	else
+		stat:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", 5, 3)
+	end
+	self.left = stat
+end
+data_panel.add_right = function(self, stat)
+	if self.right then
+		stat:SetPoint("BOTTOMRIGHT", self.right, "BOTTOMLEFT", -5, 0)
+	else
+		stat:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -5, 3)
+	end
+	self.right = stat
+end
+
+-- settings
+
+local settings = CreateFrame("Frame", "FocusSettings", UIParent)
+settings:SetSize(150, 1)
+settings:Hide()
+core.util.gen_backdrop(settings)
+core.settings = settings
+settings.actions = {}
+
+settings:SetScript("OnUpdate", function(self)
+	if not MouseIsOver(self) then
+		self:Hide()
+	end
+end)
+
+settings.add_action = function(self, name, func)
+	local button = CreateFrame("Button", nil, self)
+	button.click = func
+	core.util.gen_backdrop(button)
+	button:SetSize(140, 25)
+	button:RegisterForClicks("AnyUp")
+	button:SetText(name)
+	core.util.fix_string(button:GetFontString())
+	button:SetScript("OnClick", function(self)
+		self.click()
+	end)
+	table.insert(self.actions, button)
+	local highlight = button:CreateTexture(nil, "HIGHLIGHT")
+	core.util.set_inside(highlight, button)
+	highlight:SetTexture(core.media.textures.blank)
+	highlight:SetVertexColor(.6, .6, .6, .3)
+end
+
+settings.build = function(self)
+	local height = 5
+	local last
+	for _, button in ipairs(self.actions) do
+		if last then
+			button:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -5)
+		else
+			button:SetPoint("TOPLEFT", self, "TOPLEFT", 5, -5)
+		end
+		height = height + button:GetHeight() + 5
+		last = button
+	end
+	self:SetHeight(height)
+	self:Show()
+end
+
+local settings_button = CreateFrame("Frame", nil, data_panel)
+settings_button.menu = settings
+settings:SetPoint("BOTTOMLEFT", settings_button, "BOTTOMLEFT", 0, 0)
+
+settings_button:SetSize(24, 24)
+settings_button:SetPoint("BOTTOMLEFT", data_panel, "BOTTOMRIGHT", 1, 0)
+settings_button.icon = settings_button:CreateTexture()
+settings_button.icon:SetAllPoints()
+settings_button.icon:SetTexture([[interface/worldmap/gear_64grey]])
+core.util.gen_backdrop(settings_button)
+
+local highlight = settings_button:CreateTexture(nil, "HIGHLIGHT")
+core.util.set_inside(highlight, settings_button)
+highlight:SetTexture(core.media.textures.blank)
+highlight:SetVertexColor(.6, .6, .6, .3)
+
+settings_button:SetScript("OnMouseUp", function(self, click)
+	if click == "LeftButton" then
+		if self.menu:IsShown() then
+			self.menu:Hide()
+		else
+			self.menu:build()
+		end
+	end
+end)
 
 local load_frame = CreateFrame("Frame")
 load_frame:RegisterEvent("ADDON_LOADED")
@@ -319,12 +504,12 @@ load_frame:SetScript("OnEvent", function(self, event, addon)
 		if not FocusFrameRoles then FocusFrameRoles = {} end
 		if not FocusFrameRoles[core.player.realm] then FocusFrameRoles[core.player.realm] = {} end
 		if not FocusFrameRoles[core.player.realm][core.player.name] then FocusFrameRoles[core.player.realm][core.player.name] = "dps" end
-		print("loaded "..FocusFrameRoles[core.player.realm][core.player.name].." role")
+		print("Role: "..FocusFrameRoles[core.player.realm][core.player.name])
 
 		if not FocusFramePositions then FocusFramePositions = {} end
 		if not FocusFramePositions[core.player.realm] then FocusFramePositions[core.player.realm] = {} end
 		if not FocusFramePositions[core.player.realm][core.player.name] then FocusFramePositions[core.player.realm][core.player.name] = {} end
-		
+
 		-- position any added movable frames that have been positioned before
 		saved_positions = FocusFramePositions[core.player.realm][core.player.name]
 		for name, frame in pairs(mover_frames) do
@@ -337,42 +522,34 @@ load_frame:SetScript("OnEvent", function(self, event, addon)
 end)
 
 -- hide mover frames and save positions
-SLASH_LOCKFRAMES1 = "/lockframes"
-SlashCmdList.LOCKFRAMES = function()
+settings:add_action("Lock Frames", function()
 	for name, frame in pairs(mover_frames) do
 		frame:Hide()
 		saved_positions[name] = {core.util.to_tl_anchor(frame, {frame:GetPoint()})}
 	end
-end
+end)
 
 -- show mover frames
-SLASH_MOVEFRAMES1 = "/moveframes"
-SlashCmdList.MOVEFRAMES = function()
+settings:add_action("Move Frames", function()
 	for name, frame in pairs(mover_frames) do
 		frame:Show()
 	end
-end
-
-SLASH_RELOADUI1 = "/rl"
-SlashCmdList.RELOADUI = ReloadUI
+end)
 
 -- change roles for raid frames
-SLASH_ROLE1 = "/role"
-SlashCmdList.ROLE = function(arg)
-	if arg == "dps" then
-		FocusFrameRoles[core.player.realm][core.player.name] = "dps"
-		print("/rl for changes to take effect")
-		print(FocusFrameRoles[core.player.realm][core.player.name])
-	elseif arg == "healer" then
-		FocusFrameRoles[core.player.realm][core.player.name] = "healer"
-		print("/rl for changes to take effect")
-		print(FocusFrameRoles[core.player.realm][core.player.name])
-	elseif arg == "current" then
-		print(FocusFrameRoles[core.player.realm][core.player.name])
-	else
-		print("/role (dps, healer, current)")
-	end
-end
+settings:add_action("DPS Role", function()
+	FocusFrameRoles[core.player.realm][core.player.name] = "dps"
+	ReloadUI()
+end)
+
+settings:add_action("Healer Role", function()
+	FocusFrameRoles[core.player.realm][core.player.name] = "healer"
+	ReloadUI()
+end)
+
+settings:add_action("Show Role", function()
+	print("Role: "..FocusFrameRoles[core.player.realm][core.player.name])
+end)
 
 -- combatlog reminder
 
@@ -439,38 +616,14 @@ hooksecurefunc("GameTooltip_SetBackdropStyle", function(self, style)
 	end
 end)
 
--- GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT = core.config.frame_backdrop
--- GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT.backdropBorderColor = tooltip_frame_border_color
-
--- for k, v in pairs(core.config.frame_backdrop) do
--- 	GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM[k] = v
--- end
-
--- GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM.overlayAtlasTopScale = 1
--- GAME_TOOLTIP_BACKDROP_STYLE_AZERITE_ITEM.backdropBorderColor = azerite_frame_border_color
-
 GameTooltipStatusBar:SetStatusBarTexture(core.media.textures.blank)
 
 local tooltip_parent = core.util.get_mover_frame("Tooltip")
 tooltip_parent:SetPoint("BOTTOMRIGHT", UIParent, -10, 10)
 
-hooksecurefunc("GameTooltip_SetDefaultAnchor", function(self, parent)
+hooksecurefunc("GameTooltip_SetDefaultAnchor", function(self)
 	self:SetOwner(tooltip_parent, "ANCHOR_TOPRIGHT", 0, -tooltip_parent:GetHeight())
 end)
-
--- panels
-
-core.util.gen_panel({
-	name = "DataPanel",
-	strata = "BACKGROUND",
-	parent = UIParent,
-	w = 500,
-	h = 25,
-	point1 = {"BOTTOMLEFT", UIParent, "BOTTOMLEFT", 2, 2},
-	backdrop = core.config.frame_backdrop,
-	bgcolor = core.config.frame_background_transparent,
-	bordercolor = core.config.frame_border,
-})
 
 -- afk screen
 
@@ -500,7 +653,7 @@ afk_name:SetPoint("RIGHT", WorldFrame, "RIGHT")
 afk_name:SetTextColor(unpack(core.player.color))
 
 local rotate_model = function(model, add_distance, add_yaw, add_pitch)
-	
+
 	model:SetPortraitZoom(0)
 	model:SetCamDistanceScale(1)
 	model:SetPosition(0, 0, 0)
@@ -511,7 +664,7 @@ local rotate_model = function(model, add_distance, add_yaw, add_pitch)
 	local x, y, z = model:GetCameraPosition()
 	local tx, ty, tz = model:GetCameraTarget()
 	model:SetCameraTarget(0, ty, tz)
-	
+
 	local distance = math.sqrt(x * x + y * y + z * z) + add_distance
 	local yaw = -math.atan(y / x) + add_yaw
 	local pitch = -math.atan(z / x) + add_pitch
@@ -561,7 +714,7 @@ end)
 afk:RegisterEvent("PLAYER_FLAGS_CHANGED")
 afk:RegisterEvent("PLAYER_ENTERING_WORLD")
 afk:RegisterEvent("PLAYER_LEAVING_WORLD")
-afk:SetScript("OnEvent", function(event)	
+afk:SetScript("OnEvent", function()
 	if UnitIsAFK("player") then
 		start_afk()
 	else
