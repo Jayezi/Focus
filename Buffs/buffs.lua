@@ -2,7 +2,6 @@ local _, addon = ...
 if not addon.buffs.enabled then return end
 local core = addon.core
 
-local BUFF_ACTUAL_DISPLAY = BUFF_ACTUAL_DISPLAY
 local BuffFrame = BuffFrame
 local UnitAura = UnitAura
 local GameTooltip = GameTooltip

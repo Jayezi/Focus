@@ -2,7 +2,7 @@
 ## Title: Focus
 ## Author: Jayeasy
 ## SavedVariables: FocusFrameRoles, FocusFramePositions, FocusStatsRealmGold, FocusBindsLayouts
-## RequiredDeps: oUF, oUF_Experience
+## RequiredDeps: oUF
 
 core.lua
 

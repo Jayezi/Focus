@@ -5,7 +5,9 @@ local core = addon.core
 local cfg = {}
 addon.units.cfg = cfg
 
-oUF.colors.power['MANA'] = {46/255, 130/255, 215/255}
+local UIParent = UIParent
+
+oUF.colors.power['MANA'] = {.15, .5, .85}
 
 cfg.cast_non_interrupt_color = {.5, .2, .2, 1}
 cfg.cast_interrupt_color = {.2, .5, .2, 1}

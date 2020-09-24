@@ -4,6 +4,11 @@ local core = addon.core
 local cfg = addon.units.cfg
 local lib = addon.units.lib
 
+local oUF = oUF
+local CreateFrame = CreateFrame
+local C_NamePlate = C_NamePlate
+local MAX_BOSS_FRAMES = MAX_BOSS_FRAMES
+
 local create_player_style = function(base)
 
 	local player_cfg = cfg.frames.player
@@ -66,10 +71,6 @@ local create_player_style = function(base)
 	base.AlternativePower = core.util.gen_statusbar(base, player_cfg.alt_power.size.w, player_cfg.alt_power.size.h)
 	base.AlternativePower:SetPoint(core.util.to_tl_anchor(base.AlternativePower, player_cfg.alt_power.pos))
 
-	-- experience
-	base.Experience = lib.gen_xp_bar(base, player_cfg.alt_power.size.w, player_cfg.alt_power.size.h)
-	base.Experience:SetPoint("TOPLEFT", base.AlternativePower, "BOTTOMLEFT", 0, -10)
-
 	base:SetHeight(base.stack_height)
 
 	-- strings
@@ -100,10 +101,6 @@ local create_player_style = function(base)
 		power_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
 	end
 	base:Tag(power_string, power_tag)
-	
-	local xp_string = core.util.gen_string(base.Experience, core.config.font_size_med, nil, nil, "BOTTOM", "CENTER")
-	xp_string:SetPoint("BOTTOM", 0, 1)
-	base:Tag(xp_string, "[experience:cur] / [experience:max] - [experience:per]%")
 	
 	-- auras
 	base.Debuffs = lib.gen_auras(base, player_cfg.size.w, cfg.auras.player, "Debuffs")
@@ -783,11 +780,10 @@ oUF:Factory(function(self)
 	end
 end)
 
-SlashCmdList["TESTBOSS"] = function()
+core.settings:add_action("Test Boss", function()
 	oUF_FocusUnitsBoss1:Show(); oUF_FocusUnitsBoss1.Hide = function() end oUF_FocusUnitsBoss1.unit = "target"
 	oUF_FocusUnitsBoss2:Show(); oUF_FocusUnitsBoss2.Hide = function() end oUF_FocusUnitsBoss2.unit = "player"
 	oUF_FocusUnitsBoss3:Show(); oUF_FocusUnitsBoss3.Hide = function() end oUF_FocusUnitsBoss3.unit = "player"
 	oUF_FocusUnitsBoss4:Show(); oUF_FocusUnitsBoss4.Hide = function() end oUF_FocusUnitsBoss4.unit = "player"
 	oUF_FocusUnitsBoss5:Show(); oUF_FocusUnitsBoss5.Hide = function() end oUF_FocusUnitsBoss5.unit = "player"
-end
-SLASH_TESTBOSS1 = "/testboss"
+end)

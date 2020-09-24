@@ -9,7 +9,6 @@ local Mixin = Mixin
 local GetPhysicalScreenSize = GetPhysicalScreenSize
 local strfind = strfind
 local Round = Round
-local MouseIsOver = MouseIsOver
 local ReloadUI = ReloadUI
 local IsInInstance = IsInInstance
 local LoggingCombat = LoggingCombat
@@ -425,17 +424,12 @@ end
 -- settings
 
 local settings = CreateFrame("Frame", "FocusSettings", UIParent)
-settings:SetSize(150, 1)
-settings:Hide()
-core.util.gen_backdrop(settings)
 core.settings = settings
-settings.actions = {}
 
-settings:SetScript("OnUpdate", function(self)
-	if not MouseIsOver(self) then
-		self:Hide()
-	end
-end)
+settings:SetParent(GameMenuFrame)
+settings:SetSize(150, 1)
+core.util.gen_backdrop(settings)
+settings.actions = {}
 
 settings.add_action = function(self, name, func)
 	local button = CreateFrame("Button", nil, self)
@@ -468,12 +462,16 @@ settings.build = function(self)
 		last = button
 	end
 	self:SetHeight(height)
-	self:Show()
 end
+
+GameMenuFrame:HookScript("OnShow", function(self)
+	settings:build()
+	settings:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", Round(self:GetRight()), Round(self:GetTop()))
+end)
 
 local settings_button = CreateFrame("Frame", nil, data_panel)
 settings_button.menu = settings
-settings:SetPoint("BOTTOMLEFT", settings_button, "BOTTOMLEFT", 0, 0)
+--settings:SetPoint("BOTTOMLEFT", settings_button, "BOTTOMLEFT", 0, 0)
 
 settings_button:SetSize(24, 24)
 settings_button:SetPoint("BOTTOMLEFT", data_panel, "BOTTOMRIGHT", 1, 0)
@@ -531,7 +529,7 @@ end)
 
 -- show mover frames
 settings:add_action("Move Frames", function()
-	for name, frame in pairs(mover_frames) do
+	for _, frame in pairs(mover_frames) do
 		frame:Show()
 	end
 end)

@@ -1,7 +1,24 @@
 local _, addon = ...
 if not addon.units.enabled then return end
 
-local alt_power_index = ALTERNATE_POWER_INDEX
+local oUF = oUF
+local ALTERNATE_POWER_INDEX = ALTERNATE_POWER_INDEX
+local UnitGroupRolesAssigned = UnitGroupRolesAssigned
+local UnitIsConnected = UnitIsConnected
+local UnitIsAFK = UnitIsAFK
+local UnitIsDND = UnitIsDND
+local UnitIsPlayer = UnitIsPlayer
+local UnitClass = UnitClass
+local UnitIsTapDenied = UnitIsTapDenied
+local UnitReaction = UnitReaction
+local UnitHealth = UnitHealth
+local UnitHealthMax = UnitHealthMax
+local UnitIsDead = UnitIsDead
+local UnitIsGhost = UnitIsGhost
+local UnitIsDeadOrGhost = UnitIsDeadOrGhost
+local UnitGetTotalHealAbsorbs = UnitGetTotalHealAbsorbs
+local UnitPower = UnitPower
+local UnitPowerMax = UnitPowerMax
 
 local hex = function(r, g, b)
 	if r then
@@ -173,10 +190,10 @@ oUF.Tags.Events["focus:pp:curr"] = "UNIT_POWER_FREQUENT"
 -- alternative power
 
 oUF.Tags.Methods["focus:altp:perc"] = function(unit)
-	local max = UnitPowerMax(unit, alt_power_index)
+	local max = UnitPowerMax(unit, ALTERNATE_POWER_INDEX)
 	local str = ""
 	if max > 0 then
-		str = math.floor(UnitPower(unit, alt_power_index) / max * 100 + 0.5)
+		str = math.floor(UnitPower(unit, ALTERNATE_POWER_INDEX) / max * 100 + 0.5)
 	end
 	return str
 end

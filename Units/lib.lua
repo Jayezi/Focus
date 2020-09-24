@@ -6,6 +6,11 @@ local cfg = addon.units.cfg
 local lib = {}
 addon.units.lib = lib
 
+local UnitFrame_OnEnter = UnitFrame_OnEnter
+local UnitFrame_OnLeave = UnitFrame_OnLeave
+local CreateFrame = CreateFrame
+local Round = Round
+
 lib.invert_color = function(self)
 	self:SetBackdropColor(self:GetStatusBarColor())
 	self:SetStatusBarColor(unpack(core.config.frame_background))
@@ -224,20 +229,6 @@ lib.gen_nameplate_cast_bar = function(base, w, h, text_size)
 	return cast_bar
 end
 
-lib.gen_xp_bar = function(base, w, h)
-
-    local xp_bar = CreateFrame("StatusBar", nil, base)
-	xp_bar:SetStatusBarTexture(core.media.textures.blank)
-	xp_bar:SetSize(w, h)
-	
-    -- give this the backdrop since the module forces it behind the xp bar
-	local rested_bar = core.util.gen_statusbar(xp_bar, w + 2, h + 2)
-	rested_bar:SetPoint("TOPLEFT", xp_bar, "TOPLEFT", -1, 1)
-
-    xp_bar.Rested = rested_bar
-	return xp_bar
-end
-
 lib.gen_classpower = function(base, w, h)
 
 	local max = 10
@@ -407,11 +398,7 @@ lib.gen_ready_check = function(base)
     ready:SetPoint('CENTER')
 	base.ReadyCheckIndicator = ready
 end
---[[
-	element, unit, button, name, texture, count, debuffType, duration, 
-	expiration, caster, isStealable, nameplateShowSelf, spellID, canApply, 
-	isBossDebuff, casterIsPlayer, nameplateShowAll, timeMod, effect1, effect2, effect3
-]]
+
 local aura_filter = function(element, _, _, _, _, _, debuffType, _, _, caster, _, _, spellID)
 	if element.sources and not element.sources[caster] then
 		return false

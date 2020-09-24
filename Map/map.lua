@@ -87,11 +87,9 @@ MiniMapTrackingButtonBorder:Hide()
 MiniMapTrackingButtonShine:SetTexture()
 MiniMapTrackingButton:GetHighlightTexture():SetTexture()
 
---TODO MiniMapTracking_OnMouseDown
 MiniMapTrackingButton:HookScript("OnMouseDown", function()
 	MiniMapTrackingIcon:SetAllPoints()
 end);
--- TODO MiniMapTracking_OnMouseUp
 MiniMapTrackingButton:HookScript("OnMouseUp", function()
 	MiniMapTrackingIcon:SetAllPoints()
 end);

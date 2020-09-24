@@ -13,6 +13,7 @@ local GameTooltip = GameTooltip
 local MainMenuBarBackpackButton = MainMenuBarBackpackButton
 local AUTOCAST_SHINE_TIMERS = AUTOCAST_SHINE_TIMERS
 local AUTOCAST_SHINE_SPEEDS = AUTOCAST_SHINE_SPEEDS
+local strfind = strfind
 
 local create_bar = function(name, num, bar_cfg)
 
@@ -211,9 +212,8 @@ hooksecurefunc("ActionButton_SetTooltip", function(self)
 	end
 end)
 
---TODO CooldownFrame_Set
-hooksecurefunc(getmetatable(ActionButton1Cooldown).__index, 'SetCooldown', function(self)
-	if self:GetDebugName():find("ChargeCooldown") then
+hooksecurefunc('CooldownFrame_Set', function(self)
+	if strfind(self:GetDebugName(), "ChargeCooldown") then
 		self:SetHideCountdownNumbers(false)
 		self:SetDrawEdge(false)
 		self:SetFrameStrata("HIGH")
