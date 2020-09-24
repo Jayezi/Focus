@@ -182,8 +182,6 @@ local style_itembutton = function(button)
 	--   Layers
 	--     OVERLAY 1
 	--local upgrade = button.UpgradeIcon
-	local bagbottom = button.BagStaticBottom
-	local bagtop = button.BagStaticTop
 
 	--     OVERLAY 2
 	local quest = _G[name.."IconQuestTexture"]
@@ -191,10 +189,6 @@ local style_itembutton = function(button)
 	local new = button.NewItemTexture
 	local battlepay = button.BattlepayItemTexture
 	local extended = button.ExtendedSlot
-
-	--     OVERLAY 4
-	local extended_overlay = button.ExtendedOverlay
-	local extended_overlay2 = button.ExtendedOverlay2
 
 	--     OVERLAY 5
 	--local junk = button.JunkIcon
@@ -225,10 +219,6 @@ local style_itembutton = function(button)
 		self:alt_SetTexture(blank)
 	end)
 
-	-- OVERLAY 1
-	bagbottom:SetTexture()
-	bagtop:SetTexture()
-
 	-- OVERLAY 2
 	quest:SetAllPoints(icon)
 	quest:SetTexCoord(.07, .93, .07, .93)
@@ -249,8 +239,6 @@ local style_itembutton = function(button)
 
 	-- OVERLAY 4
 	extended:SetTexture()
-	extended_overlay:SetAllPoints()
-	extended_overlay2:SetAllPoints()
 
 	------------------------------
 

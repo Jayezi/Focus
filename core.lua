@@ -1,6 +1,7 @@
 ﻿local _, addon = ...
 local core = {}
 addon.core = core
+Focus = core
 
 local UIParent = UIParent
 local CreateFrame = CreateFrame
@@ -599,7 +600,7 @@ end)
 
 -- tooltips
 
-hooksecurefunc("GameTooltip_SetBackdropStyle", function(self, style)
+hooksecurefunc("SharedTooltip_SetBackdropStyle", function(self)
 	self:SetBackdrop(core.config.frame_backdrop)
 	self:SetBackdropColor(unpack(core.config.frame_background))
 	local _, link = self:GetItem();

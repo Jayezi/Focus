@@ -15,6 +15,36 @@ local AUTOCAST_SHINE_TIMERS = AUTOCAST_SHINE_TIMERS
 local AUTOCAST_SHINE_SPEEDS = AUTOCAST_SHINE_SPEEDS
 local strfind = strfind
 
+local set_tooltip = function(self)
+	local button_type = self.buttonType
+	local action = self.action
+	local id
+
+	if ( not button_type ) then
+        button_type = "ACTIONBUTTON";
+		id = self:GetID();
+	else
+		if ( button_type == "MULTICASTACTIONBUTTON" ) then
+			id = self.buttonIndex;
+		else
+			id = self:GetID();
+		end
+	end
+
+	local name = GetActionText(action)
+
+	local key1, key2 = GetBindingKey(button_type..id)
+	local key = key2 or key1
+	local bind = GetBindingText(key, 1)
+
+	if (name and not (name == "") or bind and not (bind == "")) then
+		GameTooltip:AddLine(" ")
+		if (name and not (name == "")) then GameTooltip:AddLine(name, 1, 1, 1) end
+		if (bind and not (bind == "")) then GameTooltip:AddLine(bind, 1, 1, 1) end
+		GameTooltip:Show()
+	end
+end
+
 local create_bar = function(name, num, bar_cfg)
 
 	local per_row = num / (bar_cfg.rows or 1)
@@ -88,6 +118,10 @@ local setup_actionbars = function()
 
 		local bar = create_bar(name, NUM_ACTIONBAR_BUTTONS, bar_cfg)
 		setup_bar(name, bar, NUM_ACTIONBAR_BUTTONS, bar_cfg, styles.actionbutton)
+
+		for i = 1, NUM_ACTIONBAR_BUTTONS do
+			hooksecurefunc(_G[name.."Button"..i], "SetTooltip", set_tooltip)
+		end
 	end
 
 	MainMenuBarArtFrameBackground:Hide()
@@ -181,36 +215,6 @@ ExtraActionBarFrame.ignoreFramePositionManager = true
 ZoneAbilityFrame:ClearAllPoints()
 ZoneAbilityFrame:SetPoint(unpack(cfg.bars.zone.pos))
 ZoneAbilityFrame.ignoreFramePositionManager = true
-
-hooksecurefunc("ActionButton_SetTooltip", function(self)
-	local button_type = self.buttonType
-	local action = self.action
-	local id
-
-	if ( not button_type ) then
-        button_type = "ACTIONBUTTON";
-		id = self:GetID();
-	else
-		if ( button_type == "MULTICASTACTIONBUTTON" ) then
-			id = self.buttonIndex;
-		else
-			id = self:GetID();
-		end
-	end
-
-	local name = GetActionText(action)
-
-	local key1, key2 = GetBindingKey(button_type..id)
-	local key = key2 or key1
-	local bind = GetBindingText(key, 1)
-
-	if (name and not (name == "") or bind and not (bind == "")) then
-		GameTooltip:AddLine(" ")
-		if (name and not (name == "")) then GameTooltip:AddLine(name, 1, 1, 1) end
-		if (bind and not (bind == "")) then GameTooltip:AddLine(bind, 1, 1, 1) end
-		GameTooltip:Show()
-	end
-end)
 
 hooksecurefunc('CooldownFrame_Set', function(self)
 	if strfind(self:GetDebugName(), "ChargeCooldown") then
