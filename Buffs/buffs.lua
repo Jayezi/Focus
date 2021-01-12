@@ -80,10 +80,10 @@ local update_debuffs = function(name, index)
 	button:ClearAllPoints()
 	if index == 1 then
 		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, buff_rows * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
-	elseif math.mod(index, cfg.per_row) == 1 then
+	elseif index % cfg.per_row == 1 then
 		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, (buff_rows + math.floor(index / cfg.per_row)) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
 	else
-		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", (math.mod(index, cfg.per_row) - 1) * -(cfg.size + cfg.col_spacing), (buff_rows + math.floor(index / cfg.per_row)) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
+		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", (index % cfg.per_row - 1) * -(cfg.size + cfg.col_spacing), (buff_rows + math.floor(index / cfg.per_row)) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
 	end
 end
 
@@ -110,6 +110,29 @@ local update_buffs = function()
 	end
 end
 
+local update_enchants = function()
+	local num_buffs = 0
+	local num_rows = 0
+
+	for index = 1, BuffFrame.numEnchants do
+		local button = TemporaryEnchantFrame.TempEnchant[index]
+		style_buff(button)
+		button:ClearAllPoints()
+		if num_buffs == 0 then
+			button:SetPoint("TOPRIGHT", TemporaryEnchantFrame, "TOPRIGHT", 0, 0)
+			num_buffs = 1
+			num_rows = 1
+		elseif num_buffs == cfg.per_row then
+			button:SetPoint("TOPRIGHT", TemporaryEnchantFrame, "TOPRIGHT", 0, num_rows * -(cfg.size + cfg.row_spacing))
+			num_buffs = 1
+			num_rows = num_rows + 1
+		else
+			button:SetPoint("TOPRIGHT", TemporaryEnchantFrame, "TOPRIGHT", num_buffs * -(cfg.size + cfg.col_spacing), (num_rows - 1) * -(cfg.size + cfg.row_spacing))
+			num_buffs = num_buffs + 1
+		end
+	end
+end
+
 -- BuffFrame:SetPoint in UIParent_UpdateTopFramePositions()
 BuffFrame.alt_SetPoint = BuffFrame.SetPoint
 hooksecurefunc(BuffFrame, "SetPoint", function(self)
@@ -129,3 +152,4 @@ end)
 
 hooksecurefunc("BuffFrame_UpdateAllBuffAnchors", update_buffs)
 hooksecurefunc("DebuffButton_UpdateAnchors", update_debuffs)
+hooksecurefunc("TemporaryEnchantFrame_Update", update_enchants)

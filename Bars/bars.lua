@@ -51,7 +51,7 @@ local create_bar = function(name, num, bar_cfg)
 	local bar = CreateFrame("Frame", "FocusBars"..name.."Bar", UIParent)
 
 	if bar_cfg.buttons.size then
-		bar:SetWidth((bar_cfg.buttons.size * (bar_cfg.buttons.width_scale or 1) + bar_cfg.buttons.margin) * per_row - bar_cfg.buttons.margin)
+		bar:SetWidth((bar_cfg.buttons.size + bar_cfg.buttons.margin) * per_row - bar_cfg.buttons.margin)
 		bar:SetHeight(((bar_cfg.buttons.height or bar_cfg.buttons.size) + bar_cfg.buttons.margin) * (bar_cfg.rows or 1) - bar_cfg.buttons.margin)
 	end
 
@@ -75,7 +75,7 @@ local setup_bar = function(name, bar, num, bar_cfg, style_func, buttons)
 		local button = buttons and buttons[i] or _G[name.."Button"..i]
 
 		if bar_cfg.buttons.size then
-			button:SetSize(bar_cfg.buttons.size * (bar_cfg.buttons.width_scale or 1), bar_cfg.buttons.height or bar_cfg.buttons.size)
+			button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.height or bar_cfg.buttons.size)
 		end
 
 		button:ClearAllPoints()
@@ -268,11 +268,13 @@ hooksecurefunc('AutoCastShine_AutoCastStop', function(button, r, g, b)
 end)
 
 hooksecurefunc('AutoCastShine_OnUpdate', function()
-	for _, button in ipairs(autocast_shines) do
+	for button, _ in pairs(autocast_shines) do
 		local parent, distance = button, button:GetWidth()
 		local height = button:GetHeight()
 
-		if distance == height then return end
+		if distance == height then
+			return
+		end
 
 		local mult = height / distance
 

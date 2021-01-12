@@ -8,6 +8,10 @@ local oUF = oUF
 local CreateFrame = CreateFrame
 local C_NamePlate = C_NamePlate
 local MAX_BOSS_FRAMES = MAX_BOSS_FRAMES
+local UIWidgetSetLayoutDirection = Enum.UIWidgetSetLayoutDirection
+local UIWidgetLayoutDirection = Enum.UIWidgetLayoutDirection
+local UnitGUID = UnitGUID
+local strsplit = strsplit
 
 local create_player_style = function(base)
 
@@ -28,7 +32,7 @@ local create_player_style = function(base)
 	base.Power.frequentUpdates = true
 	base.Power.colorClass = true
 	if power_invert then
-		base.Power.PostUpdate = lib.invert_color
+		base.Power.PostUpdateColor = lib.invert_color
 	end
 
 	-- classbar
@@ -54,7 +58,7 @@ local create_player_style = function(base)
 	base.Health.colorClass = true
 	base.Health.colorReaction = true
 	base.Health.frequentUpdates = true
-	base.Health.PostUpdate = lib.invert_color
+	base.Health.PostUpdateColor = lib.invert_color
 	lib.push_bar(base, base.Health)
 
 	base.HealthPrediction = lib.gen_heal_bar(base.Health)
@@ -135,7 +139,7 @@ local create_target_style = function(base)
 	base.Health.colorClass = true
 	base.Health.colorReaction = true
 	base.Health.frequentUpdates = true
-	base.Health.PostUpdate = lib.invert_color
+	base.Health.PostUpdateColor = lib.invert_color
 	lib.push_bar(base, base.Health)
 
 	-- alternate power
@@ -191,7 +195,7 @@ local create_tot_style = function(base)
 	base.Health = core.util.gen_statusbar(base, tot_cfg.size.w, tot_cfg.size.h)
 	base.Health.colorClass = true
 	base.Health.colorReaction = true
-	base.Health.PostUpdate = lib.invert_color
+	base.Health.PostUpdateColor = lib.invert_color
 	lib.push_bar(base, base.Health)
 	
 	base:SetHeight(base.stack_height)
@@ -216,7 +220,7 @@ local create_pet_style = function(base)
 	base.Health.colorDisconnected = true
 	base.Health.colorReaction = true
 	base.Health.frequentUpdates = true
-	base.Health.PostUpdate = lib.invert_color
+	base.Health.PostUpdateColor = lib.invert_color
 	lib.push_bar(base, base.Health)
 	
 	-- power
@@ -253,9 +257,16 @@ end
 
 local create_nameplate_style = function(base)
 
+	base:SetAllPoints()
+
 	local nameplate_cfg = cfg.frames.nameplate
 	local w, h = nameplate_cfg.size.w, nameplate_cfg.size.h
-	base:SetAllPoints()
+
+	-- Widgets
+	base.WidgetContainer = CreateFrame('Frame', nil, base, 'UIWidgetContainerNoResizeTemplate')
+	base.WidgetContainer:SetPoint('BOTTOM', base, 'TOP', 0, 10)
+	base.WidgetContainer:Hide()
+	base.WidgetContainer.showAndHideOnWidgetSetRegistration = false
 	
 	-- health
 	base.Health = core.util.gen_statusbar(base, w, h, false)
@@ -263,14 +274,22 @@ local create_nameplate_style = function(base)
 	base.Health.colorReaction = true
 	base.Health.colorTapping = true
 	base.Health.frequentUpdates = true
-	base.Health:SetPoint("BOTTOMLEFT", base, "LEFT")
+	base.Health:SetPoint("BOTTOMLEFT", base, "BOTTOMLEFT", 0, 20)
+
+	base.Health.PostUpdateColor = function(self, unit)
+		local guid = UnitGUID(unit)
+		local _, _, _, _, _, npc_id, _ = strsplit("-", guid)
+    	if cfg.nameplate_colors[tonumber(npc_id)] then
+			self:SetStatusBarColor(unpack(cfg.nameplate_colors[tonumber(npc_id)]))
+		end
+	end
 	
 	-- power
 	base.Power = CreateFrame("StatusBar", nil, base.Health)
 	base.Power:SetStatusBarTexture(core.media.textures.blank)
-	base.Power:SetSize(w / 2, h / 3)
+	base.Power:SetSize(w - 2, nameplate_cfg.power.h)
 	base.Power:SetFrameLevel(base.Health:GetFrameLevel() + 1)
-	base.Power:SetPoint("BOTTOMLEFT", 1, 1)
+	base.Power:SetPoint("TOPLEFT", 1, -1)
 	base.Power.colorClass = true
 	base.Power.colorDisconnected = true
 	base.Power.frequentUpdates = true
@@ -287,7 +306,7 @@ local create_nameplate_style = function(base)
 	hp_string:SetPoint("RIGHT", base.Health, "BOTTOMRIGHT", -1, 0)
 
 	-- cast
-	base.Castbar = lib.gen_nameplate_cast_bar(base, w, h, core.config.font_size_med)
+	base.Castbar = lib.gen_nameplate_cast_bar(base, w, nameplate_cfg.cast.h, nameplate_cfg.cast.h + h - 3, core.config.font_size_med)
 	base.Castbar:SetPoint("TOPLEFT", base.Health, "BOTTOMLEFT", 0, 1)
 
 	-- auras
@@ -325,7 +344,7 @@ local create_focus_style = function(base)
 	base.Health.colorDisconnected = true
 	base.Health.colorClass = true
 	base.Health.colorReaction = true
-	base.Health.PostUpdate = lib.invert_color
+	base.Health.PostUpdateColor = lib.invert_color
 	lib.push_bar(base, base.Health)
 
 	base:SetHeight(base.stack_height)
@@ -364,7 +383,7 @@ local create_boss_style = function(base)
 	base.Health = core.util.gen_statusbar(base, boss_cfg.size.w, boss_cfg.size.h)
 	base.Health.colorReaction = true
 	base.Health.frequentUpdates = true
-	base.Health.PostUpdate = lib.invert_color
+	base.Health.PostUpdateColor = lib.invert_color
 	lib.push_bar(base, base.Health)
 
 	-- alt power
@@ -416,7 +435,7 @@ local create_tank_style = function(base)
 	base.Health.frequentUpdates = true
 	base.Health.colorDisconnected = true
 	base.Health.colorClass = true
-	base.Health.PostUpdate = lib.invert_color
+	base.Health.PostUpdateColor = lib.invert_color
 	lib.push_bar(base, base.Health)
 	
 	-- power
@@ -459,7 +478,7 @@ local create_party_style = function(base)
 	base.Health.colorDisconnected = true
 	base.Health.colorClass = true
 	base.Health.colorReaction = true
-	base.Health.PostUpdate = lib.invert_color
+	base.Health.PostUpdateColor = lib.invert_color
 	lib.push_bar(base, base.Health)
 
 	base.HealthPrediction = lib.gen_heal_bar(base.Health)
@@ -516,7 +535,7 @@ local create_raid_style = function(role)
 			base.Health.colorDisconnected = true
 			base.Health.colorClass = true
 			base.Health.colorReaction = true
-			base.Health.PostUpdate = lib.invert_color
+			base.Health.PostUpdateColor = lib.invert_color
 			lib.push_bar(base, base.Health)
 
 			-- power
@@ -560,7 +579,7 @@ local create_raid_style = function(role)
 			base.Health.colorDisconnected = true
 			base.Health.colorClass = true
 			base.Health.colorReaction = true
-			base.Health.PostUpdate = lib.invert_color
+			base.Health.PostUpdateColor = lib.invert_color
 			lib.push_bar(base, base.Health)
 			
 			base.HealthPrediction = lib.gen_heal_bar(base.Health)
@@ -603,13 +622,151 @@ local create_raid_style = function(role)
 	end
 end
 
+local widgetLayout = function(widgetContainerFrame, sortedWidgets)
+	local horizontalRowContainer = nil
+	local horizontalRowHeight = 0
+	local horizontalRowWidth = 0
+	local totalWidth = 0
+	local totalHeight = 0
+
+	widgetContainerFrame.horizontalRowContainerPool:ReleaseAll()
+
+	for index, widgetFrame in ipairs(sortedWidgets) do
+		widgetFrame:ClearAllPoints()
+
+		-- if widgetFrame.Bar and not widgetFrame.Bar.backdrop then
+		-- 	widgetFrame.Bar:CreateBackdrop('Transparent')
+		-- end
+
+		local widgetSetUsesVertical = widgetContainerFrame.widgetSetLayoutDirection == UIWidgetSetLayoutDirection.Vertical
+		local widgetUsesVertical = widgetFrame.layoutDirection == UIWidgetLayoutDirection.Vertical
+
+		local useOverlapLayout = widgetFrame.layoutDirection == UIWidgetLayoutDirection.Overlap
+		local useVerticalLayout = widgetUsesVertical or (widgetFrame.layoutDirection == UIWidgetLayoutDirection.Default and widgetSetUsesVertical)
+
+		if useOverlapLayout then
+			-- This widget uses overlap layout
+
+			if index == 1 then
+				if widgetSetUsesVertical then
+					widgetFrame:Point(widgetContainerFrame.verticalAnchorPoint, widgetContainerFrame)
+				else
+					widgetFrame:Point(widgetContainerFrame.horizontalAnchorPoint, widgetContainerFrame)
+				end
+			else
+				local relative = sortedWidgets[index - 1]
+				if widgetSetUsesVertical then
+					widgetFrame:Point(widgetContainerFrame.verticalAnchorPoint, relative, widgetContainerFrame.verticalAnchorPoint, 0, 0)
+				else
+					widgetFrame:Point(widgetContainerFrame.horizontalAnchorPoint, relative, widgetContainerFrame.horizontalAnchorPoint, 0, 0)
+				end
+			end
+
+			local width, height = widgetFrame:GetSize()
+			if width > totalWidth then
+				totalWidth = width
+			end
+			if height > totalHeight then
+				totalHeight = height
+			end
+
+			widgetFrame:SetParent(widgetContainerFrame)
+		elseif useVerticalLayout then
+			if index == 1 then
+				widgetFrame:Point(widgetContainerFrame.verticalAnchorPoint, widgetContainerFrame)
+			else
+				local relative = horizontalRowContainer or sortedWidgets[index - 1]
+				widgetFrame:Point(widgetContainerFrame.verticalAnchorPoint, relative, widgetContainerFrame.verticalRelativePoint, 0, widgetContainerFrame.verticalAnchorYOffset)
+
+				if horizontalRowContainer then
+					horizontalRowContainer:Size(horizontalRowWidth, horizontalRowHeight)
+					totalWidth = totalWidth + horizontalRowWidth
+					totalHeight = totalHeight + horizontalRowHeight
+					horizontalRowHeight = 0
+					horizontalRowWidth = 0
+					horizontalRowContainer = nil
+				end
+
+				totalHeight = totalHeight + widgetContainerFrame.verticalAnchorYOffset
+			end
+
+			widgetFrame:SetParent(widgetContainerFrame)
+
+			local width, height = widgetFrame:GetSize()
+			if width > totalWidth then
+				totalWidth = width
+			end
+			totalHeight = totalHeight + height
+		else
+			local forceNewRow = widgetFrame.layoutDirection == UIWidgetLayoutDirection.HorizontalForceNewRow
+			local needNewRowContainer = not horizontalRowContainer or forceNewRow
+			if needNewRowContainer then
+				if horizontalRowContainer then
+					--horizontalRowContainer:Layout()
+					horizontalRowContainer:Size(horizontalRowWidth, horizontalRowHeight)
+					totalWidth = totalWidth + horizontalRowWidth
+					totalHeight = totalHeight + horizontalRowHeight
+					horizontalRowHeight = 0
+					horizontalRowWidth = 0
+				end
+
+				local newHorizontalRowContainer = widgetContainerFrame.horizontalRowContainerPool:Acquire()
+				newHorizontalRowContainer:Show()
+
+				if index == 1 then
+					newHorizontalRowContainer:SetPoint(widgetContainerFrame.verticalAnchorPoint, widgetContainerFrame, widgetContainerFrame.verticalAnchorPoint)
+				else
+					local relative = horizontalRowContainer or sortedWidgets[index - 1]
+					newHorizontalRowContainer:SetPoint(widgetContainerFrame.verticalAnchorPoint, relative, widgetContainerFrame.verticalRelativePoint, 0, widgetContainerFrame.verticalAnchorYOffset)
+
+					totalHeight = totalHeight + widgetContainerFrame.verticalAnchorYOffset
+				end
+				widgetFrame:SetPoint('TOPLEFT', newHorizontalRowContainer)
+				widgetFrame:SetParent(newHorizontalRowContainer)
+
+				horizontalRowWidth = horizontalRowWidth + widgetFrame:GetWidth()
+				horizontalRowContainer = newHorizontalRowContainer
+			else
+				local relative = sortedWidgets[index - 1]
+				widgetFrame:SetParent(horizontalRowContainer)
+				widgetFrame:SetPoint(widgetContainerFrame.horizontalAnchorPoint, relative, widgetContainerFrame.horizontalRelativePoint, widgetContainerFrame.horizontalAnchorXOffset, 0)
+
+				horizontalRowWidth = horizontalRowWidth + widgetFrame:GetWidth() + widgetContainerFrame.horizontalAnchorXOffset
+			end
+
+			local widgetHeight = widgetFrame:GetHeight()
+			if widgetHeight > horizontalRowHeight then
+				horizontalRowHeight = widgetHeight
+			end
+		end
+	end
+
+	if horizontalRowContainer then
+		horizontalRowContainer:SetSize(horizontalRowWidth, horizontalRowHeight)
+		totalWidth = totalWidth + horizontalRowWidth
+		totalHeight = totalHeight + horizontalRowHeight
+	end
+
+	widgetContainerFrame:SetSize(totalWidth, totalHeight)
+	widgetContainerFrame:Show()
+end
+
 oUF:Factory(function(self)
 
 	if cfg.enabled.nameplates then
-		C_NamePlate.SetNamePlateEnemySize(cfg.frames.nameplate.size.w, cfg.frames.nameplate.size.h * 4)
-		C_NamePlate.SetNamePlateFriendlySize(cfg.frames.nameplate.size.w, cfg.frames.nameplate.size.h * 4)
 		oUF:RegisterStyle("FocusUnitsNameplate", create_nameplate_style)
-		oUF:SpawnNamePlates("FocusUnits", nil, cfg.nameplate_cfg)
+		oUF:SpawnNamePlates("FocusUnits", function(nameplate, event, unit)
+			if event == "NAME_PLATE_UNIT_ADDED" then
+				nameplate.WidgetContainer:UnregisterForWidgetSet()
+				local widgetSet = UnitWidgetSet(unit)
+				if widgetSet and ((playerControlled and UnitIsOwnerOrControllerOfUnit('player', unit)) or not playerControlled) then
+					nameplate.WidgetContainer:RegisterForWidgetSet(widgetSet, widgetLayout, nil, unit)
+					nameplate.WidgetContainer:ProcessAllWidgets()
+				end
+			elseif event == "NAME_PLATE_UNIT_REMOVED" then
+				nameplate.WidgetContainer:UnregisterForWidgetSet()
+			end
+		end, cfg.nameplate_cfg)
 	end
 
 	if cfg.enabled.player then

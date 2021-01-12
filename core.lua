@@ -1,7 +1,10 @@
-﻿local _, addon = ...
+﻿-- Might without control is wasted.
+-- Focus. Dominate.
+--                    - The Primus
+
+local _, addon = ...
 local core = {}
 addon.core = core
-Focus = core
 
 local UIParent = UIParent
 local CreateFrame = CreateFrame
@@ -20,6 +23,7 @@ local UnitExists = UnitExists
 local UnitName = UnitName
 local WorldFrame = WorldFrame
 local UnitIsAFK = UnitIsAFK
+local CinematicFrame = CinematicFrame
 
 addon.bars = { enabled = true }
 addon.units = { enabled = true }
@@ -437,7 +441,6 @@ settings.add_action = function(self, name, func)
 	button.click = func
 	core.util.gen_backdrop(button)
 	button:SetSize(140, 25)
-	button:RegisterForClicks("AnyUp")
 	button:SetText(name)
 	core.util.fix_string(button:GetFontString())
 	button:SetScript("OnClick", function(self)
@@ -575,6 +578,10 @@ end)
 -- tooltips
 
 hooksecurefunc("SharedTooltip_SetBackdropStyle", function(self)
+	if self.IsEmbedded then
+		return
+	end
+
 	self:SetBackdrop(core.config.frame_backdrop)
 	self:SetBackdropColor(unpack(core.config.frame_background))
 	local _, link = self:GetItem();
@@ -702,4 +709,47 @@ login_frame:RegisterEvent("PLAYER_LOGIN")
 login_frame:SetScript("OnEvent", function()
 	UIParent:SetScale(core.config.ui_scale)
 	WorldFrame:SetScale(core.config.ui_scale)
+	CinematicFrame:SetScale(core.config.ui_scale)
+
+	C_NamePlate.SetNamePlateEnemySize(250, 50)
+	C_NamePlate.SetNamePlateFriendlySize(0.1, 0.1)
+	SetCVar("nameplateShowOnlyNames", 1)
+
+	-- stacking
+	SetCVar("nameplateMotion", 1)
+
+	SetCVar("nameplateMotionSpeed", 0.1)
+	SetCVar("nameplateMaxDistance", 60)
+	SetCVar("nameplateOccludedAlphaMult", 0.2)
+	
+	SetCVar("nameplateGlobalScale", 1)
+	SetCVar("nameplateHorizontalScale", 1)
+	SetCVar("nameplateVerticalScale", 1)
+	SetCVar("nameplateLargerScale", 1)
+	
+	SetCVar("nameplateOverlapH", 1)
+	SetCVar("nameplateOverlapV", 1)
+
+	SetCVar("nameplateMinAlpha", 0.6)
+	SetCVar("nameplateMinScale", 1)
+	SetCVar("nameplateMinScaleDistance", 10)
+	SetCVar("nameplateMinAlphaDistance", 10)
+
+	SetCVar("nameplateMaxAlpha", 0.6)
+	SetCVar("nameplateMaxScale", 1)
+	SetCVar("nameplateMaxScaleDistance", 90)
+	SetCVar("nameplateMaxAlphaDistance", 90)
+	
+	SetCVar("nameplateSelectedAlpha", 1)
+	SetCVar("nameplateSelectedScale", 1)
+
+	SetCVar("nameplateLargeBottomInset", -0.01)
+	SetCVar("nameplateLargeTopInset", 0.03)
+	SetCVar("nameplateOtherBottomInset", -0.01)
+	SetCVar("nameplateOtherTopInset", 0.03)
+	
+	SetCVar("nameplateSelfAlpha", 1)
+	SetCVar("nameplateSelfScale", 1)
+	SetCVar("nameplateSelfTopInset", 0)
+	SetCVar("nameplateSelfBottomInset", 0.4)
 end)

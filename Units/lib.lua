@@ -135,41 +135,33 @@ lib.gen_cast_bar = function(base, w, h, text_size, latency, interrupt, color)
 			end
 		end
 		
-		cast_bar.PostChannelStart = function(self, ...)
-			if (self.notInterruptible) then
-				self:SetBackdropColor(unpack(cfg.cast_non_interrupt_color))
-			else
-				self:SetBackdropColor(unpack(cfg.cast_interrupt_color))
-			end
-		end
-		
 		cast_bar.PostCastInterruptible = function(self, ...)
-			self:SetBackdropColor(unpack(cfg.cast_interrupt_color))
-		end
-		
-		cast_bar.PostCastNotInterruptible = function(self, ...)
-			self:SetBackdropColor(unpack(cfg.cast_non_interrupt_color))
-		end
-		
-		cast_bar.PostChannelUpdate = function(self, ...)
-			if (self.notInterruptible) then
+			if self.notInterruptible then
 				self:SetBackdropColor(unpack(cfg.cast_non_interrupt_color))
 			else
 				self:SetBackdropColor(unpack(cfg.cast_interrupt_color))
 			end
 		end
+		
+		-- cast_bar.PostChannelUpdate = function(self, ...)
+		-- 	if (self.notInterruptible) then
+		-- 		self:SetBackdropColor(unpack(cfg.cast_non_interrupt_color))
+		-- 	else
+		-- 		self:SetBackdropColor(unpack(cfg.cast_interrupt_color))
+		-- 	end
+		-- end
 	end
 
 	return cast_bar
 end
 
-lib.gen_nameplate_cast_bar = function(base, w, h, text_size)
+lib.gen_nameplate_cast_bar = function(base, w, h, icon_h, text_size)
 
     local cast_bar = core.util.gen_statusbar(base, w, h)
 
     local cast_icon = cast_bar:CreateTexture()
 	cast_icon:SetDrawLayer("OVERLAY", -6)
-	cast_icon:SetSize(h * 2 - 3, h * 2 - 3)
+	cast_icon:SetSize(icon_h, icon_h)
 	cast_icon:SetPoint("BOTTOMRIGHT", cast_bar, "BOTTOMLEFT", 0, 1)
 	cast_icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 	cast_bar.Icon = cast_icon
@@ -196,27 +188,7 @@ lib.gen_nameplate_cast_bar = function(base, w, h, text_size)
 		end
 	end
 	
-	cast_bar.PostChannelStart = function(self, ...)
-		if (self.notInterruptible) then
-			cast_bar:SetStatusBarColor(unpack(cfg.cast_non_interrupt_color))
-			cast_name:SetTextColor(unpack(cfg.cast_non_interrupt_color))
-		else
-			cast_bar:SetStatusBarColor(unpack(cfg.cast_interrupt_color))
-			cast_name:SetTextColor(unpack(cfg.cast_interrupt_color))
-		end
-	end
-	
 	cast_bar.PostCastInterruptible = function(self, ...)
-		cast_bar:SetStatusBarColor(unpack(cfg.cast_interrupt_color))
-		cast_name:SetTextColor(unpack(cfg.cast_interrupt_color))
-	end
-	
-	cast_bar.PostCastNotInterruptible = function(self, ...)
-		cast_bar:SetStatusBarColor(unpack(cfg.cast_non_interrupt_color))
-		cast_name:SetTextColor(unpack(cfg.cast_non_interrupt_color))
-	end
-	
-	cast_bar.PostChannelUpdate = function(self, ...)
 		if (self.notInterruptible) then
 			cast_bar:SetStatusBarColor(unpack(cfg.cast_non_interrupt_color))
 			cast_name:SetTextColor(unpack(cfg.cast_non_interrupt_color))
@@ -225,6 +197,16 @@ lib.gen_nameplate_cast_bar = function(base, w, h, text_size)
 			cast_name:SetTextColor(unpack(cfg.cast_interrupt_color))
 		end
 	end
+	
+	-- cast_bar.PostChannelUpdate = function(self, ...)
+	-- 	if (self.notInterruptible) then
+	-- 		cast_bar:SetStatusBarColor(unpack(cfg.cast_non_interrupt_color))
+	-- 		cast_name:SetTextColor(unpack(cfg.cast_non_interrupt_color))
+	-- 	else
+	-- 		cast_bar:SetStatusBarColor(unpack(cfg.cast_interrupt_color))
+	-- 		cast_name:SetTextColor(unpack(cfg.cast_interrupt_color))
+	-- 	end
+	-- end
 
 	return cast_bar
 end

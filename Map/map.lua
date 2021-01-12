@@ -60,11 +60,6 @@ MinimapNorthTag:SetTexture()
 MinimapCompassTexture:SetTexture()
 MiniMapWorldMapButton:Hide()
 
-GarrisonLandingPageMinimapButton:SetSize(45, 45)
-GarrisonLandingPageMinimapButton:ClearAllPoints()
-GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT")
-GarrisonLandingPageMinimapButton:SetHitRectInsets(0, 0, 0, 0)
-
 QueueStatusMinimapButton:ClearAllPoints()
 QueueStatusMinimapButton:SetPoint("LEFT", Minimap)
 QueueStatusMinimapButtonBorder:Hide()
@@ -147,7 +142,7 @@ end
 
 ObjectiveTrackerFrame.alt_SetPoint = ObjectiveTrackerFrame.SetPoint
 hooksecurefunc(ObjectiveTrackerFrame, "SetPoint", function(self)
-	self:ClearAllPoints()
+	--self:ClearAllPoints()
 	self:alt_SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -10)
 	--self:alt_SetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", 0, -10)
 end)
@@ -165,4 +160,9 @@ VehicleSeatIndicator.alt_SetPoint = VehicleSeatIndicator.SetPoint
 hooksecurefunc(VehicleSeatIndicator, "SetPoint", function(self)
 	self:ClearAllPoints()
 	self:alt_SetPoint("TOPRIGHT", MinimapCluster, "BOTTOMLEFT", -20, -5)
+end)
+
+hooksecurefunc("GarrisonLandingPageMinimapButton_UpdateIcon", function(self)
+	self:ClearAllPoints()
+	self:SetPoint("BOTTOMLEFT")
 end)

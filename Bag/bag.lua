@@ -19,7 +19,7 @@ local BackpackTokenFrameToken3 = BackpackTokenFrameToken3
 local BackpackTokenFrame = BackpackTokenFrame
 local OpenBag = OpenBag
 local NUM_BAG_SLOTS = NUM_BAG_SLOTS
-local ReagentBankFrameItem1 = ReagentBankFrameItem1
+local LootFrame = LootFrame
 
 local cfg = {
 	inset = 10,
@@ -28,7 +28,7 @@ local cfg = {
 	size = 45,
 	bag_size = 30,
 	spacing = 5,
-	per_row = 12,
+	per_row = 15,
 	edit_size = 200,
 	edit_letters = 15,
 	color = {
@@ -193,6 +193,15 @@ local style_itembutton = function(button)
 	--     OVERLAY 5
 	--local junk = button.JunkIcon
 
+	-- LootButtonTemplate
+	--   Layers
+	--     OVERLAY
+	--local quest = _G[name.."IconQuestTexture"]
+
+	--     ARTWORK
+	local nameFrame = _G[name.."NameFrame"]
+	local text = _G[name.."Text"]
+
 	-------------------------------
 
 	-- Layers
@@ -223,22 +232,33 @@ local style_itembutton = function(button)
 	quest:SetAllPoints(icon)
 	quest:SetTexCoord(.07, .93, .07, .93)
 
-	flash:SetAllPoints(icon)
+	if flash then
+		flash:SetAllPoints(icon)
+	end
 
-	new:SetAllPoints(icon)
-	new:SetTexture(blank)
-	new:SetVertexColor(unpack(cfg.color.highlight))
+	if new then
+		new:SetAllPoints(icon)
+		new:SetTexture(blank)
+		new:SetVertexColor(unpack(cfg.color.highlight))
 
-	hooksecurefunc(new, "SetAtlas", function(self)
-		self:SetTexture(blank)
-	end)
+		hooksecurefunc(new, "SetAtlas", function(self)
+			self:SetTexture(blank)
+		end)
+	end
 
+	if battlepay then
+		battlepay:SetAllPoints()
+	end
+	if extended then
+		extended:SetAllPoints()
+		extended:SetTexture()
+	end
 
-	battlepay:SetAllPoints()
-	extended:SetAllPoints()
+	------------------------------
 
-	-- OVERLAY 4
-	extended:SetTexture()
+	if nameFrame then
+		nameFrame:SetTexture()
+	end
 
 	------------------------------
 
@@ -806,7 +826,7 @@ end)
 ReagentBankFrame:HookScript("OnShow", function(self)
 	update_bag_items(focus_bank)
 	ReagentBankFrame.DespositButton.Text:ClearAllPoints()
-	ReagentBankFrame.DespositButton.Text:SetPoint("BOTTOMLEFT", ReagentBankFrameItem1, "TOPLEFT", 0, cfg.inset)
+	ReagentBankFrame.DespositButton.Text:SetPoint("BOTTOMLEFT", focus_bank, "BOTTOMLEFT", cfg.inset, cfg.inset)
 	strip_textures(ReagentBankFrame)
 	bank_bag_bg:Hide()
 end)
@@ -819,3 +839,35 @@ end)
 BankFrame:HookScript("OnHide", function()
 	update_bag_items(focus_bank)
 end)
+
+SetSortBagsRightToLeft(true)
+SetInsertItemsLeftToRight(false)
+
+LootFrame.NineSlice:Hide()
+LootFrame.Bg:Hide()
+LootFrame.TitleBg:Hide()
+LootFrame.TopTileStreaks:Hide()
+LootFrame.Inset:Hide()
+
+LootFramePortrait:SetPoint("TOPLEFT")
+LootFramePortrait:SetSize(60, 30)
+LootFramePortrait:SetTexture(core.media.textures.blank)
+LootFramePortrait:SetVertexColor(0, 0, 0)
+LootFramePortrait:SetDrawLayer("OVERLAY", -2)
+
+LootFramePortraitOverlay:SetTexCoord(.16, .84, .33, .67)
+LootFramePortraitOverlay:SetPoint("TOPLEFT", LootFramePortrait, "TOPLEFT", 1, -1)
+LootFramePortraitOverlay:SetPoint("BOTTOMRIGHT", LootFramePortrait, "BOTTOMRIGHT", -1, 1)
+
+core.util.gen_backdrop(LootFrame)
+LootFrame:SetFrameStrata("DIALOG")
+LootFrame:Raise()
+
+style_itembutton(LootButton1)
+LootButton1:SetSize(38, 38)
+style_itembutton(LootButton2)
+LootButton2:SetSize(38, 38)
+style_itembutton(LootButton3)
+LootButton3:SetSize(38, 38)
+style_itembutton(LootButton4)
+LootButton4:SetSize(38, 38)

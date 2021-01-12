@@ -136,7 +136,13 @@ cfg.frames = {
 		}
 	},
 	nameplate = {
-		size = {w = 250, h = 18},
+		size = {
+			w = 250,
+			h = 20
+		},
+		cast = {
+			h = 12
+		},
 		power = {
 			h = 4
 		}
@@ -204,6 +210,12 @@ cfg.nameplate_cfg = {
     ["nameplateHorizontalScale"] = 1,
 	["nameplateVerticalScale"] = 1,
 	["nameplateOccludedAlphaMult"] = 0.2
+}
+
+-- override color on specific units to help see them
+cfg.nameplate_colors = {
+	[175992] = {1, 0.25, 1},
+	[169924] = {1, 0.25, 1},
 }
 
 cfg.pet_buff_whitelist = {
@@ -276,6 +288,7 @@ cfg.player_buff_whitelist = {
 	[269576] = true,		--Master Marksman
 	[257622] = true,		--Trick Shots
 	[272733] = true,		--In The Rhythm
+	[193534] = true,		--Steady Shot
 	
 	-- Monk
 	[137639] = true, 		--Storm, Earth, and Fire

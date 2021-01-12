@@ -20,6 +20,7 @@ local FCF_OpenNewWindow = FCF_OpenNewWindow
 local ChatFrame_AddMessageGroup = ChatFrame_AddMessageGroup
 local ChatFrame_RemoveAllMessageGroups = ChatFrame_RemoveAllMessageGroups
 local ChatFrame_AddChannel = ChatFrame_AddChannel
+local ChatFrame_RemoveChannel = ChatFrame_RemoveChannel
 local ToggleChatColorNamesByClassGroup = ToggleChatColorNamesByClassGroup
 local ReloadUI = ReloadUI
 local FCF_GetCurrentChatFrame = FCF_GetCurrentChatFrame
@@ -353,6 +354,8 @@ local setup_chat = function()
 	ChatFrame_AddMessageGroup(ChatFrame1, "PET_INFO")
 	ChatFrame_AddMessageGroup(ChatFrame1, "COMBAT_MISC_INFO")
 	ChatFrame_AddMessageGroup(ChatFrame1, "TARGETICONS")
+	ChatFrame_RemoveChannel(ChatFrame1, "Trade")
+	ChatFrame_RemoveChannel(ChatFrame1, "LookingForGroup")
 
 	-- log tab
 	ChatFrame_RemoveAllMessageGroups(ChatFrame2)
@@ -506,7 +509,10 @@ skin_button(ChatFrameMenuButton, [[interface/gossipframe/chatbubblegossipicon]])
 ChatFrameChannelButton:ClearAllPoints()
 ChatFrameChannelButton:SetPoint("TOPLEFT", ChatFrame1ButtonFrame, "TOPLEFT")
 ChatFrameChannelButton:SetSize(24, 24)
-skin_button(ChatFrameChannelButton, nil, -.1, 1, 0, 1.1)
+skin_button(ChatFrameChannelButton, nil, 0, .9, .1, 1)
+ChatFrameChannelButton.Flash:SetAllPoints()
+ChatFrameChannelButton.Flash:SetTexture(core.media.textures.blank)
+ChatFrameChannelButton.Flash:SetVertexColor(.5, .5, 0, .5)
 
 ChatFrameToggleVoiceDeafenButton:ClearAllPoints()
 ChatFrameToggleVoiceDeafenButton:SetPoint("TOPLEFT", ChatFrameChannelButton, "BOTTOMLEFT", 0, -1)

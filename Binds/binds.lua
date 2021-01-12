@@ -77,7 +77,7 @@ frame:SetScript("OnEvent", function(self, event, addon)
 			if not FocusBindsLayouts[core.player.realm] then FocusBindsLayouts[core.player.realm] = {} end
 			if not FocusBindsLayouts[core.player.realm][core.player.name] then FocusBindsLayouts[core.player.realm][core.player.name] = {} end
 		end
-	elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
+	elseif event == "PLAYER_SPECIALIZATION_CHANGED" and not InCombatLockdown() then
 		local _, spec = GetSpecializationInfo(GetSpecialization())
 		load_layout(spec)
 	end
