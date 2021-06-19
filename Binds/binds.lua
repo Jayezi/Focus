@@ -7,6 +7,7 @@ local SaveBindings = SaveBindings
 local GetSpecializationInfo = GetSpecializationInfo
 local GetSpecialization = GetSpecialization
 local CreateFrame = CreateFrame
+local InCombatLockdown = InCombatLockdown
 
 local bar_list = {
 	"MultiActionBar1",
@@ -70,14 +71,14 @@ end
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-frame:SetScript("OnEvent", function(self, event, addon)
+frame:SetScript("OnEvent", function(self, event, ...)
 	if event == "ADDON_LOADED" then
-		if addon == "Focus" then
+		if ... == "Focus" then
 			if not FocusBindsLayouts then FocusBindsLayouts = {} end
 			if not FocusBindsLayouts[core.player.realm] then FocusBindsLayouts[core.player.realm] = {} end
 			if not FocusBindsLayouts[core.player.realm][core.player.name] then FocusBindsLayouts[core.player.realm][core.player.name] = {} end
 		end
-	elseif event == "PLAYER_SPECIALIZATION_CHANGED" and not InCombatLockdown() then
+	elseif event == "PLAYER_SPECIALIZATION_CHANGED" and not InCombatLockdown() and ... == "player" then
 		local _, spec = GetSpecializationInfo(GetSpecialization())
 		load_layout(spec)
 	end

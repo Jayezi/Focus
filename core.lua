@@ -1,5 +1,6 @@
-﻿-- Might without control is wasted.
--- Focus. Dominate.
+﻿-- Might without control is wasted...
+-- Focus.
+-- Dominate.
 --                    - The Primus
 
 local _, addon = ...

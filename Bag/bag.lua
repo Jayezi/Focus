@@ -512,9 +512,9 @@ hooksecurefunc("ContainerFrame_Update", function(bag)
 	local id = bag:GetID()
 
 	if id == BACKPACK_CONTAINER then
-		BagItemSearchBox:ClearAllPoints()
-		BagItemSearchBox:SetPoint("TOPRIGHT", focus_backpack, "TOPRIGHT", -cfg.inset, -cfg.inset)
 		skin_edit_box(BagItemSearchBox)
+		BagItemSearchBox:ClearAllPoints()
+		BagItemSearchBox:SetPoint("TOPLEFT", focus_backpack, "TOPRIGHT", -(cfg.inset + BagItemSearchBox:GetWidth()), -cfg.inset)
 
 		BagItemAutoSortButton:ClearAllPoints()
 		BagItemAutoSortButton:SetPoint("TOPRIGHT", BagItemSearchBox, "TOPLEFT", -cfg.spacing, 0)

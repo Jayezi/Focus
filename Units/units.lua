@@ -649,16 +649,16 @@ local widgetLayout = function(widgetContainerFrame, sortedWidgets)
 
 			if index == 1 then
 				if widgetSetUsesVertical then
-					widgetFrame:Point(widgetContainerFrame.verticalAnchorPoint, widgetContainerFrame)
+					widgetFrame:SetPoint(widgetContainerFrame.verticalAnchorPoint, widgetContainerFrame)
 				else
-					widgetFrame:Point(widgetContainerFrame.horizontalAnchorPoint, widgetContainerFrame)
+					widgetFrame:SetPoint(widgetContainerFrame.horizontalAnchorPoint, widgetContainerFrame)
 				end
 			else
 				local relative = sortedWidgets[index - 1]
 				if widgetSetUsesVertical then
-					widgetFrame:Point(widgetContainerFrame.verticalAnchorPoint, relative, widgetContainerFrame.verticalAnchorPoint, 0, 0)
+					widgetFrame:SetPoint(widgetContainerFrame.verticalAnchorPoint, relative, widgetContainerFrame.verticalAnchorPoint, 0, 0)
 				else
-					widgetFrame:Point(widgetContainerFrame.horizontalAnchorPoint, relative, widgetContainerFrame.horizontalAnchorPoint, 0, 0)
+					widgetFrame:SetPoint(widgetContainerFrame.horizontalAnchorPoint, relative, widgetContainerFrame.horizontalAnchorPoint, 0, 0)
 				end
 			end
 
@@ -673,10 +673,10 @@ local widgetLayout = function(widgetContainerFrame, sortedWidgets)
 			widgetFrame:SetParent(widgetContainerFrame)
 		elseif useVerticalLayout then
 			if index == 1 then
-				widgetFrame:Point(widgetContainerFrame.verticalAnchorPoint, widgetContainerFrame)
+				widgetFrame:SetPoint(widgetContainerFrame.verticalAnchorPoint, widgetContainerFrame)
 			else
 				local relative = horizontalRowContainer or sortedWidgets[index - 1]
-				widgetFrame:Point(widgetContainerFrame.verticalAnchorPoint, relative, widgetContainerFrame.verticalRelativePoint, 0, widgetContainerFrame.verticalAnchorYOffset)
+				widgetFrame:SetPoint(widgetContainerFrame.verticalAnchorPoint, relative, widgetContainerFrame.verticalRelativePoint, 0, widgetContainerFrame.verticalAnchorYOffset)
 
 				if horizontalRowContainer then
 					horizontalRowContainer:Size(horizontalRowWidth, horizontalRowHeight)
