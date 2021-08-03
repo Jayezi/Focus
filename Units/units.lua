@@ -74,6 +74,7 @@ local create_player_style = function(base)
 	-- alternate power
 	base.AlternativePower = core.util.gen_statusbar(base, player_cfg.alt_power.size.w, player_cfg.alt_power.size.h)
 	base.AlternativePower:SetPoint(core.util.to_tl_anchor(base.AlternativePower, player_cfg.alt_power.pos))
+	base.AlternativePower:GetStatusBarTexture():SetAlpha(0.5)
 
 	base:SetHeight(base.stack_height)
 
@@ -84,7 +85,7 @@ local create_player_style = function(base)
 	base:Tag(hp_string, "[focus:color][focus:hp:curr/max state]")
 	
 	local altp_string = core.util.gen_string(base.AlternativePower, core.config.font_size_med, nil, nil, "BOTTOM", "CENTER")
-	altp_string:SetPoint("BOTTOM", 0, 1)
+	altp_string:SetPoint("CENTER")
 	base:Tag(altp_string, "[focus:color][focus:altp:perc]")
 
 	local hp_perc_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, nil, "LEFT", "TOP")
@@ -119,7 +120,7 @@ local create_player_style = function(base)
 end
 
 local create_target_style = function(base)
-	
+
 	local target_cfg = cfg.frames.target
 	base:SetWidth(target_cfg.size.w)
 	lib.enable_mouse(base)
@@ -258,23 +259,27 @@ end
 local create_nameplate_style = function(base)
 
 	base:SetAllPoints()
+	base:SetScale(0.5)
 
 	local nameplate_cfg = cfg.frames.nameplate
 	local w, h = nameplate_cfg.size.w, nameplate_cfg.size.h
 
+	--core.util.gen_backdrop(base, 0, 0, 0, .25)
+
 	-- Widgets
 	base.WidgetContainer = CreateFrame('Frame', nil, base, 'UIWidgetContainerNoResizeTemplate')
-	base.WidgetContainer:SetPoint('BOTTOM', base, 'TOP', 0, 10)
+	base.WidgetContainer:SetPoint('BOTTOM', base, 'TOP', 0, 20)
 	base.WidgetContainer:Hide()
+	base.WidgetContainer:SetScale(1.0 / PixelUtil.GetPixelToUIUnitFactor())
 	base.WidgetContainer.showAndHideOnWidgetSetRegistration = false
-	
+
 	-- health
 	base.Health = core.util.gen_statusbar(base, w, h, false)
 	base.Health.colorClass = true
 	base.Health.colorReaction = true
 	base.Health.colorTapping = true
 	base.Health.frequentUpdates = true
-	base.Health:SetPoint("BOTTOMLEFT", base, "BOTTOMLEFT", 0, 20)
+	base.Health:SetPoint("BOTTOM", base, "BOTTOM", 0, 20)
 
 	base.Health.PostUpdateColor = function(self, unit)
 		local guid = UnitGUID(unit)
@@ -634,10 +639,6 @@ local widgetLayout = function(widgetContainerFrame, sortedWidgets)
 	for index, widgetFrame in ipairs(sortedWidgets) do
 		widgetFrame:ClearAllPoints()
 
-		-- if widgetFrame.Bar and not widgetFrame.Bar.backdrop then
-		-- 	widgetFrame.Bar:CreateBackdrop('Transparent')
-		-- end
-
 		local widgetSetUsesVertical = widgetContainerFrame.widgetSetLayoutDirection == UIWidgetSetLayoutDirection.Vertical
 		local widgetUsesVertical = widgetFrame.layoutDirection == UIWidgetLayoutDirection.Vertical
 
@@ -645,8 +646,6 @@ local widgetLayout = function(widgetContainerFrame, sortedWidgets)
 		local useVerticalLayout = widgetUsesVertical or (widgetFrame.layoutDirection == UIWidgetLayoutDirection.Default and widgetSetUsesVertical)
 
 		if useOverlapLayout then
-			-- This widget uses overlap layout
-
 			if index == 1 then
 				if widgetSetUsesVertical then
 					widgetFrame:SetPoint(widgetContainerFrame.verticalAnchorPoint, widgetContainerFrame)
@@ -679,7 +678,7 @@ local widgetLayout = function(widgetContainerFrame, sortedWidgets)
 				widgetFrame:SetPoint(widgetContainerFrame.verticalAnchorPoint, relative, widgetContainerFrame.verticalRelativePoint, 0, widgetContainerFrame.verticalAnchorYOffset)
 
 				if horizontalRowContainer then
-					horizontalRowContainer:Size(horizontalRowWidth, horizontalRowHeight)
+					horizontalRowContainer:SetSize(horizontalRowWidth, horizontalRowHeight)
 					totalWidth = totalWidth + horizontalRowWidth
 					totalHeight = totalHeight + horizontalRowHeight
 					horizontalRowHeight = 0
@@ -703,7 +702,7 @@ local widgetLayout = function(widgetContainerFrame, sortedWidgets)
 			if needNewRowContainer then
 				if horizontalRowContainer then
 					--horizontalRowContainer:Layout()
-					horizontalRowContainer:Size(horizontalRowWidth, horizontalRowHeight)
+					horizontalRowContainer:SetSize(horizontalRowWidth, horizontalRowHeight)
 					totalWidth = totalWidth + horizontalRowWidth
 					totalHeight = totalHeight + horizontalRowHeight
 					horizontalRowHeight = 0
@@ -766,7 +765,7 @@ oUF:Factory(function(self)
 			elseif event == "NAME_PLATE_UNIT_REMOVED" then
 				nameplate.WidgetContainer:UnregisterForWidgetSet()
 			end
-		end, cfg.nameplate_cfg)
+		end)
 	end
 
 	if cfg.enabled.player then
@@ -875,8 +874,12 @@ oUF:Factory(function(self)
 	end
  
 	if cfg.enabled.raid then
-
-		local role = _G["FocusFrameRoles"][core.player.realm][core.player.name]
+		local role
+		if GetSpecializationRole(GetSpecialization()) == "HEALER" then
+			role = "healer"
+		else
+			role = "dps"
+		end
 		local w = cfg.frames.raid.size[role].w
 		local h = cfg.frames.raid.size[role].h + cfg.frames.raid.power.h - 1
 		local mover_small = core.util.get_mover_frame("RaidSmall", cfg.frames.raid.pos)

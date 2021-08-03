@@ -336,19 +336,19 @@ lib.gen_indicators = function(base, cfg)
 	indicators.icons = {}
 
 	if cfg.tl then
-		indicators.icons["tl"] = gen_indicator(cfg.indicators.tl, base.Health, "LEFT", "BOTTOM", 1, 1)
+		indicators.icons["tl"] = gen_indicator(cfg.tl, base.Health, "LEFT", "BOTTOM", 1, 1)
 	end
 
 	if cfg.bl then
-		indicators.icons["bl"] = gen_indicator(cfg.indicators.bl, base.Health, "LEFT", "TOP", 1, -1)
+		indicators.icons["bl"] = gen_indicator(cfg.bl, base.Health, "LEFT", "TOP", 1, -1)
 	end
 
 	if cfg.tr then
-		indicators.icons["tr"] = gen_indicator(cfg.indicators.tr, base.Health, "RIGHT", "BOTTOM", -1, 1)
+		indicators.icons["tr"] = gen_indicator(cfg.tr, base.Health, "RIGHT", "BOTTOM", -1, 1)
 	end
 
 	if cfg.br then
-		indicators.icons["br"] = gen_indicator(cfg.indicators.br, base.Health, "RIGHT", "TOP", -1, -1)
+		indicators.icons["br"] = gen_indicator(cfg.br, base.Health, "RIGHT", "TOP", -1, -1)
 	end
 
 	return indicators

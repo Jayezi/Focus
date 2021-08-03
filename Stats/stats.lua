@@ -1,4 +1,6 @@
 local _, addon = ...
+if not addon.stats.enabled then return end
+
 local core = addon.core
 
 local CreateFrame = CreateFrame
@@ -244,33 +246,33 @@ level_frame:SetScript("OnEnter", function(self)
 	GameTooltip:AddLine(string.format("%d / %d", cur_xp, max_xp), 1, 1, 1)
 	GameTooltip:AddLine(string.format("|c%s%d|r rested", core.player.color_str, rested), 1, 1, 1)
 
-	-- reputations
-	local reps = {
-		[2164] = "Champions",
-		[2157] = "Honorbound",
-		[2391] = "Rustbolt",
-		[2163] = "Tortollan",
-		[2373] = "Unshackled",
-		[2158] = "Voldunai",
-		[2103] = "Zandalari",
-		[2156] = "Talanji's",
-	}
+	-- -- reputations
+	-- local reps = {
+	-- 	[2164] = "Champions",
+	-- 	[2157] = "Honorbound",
+	-- 	[2391] = "Rustbolt",
+	-- 	[2163] = "Tortollan",
+	-- 	[2373] = "Unshackled",
+	-- 	[2158] = "Voldunai",
+	-- 	[2103] = "Zandalari",
+	-- 	[2156] = "Talanji's",
+	-- }
 
-	local has_rep = false
-	for id, name in pairs(reps) do
-		if (C_Reputation.IsFactionParagon(id)) then
-			if not has_rep then
-				GameTooltip:AddLine(" ")
-				has_rep = true
-			end
-			local cur_rep, max_rep, _, has_reward = C_Reputation.GetFactionParagonInfo(id);
-			local value = cur_rep % max_rep;
-			if has_reward then
-				value = value + max_rep;
-			end
-			GameTooltip:AddDoubleLine(name, string.format("|c%s%d / %d|r", core.player.color_str, value, max_rep), 1, 1, 1, 1, 1, 1)
-		end
-	end
+	-- local has_rep = false
+	-- for id, name in pairs(reps) do
+	-- 	if (C_Reputation.IsFactionParagon(id)) then
+	-- 		if not has_rep then
+	-- 			GameTooltip:AddLine(" ")
+	-- 			has_rep = true
+	-- 		end
+	-- 		local cur_rep, max_rep, _, has_reward = C_Reputation.GetFactionParagonInfo(id);
+	-- 		local value = cur_rep % max_rep;
+	-- 		if has_reward then
+	-- 			value = value + max_rep;
+	-- 		end
+	-- 		GameTooltip:AddDoubleLine(name, string.format("|c%s%d / %d|r", core.player.color_str, value, max_rep), 1, 1, 1, 1, 1, 1)
+	-- 	end
+	-- end
 
 	GameTooltip:Show()
 end)

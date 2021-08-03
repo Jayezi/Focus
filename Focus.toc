@@ -1,7 +1,7 @@
 ## Interface: 90002
 ## Title: Focus
 ## Author: Jayeasy
-## SavedVariables: FocusFrameRoles, FocusFramePositions, FocusStatsRealmGold, FocusBindsLayouts
+## SavedVariables: FocusFramePositions, FocusStatsRealmGold, FocusBindsLayouts
 ## RequiredDeps: oUF
 
 core.lua

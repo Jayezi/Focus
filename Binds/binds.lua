@@ -1,4 +1,6 @@
 local _, addon = ...
+if not addon.binds.enabled then return end
+
 local core = addon.core
 
 local GetBindingKey = GetBindingKey

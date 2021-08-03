@@ -17,9 +17,6 @@ local Round = Round
 local ReloadUI = ReloadUI
 local IsInInstance = IsInInstance
 local LoggingCombat = LoggingCombat
-local C_AzeriteEmpoweredItem = C_AzeriteEmpoweredItem
-local C_AzeriteItem = C_AzeriteItem
-local IsCorruptedItem = IsCorruptedItem
 local UnitExists = UnitExists
 local UnitName = UnitName
 local WorldFrame = WorldFrame
@@ -43,7 +40,7 @@ core.player = {
 	class = player_class,
 	color = {player_color.r, player_color.g, player_color.b},
 	color_str = player_color.colorStr,
-	realm = GetRealmName()
+	realm = GetRealmName(),
 }
 
 core.media = {
@@ -57,11 +54,9 @@ core.media = {
 	}
 }
 
-local frame_background_color = CreateColor(.15, .15, .15, 1)
+local frame_background_color = CreateColor(0.15, 0.15, 0.15, 1)
 local frame_border_color = CreateColor(0, 0, 0, 1)
-local tooltip_frame_border_color = CreateColor(.75, .75, .75, 1)
-local azerite_frame_border_color = CreateColor(.75, .75, 0, 1)
-local corruption_frame_border_color = CreateColor(.75, 0, .75, 1)
+local tooltip_frame_border_color = CreateColor(0.75, 0.75, 0.75, 1)
 
 core.config = {
 	default_font = core.media.fonts.gotham_ultra,
@@ -70,9 +65,9 @@ core.config = {
 	font_size_lrg = 20,
 	font_size_big = 30,
 	font_flags = "THINOUTLINE",
-	frame_background = {.15, .15, .15, 1},
-	frame_background_light = {.3, .3, .3, 1},
-	frame_background_transparent = {.15, .15, .15, .6},
+	frame_background = {0.15, 0.15, 0.15, 1},
+	frame_background_light = {0.3, 0.3, 0.3, 1},
+	frame_background_transparent = {0.15, 0.15, 0.15, 0.6},
 	frame_border = {0, 0, 0, 1},
 	frame_backdrop = {
 		bgFile = core.media.textures.blank,
@@ -478,10 +473,6 @@ local load_frame = CreateFrame("Frame")
 load_frame:RegisterEvent("ADDON_LOADED")
 load_frame:SetScript("OnEvent", function(self, event, addon)
 	if addon == "Focus" then
-		if not FocusFrameRoles then FocusFrameRoles = {} end
-		if not FocusFrameRoles[core.player.realm] then FocusFrameRoles[core.player.realm] = {} end
-		if not FocusFrameRoles[core.player.realm][core.player.name] then FocusFrameRoles[core.player.realm][core.player.name] = "dps" end
-		print("Role: "..FocusFrameRoles[core.player.realm][core.player.name])
 
 		if not FocusFramePositions then FocusFramePositions = {} end
 		if not FocusFramePositions[core.player.realm] then FocusFramePositions[core.player.realm] = {} end
@@ -513,21 +504,6 @@ settings:add_action("Move Frames", function()
 	end
 end)
 
--- change roles for raid frames
-settings:add_action("DPS Role", function()
-	FocusFrameRoles[core.player.realm][core.player.name] = "dps"
-	ReloadUI()
-end)
-
-settings:add_action("Healer Role", function()
-	FocusFrameRoles[core.player.realm][core.player.name] = "healer"
-	ReloadUI()
-end)
-
-settings:add_action("Show Role", function()
-	print("Role: "..FocusFrameRoles[core.player.realm][core.player.name])
-end)
-
 -- combatlog reminder
 
 local combatlog_checker = CreateFrame("Button", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
@@ -545,7 +521,8 @@ combatlog_checker.text:SetTextColor(1, 1, 1, 1)
 combatlog_checker:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 combatlog_checker:SetScript("OnEvent", function(self)
-	if select(2, IsInInstance()) == "raid" then
+	local is, type = IsInInstance()
+	if type == "raid" or type == "party" then
 		combatlog_checker.log_on = LoggingCombat()
 		if combatlog_checker.log_on then
 			self.text:SetText("Logging is ON\nL-click to hide\nR-click to disable")
@@ -578,24 +555,16 @@ end)
 
 -- tooltips
 
-hooksecurefunc("SharedTooltip_SetBackdropStyle", function(self)
-	if self.IsEmbedded then
-		return
-	end
+local style_backdrop = function(tooltip)
+	if tooltip.IsEmbedded then return end
 
-	self:SetBackdrop(core.config.frame_backdrop)
-	self:SetBackdropColor(unpack(core.config.frame_background))
-	local _, link = self:GetItem();
-	if link then
-		if C_AzeriteEmpoweredItem.IsAzeriteEmpoweredItemByID(link) or C_AzeriteItem.IsAzeriteItemByID(link) then
-			self:SetBackdropBorderColor(azerite_frame_border_color:GetRGB())
-		elseif IsCorruptedItem(link) then
-			self:SetBackdropBorderColor(corruption_frame_border_color:GetRGB())
-		else
-			self:SetBackdropBorderColor(tooltip_frame_border_color:GetRGB())
-		end
-	end
-end)
+	tooltip:SetBackdrop(core.config.frame_backdrop)
+	tooltip:SetBackdropColor(unpack(core.config.frame_background))
+	tooltip:SetBackdropBorderColor(tooltip_frame_border_color:GetRGB())
+end
+
+hooksecurefunc("SharedTooltip_SetBackdropStyle", style_backdrop)
+style_backdrop(GameTooltip)
 
 GameTooltipStatusBar:SetStatusBarTexture(core.media.textures.blank)
 
@@ -606,114 +575,131 @@ hooksecurefunc("GameTooltip_SetDefaultAnchor", function(self)
 	self:SetOwner(tooltip_parent, "ANCHOR_TOPRIGHT", 0, -tooltip_parent:GetHeight())
 end)
 
+hooksecurefunc("EmbeddedItemTooltip_UpdateSize", function(button)
+	button.IconBorder:SetTexture(core.media.textures.blank)
+	button.IconBorder:SetDrawLayer("BORDER")
+	button.IconBorder:SetSize(button.Icon:GetWidth() + 2, button.Icon:GetHeight() + 2)
+	button.Icon:SetTexCoord(.1, .9, .1, .9)
+end)
+
 -- afk screen
 
-local afk = CreateFrame("Frame", nil, nil, BackdropTemplateMixin and "BackdropTemplate")
-afk:SetAllPoints(WorldFrame)
-core.util.gen_backdrop(afk, 0, 0, 0, .75)
-afk:Hide()
-
-local anims = {
-	MONK = 732, -- Meditate
-	HUNTER = 115 -- Kneel
-}
-
-local character_frame = CreateFrame("DressUpModel", "FocusPlayerModel", nil)
-character_frame:SetSize(700, 750)
-character_frame:SetPoint("CENTER", WorldFrame)
-
-local pet_frame = CreateFrame("PlayerModel", "FocusPetModel", nil)
-pet_frame:SetSize(600, 600)
-pet_frame:SetPoint("BOTTOMRIGHT", character_frame, "BOTTOM", 0, -100)
-pet_frame:SetFrameLevel(character_frame:GetFrameLevel() + 1)
-
-local afk_name = core.util.gen_string(afk, 50, nil, nil, "CENTER")
-afk_name:SetText(core.player.name)
-afk_name:SetPoint("LEFT", WorldFrame, "CENTER")
-afk_name:SetPoint("RIGHT", WorldFrame, "RIGHT")
-afk_name:SetTextColor(unpack(core.player.color))
-
-local rotate_model = function(model, add_distance, add_yaw, add_pitch)
-
-	model:SetPortraitZoom(0)
-	model:SetCamDistanceScale(1)
-	model:SetPosition(0, 0, 0)
-	model:SetRotation(0)
-	model:RefreshCamera()
-	model:SetCustomCamera(1)
-
-	local x, y, z = model:GetCameraPosition()
-	local tx, ty, tz = model:GetCameraTarget()
-	model:SetCameraTarget(0, ty, tz)
-
-	local distance = math.sqrt(x * x + y * y + z * z) + add_distance
-	local yaw = -math.atan(y / x) + add_yaw
-	local pitch = -math.atan(z / x) + add_pitch
-
-	local x = distance * math.cos(yaw) * math.cos(pitch)
-	local y = distance * math.sin(-yaw) * math.cos(pitch)
-	local z = distance * math.sin(-pitch)
-	model:SetCameraPosition(x, y, z)
-end
-
-local start_afk = function()
-	character_frame:Show()
-	character_frame:SetUnit("player")
-	character_frame:SetSheathed(true)
-	rotate_model(character_frame, .5, math.rad(25), math.rad(0))
-	if anims[core.player.class] then
-		character_frame:SetAnimation(anims[core.player.class])
-	end
-
-	if UnitExists("pet") then
-		pet_frame:Show()
-		pet_frame:SetUnit("pet")
-		rotate_model(pet_frame, .5, math.rad(30), math.rad(0))
-		afk_name:SetText(core.player.name.."\nand\n"..UnitName("pet"))
-	end
-
-	afk:Show()
-	UIParent:SetAlpha(0)
-	WorldFrame:SetAlpha(0)
-end
-
-local end_afk = function()
-	character_frame:Hide()
-	pet_frame:Hide()
+if false then
+	local afk = CreateFrame("Frame", nil, nil, BackdropTemplateMixin and "BackdropTemplate")
+	afk:SetAllPoints(WorldFrame)
+	core.util.gen_backdrop(afk, 0, 0, 0, .75)
 	afk:Hide()
-	UIParent:SetAlpha(1)
-	WorldFrame:SetAlpha(1)
+
+	local anims = {
+		MONK = 732, -- Meditate
+		HUNTER = 115 -- Kneel
+	}
+
+	local character_frame = CreateFrame("DressUpModel", "FocusPlayerModel", nil)
+	character_frame:SetSize(700, 750)
+	character_frame:SetPoint("CENTER", WorldFrame)
+
+	local pet_frame = CreateFrame("PlayerModel", "FocusPetModel", nil)
+	pet_frame:SetSize(600, 600)
+	pet_frame:SetPoint("BOTTOMRIGHT", character_frame, "BOTTOM", 0, -100)
+	pet_frame:SetFrameLevel(character_frame:GetFrameLevel() + 1)
+
+	local afk_name = core.util.gen_string(afk, 50, nil, nil, "CENTER")
+	afk_name:SetText(core.player.name)
+	afk_name:SetPoint("LEFT", WorldFrame, "CENTER")
+	afk_name:SetPoint("RIGHT", WorldFrame, "RIGHT")
+	afk_name:SetTextColor(unpack(core.player.color))
+
+	local rotate_model = function(model, add_distance, add_yaw, add_pitch)
+
+		model:SetPortraitZoom(0)
+		model:SetCamDistanceScale(1)
+		model:SetPosition(0, 0, 0)
+		model:SetRotation(0)
+		model:RefreshCamera()
+		model:SetCustomCamera(1)
+
+		local x, y, z = model:GetCameraPosition()
+		local tx, ty, tz = model:GetCameraTarget()
+		model:SetCameraTarget(0, ty, tz)
+
+		local distance = math.sqrt(x * x + y * y + z * z) + add_distance
+		local yaw = -math.atan(y / x) + add_yaw
+		local pitch = -math.atan(z / x) + add_pitch
+
+		local x = distance * math.cos(yaw) * math.cos(pitch)
+		local y = distance * math.sin(-yaw) * math.cos(pitch)
+		local z = distance * math.sin(-pitch)
+		model:SetCameraPosition(x, y, z)
+	end
+
+	local start_afk = function()
+		character_frame:Show()
+		character_frame:SetUnit("player")
+		character_frame:SetSheathed(true)
+		rotate_model(character_frame, .5, math.rad(25), math.rad(0))
+		if anims[core.player.class] then
+			character_frame:SetAnimation(anims[core.player.class])
+		end
+
+		if UnitExists("pet") then
+			pet_frame:Show()
+			pet_frame:SetUnit("pet")
+			rotate_model(pet_frame, .5, math.rad(30), math.rad(0))
+			afk_name:SetText(core.player.name.."\nand\n"..UnitName("pet"))
+		end
+
+		afk:Show()
+		UIParent:SetAlpha(0)
+		WorldFrame:SetAlpha(0)
+	end
+
+	local end_afk = function()
+		character_frame:Hide()
+		pet_frame:Hide()
+		afk:Hide()
+		UIParent:SetAlpha(1)
+		WorldFrame:SetAlpha(1)
+	end
+
+	afk:EnableMouse(true)
+	afk:SetScript("OnMouseUp", function(self, click)
+		if click == "LeftButton" then
+			end_afk()
+		end
+	end)
+
+	afk:RegisterEvent("PLAYER_FLAGS_CHANGED")
+	afk:RegisterEvent("PLAYER_ENTERING_WORLD")
+	afk:RegisterEvent("PLAYER_LEAVING_WORLD")
+	afk:SetScript("OnEvent", function()
+		if UnitIsAFK("player") then
+			start_afk()
+		else
+			end_afk()
+		end
+	end)
 end
-
-afk:EnableMouse(true)
-afk:SetScript("OnMouseUp", function(self, click)
-	if click == "LeftButton" then
-		end_afk()
-	end
-end)
-
-afk:RegisterEvent("PLAYER_FLAGS_CHANGED")
-afk:RegisterEvent("PLAYER_ENTERING_WORLD")
-afk:RegisterEvent("PLAYER_LEAVING_WORLD")
-afk:SetScript("OnEvent", function()
-	if UnitIsAFK("player") then
-		start_afk()
-	else
-		end_afk()
-	end
-end)
 
 ChatBubbleFont:SetFont(core.config.default_font, core.config.font_size_lrg, core.config.font_flags)
+
+CinematicFrame:HookScript("OnShow", function(self)
+	local bar_height = WorldFrame:GetHeight() / 6
+	WorldFrame:SetPoint("TOPLEFT", nil, "TOPLEFT", 0, -bar_height);
+	WorldFrame:SetPoint("BOTTOMRIGHT", nil, "BOTTOMRIGHT", 0, bar_height);
+
+	CinematicFrame.UpperBlackBar:SetHeight(bar_height);
+	CinematicFrame.LowerBlackBar:SetHeight(bar_height);
+end)
 
 local login_frame = CreateFrame("Frame")
 login_frame:RegisterEvent("PLAYER_LOGIN")
 login_frame:SetScript("OnEvent", function()
 	UIParent:SetScale(core.config.ui_scale)
 	WorldFrame:SetScale(core.config.ui_scale)
-	CinematicFrame:SetScale(core.config.ui_scale)
 
-	C_NamePlate.SetNamePlateEnemySize(250, 50)
-	C_NamePlate.SetNamePlateFriendlySize(0.1, 0.1)
+	C_NamePlate.SetNamePlateEnemySize(125, 25)
+	C_NamePlate.SetNamePlateFriendlySize(1, 1)
 	SetCVar("nameplateShowOnlyNames", 1)
 
 	-- stacking
@@ -723,7 +709,7 @@ login_frame:SetScript("OnEvent", function()
 	SetCVar("nameplateMaxDistance", 60)
 	SetCVar("nameplateOccludedAlphaMult", 0.2)
 	
-	SetCVar("nameplateGlobalScale", 1)
+	SetCVar("nameplateGlobalScale", 2)
 	SetCVar("nameplateHorizontalScale", 1)
 	SetCVar("nameplateVerticalScale", 1)
 	SetCVar("nameplateLargerScale", 1)
@@ -731,15 +717,15 @@ login_frame:SetScript("OnEvent", function()
 	SetCVar("nameplateOverlapH", 1)
 	SetCVar("nameplateOverlapV", 1)
 
-	SetCVar("nameplateMinAlpha", 0.6)
+	SetCVar("nameplateMinAlpha", 0.5)
 	SetCVar("nameplateMinScale", 1)
 	SetCVar("nameplateMinScaleDistance", 10)
 	SetCVar("nameplateMinAlphaDistance", 10)
 
-	SetCVar("nameplateMaxAlpha", 0.6)
+	SetCVar("nameplateMaxAlpha", 0.5)
 	SetCVar("nameplateMaxScale", 1)
-	SetCVar("nameplateMaxScaleDistance", 90)
-	SetCVar("nameplateMaxAlphaDistance", 90)
+	SetCVar("nameplateMaxScaleDistance", 60)
+	SetCVar("nameplateMaxAlphaDistance", 60)
 	
 	SetCVar("nameplateSelectedAlpha", 1)
 	SetCVar("nameplateSelectedScale", 1)
@@ -753,4 +739,39 @@ login_frame:SetScript("OnEvent", function()
 	SetCVar("nameplateSelfScale", 1)
 	SetCVar("nameplateSelfTopInset", 0)
 	SetCVar("nameplateSelfBottomInset", 0.4)
+end)
+
+-- widgets
+
+hooksecurefunc(UIWidgetTemplateStatusBarMixin, "Setup", function(self, widgetInfo, widgetContainer)
+	self.Bar.BGLeft:Hide()
+	self.Bar.BGRight:Hide()
+	self.Bar.BGCenter:Hide()
+	self.Bar.BorderLeft:Hide()
+	self.Bar.BorderRight:Hide()
+	self.Bar.BorderCenter:Hide()
+	self.Bar.Spark:Hide()
+	if not self.Bar.styled then
+		self.Bar:GetStatusBarTexture():SetDrawLayer("BORDER", -1);
+		core.util.gen_backdrop(self.Bar, 0, 0, 0, .25)
+		self.Bar.styled = true
+	end
+end)
+
+if not IsAddOnLoaded("Blizzard_DebugTools") then
+	LoadAddOn("Blizzard_DebugTools")
+end
+
+TableAttributeDisplay:SetSize(1000, 800)
+TableAttributeDisplay.LinesScrollFrame:SetSize(900, 700)
+TableAttributeDisplay.LinesScrollFrame.LinesContainer:SetWidth(600)
+TableAttributeDisplay.TitleButton:SetWidth(750)
+TableAttributeDisplay.TitleButton.Text:SetWidth(750)
+
+hooksecurefunc(TableAttributeLineMixin, "Initialize", function(self)
+	self:SetWidth(800)
+	if self.ValueButton then
+		self.ValueButton:SetWidth(620)
+		self.ValueButton.Text:SetWidth(620)
+	end
 end)

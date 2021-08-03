@@ -1,5 +1,6 @@
 local _, addon = ...
 if not addon.chat.enabled then return end
+
 local core = addon.core
 local cfg = addon.chat.cfg
 
@@ -12,6 +13,7 @@ local ChatFrame1 = ChatFrame1
 local ChatFrame2 = ChatFrame2
 local ChatFrame3 = ChatFrame3
 local ChatFrame4 = ChatFrame4
+local ChatFrame5 = ChatFrame5
 local FCF_ResetChatWindows = FCF_ResetChatWindows
 local FCF_SetWindowName = FCF_SetWindowName
 local CombatConfig_SetCombatFiltersToDefault = CombatConfig_SetCombatFiltersToDefault
@@ -360,21 +362,24 @@ local setup_chat = function()
 	-- log tab
 	ChatFrame_RemoveAllMessageGroups(ChatFrame2)
 
+	-- voice tab
+	-- ChatFrame3
+
 	-- general tab
-	ChatFrame_AddChannel(ChatFrame3, "General")
-	ChatFrame_AddChannel(ChatFrame3, "Trade")
-	ChatFrame_AddChannel(ChatFrame3, "LocalDefense")
-	ChatFrame_AddChannel(ChatFrame3, "LookingForGroup")
+	ChatFrame_AddChannel(ChatFrame4, "General")
+	ChatFrame_AddChannel(ChatFrame4, "Trade")
+	ChatFrame_AddChannel(ChatFrame4, "LocalDefense")
+	ChatFrame_AddChannel(ChatFrame4, "LookingForGroup")
 
 	-- loot tab
-	ChatFrame_AddMessageGroup(ChatFrame4, "COMBAT_XP_GAIN")
-	ChatFrame_AddMessageGroup(ChatFrame4, "COMBAT_HONOR_GAIN")
-	ChatFrame_AddMessageGroup(ChatFrame4, "SKILL")
-	ChatFrame_AddMessageGroup(ChatFrame4, "LOOT")
-	ChatFrame_AddMessageGroup(ChatFrame4, "CURRENCY")
-	ChatFrame_AddMessageGroup(ChatFrame4, "MONEY")
-	ChatFrame_AddMessageGroup(ChatFrame4, "TRADESKILLS")
-	ChatFrame_AddMessageGroup(ChatFrame4, "OPENING")
+	ChatFrame_AddMessageGroup(ChatFrame5, "COMBAT_XP_GAIN")
+	ChatFrame_AddMessageGroup(ChatFrame5, "COMBAT_HONOR_GAIN")
+	ChatFrame_AddMessageGroup(ChatFrame5, "SKILL")
+	ChatFrame_AddMessageGroup(ChatFrame5, "LOOT")
+	ChatFrame_AddMessageGroup(ChatFrame5, "CURRENCY")
+	ChatFrame_AddMessageGroup(ChatFrame5, "MONEY")
+	ChatFrame_AddMessageGroup(ChatFrame5, "TRADESKILLS")
+	ChatFrame_AddMessageGroup(ChatFrame5, "OPENING")
 
 	ToggleChatColorNamesByClassGroup(true, "SAY")
 	ToggleChatColorNamesByClassGroup(true, "EMOTE")

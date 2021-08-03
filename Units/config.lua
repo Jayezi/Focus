@@ -68,8 +68,8 @@ cfg.frames = {
 			h = 8,
 		},
 		alt_power = {
-			size = {w = 300, h = 20},
-			pos = {"TOPLEFT", UIParent, "TOPLEFT", 10, -10},
+			size = {w = 500, h = 30},
+			pos = {"TOP", UIParent, "TOP", 0, -10},
 		},
 	},
 	pet = {
@@ -184,34 +184,6 @@ cfg.raid_role = {
 	size = 10
 }
 
-cfg.nameplate_cfg = {
-	["nameplateMotion"] = 1,
-	["nameplateMinScale"] = 1,
-	["nameplateMinScaleDistance"] = 10,
-	["nameplateMaxScale"] = 1,
-	["nameplateMaxScaleDistance"] = 90,
-	["nameplateGlobalScale"] = 1,
-	["nameplateMaxAlpha"] = 0.6,
-	["nameplateMinAlpha"] = 0.6,
-	["nameplateLargerScale"] = 1,
-	["nameplateLargeBottomInset"] = -.01,
-	["nameplateLargeTopInset"] = .03,
-	["nameplateOtherBottomInset"] = -.01,
-	["nameplateOtherTopInset"] = .03,
-	["nameplateOverlapH"] = 0.5,
-    ["nameplateOverlapV"] = 0.8,
-	["nameplateSelectedAlpha"] = 1,
-	["nameplateSelectedScale"] = 1,
-	["nameplateSelfAlpha"] = 1,
-	["nameplateSelfScale"] = 1,
-	["nameplateSelfTopInset"] = 0,
-	["nameplateSelfBottomInset"] = .4,
-	["nameplateMaxDistance"] = 60,
-    ["nameplateHorizontalScale"] = 1,
-	["nameplateVerticalScale"] = 1,
-	["nameplateOccludedAlphaMult"] = 0.2
-}
-
 -- override color on specific units to help see them
 cfg.nameplate_colors = {
 	[175992] = {1, 0.25, 1},
@@ -252,6 +224,7 @@ cfg.player_buff_whitelist = {
 	[274443] = true,		--Dance of Death
 	[303570] = true,		--Razor Coral
 	[315763] = true,		--Void Titanshard
+	[10060] = true,			--Power Infusion
 
 	-- Paladin
 	[132403] = true,		--Shield of the Righteous

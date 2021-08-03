@@ -1,4 +1,6 @@
 local _, addon = ...
+if not addon.map.enabled then return end
+
 local core = addon.core
 
 local MinimapZoomIn = MinimapZoomIn
@@ -140,15 +142,67 @@ if not IsAddOnLoaded("Blizzard_ObjectiveTracker") then
 	LoadAddOn("Blizzard_ObjectiveTracker")
 end
 
-ObjectiveTrackerFrame.alt_SetPoint = ObjectiveTrackerFrame.SetPoint
-hooksecurefunc(ObjectiveTrackerFrame, "SetPoint", function(self)
-	--self:ClearAllPoints()
-	self:alt_SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -10)
-	--self:alt_SetPoint("TOPLEFT", Minimap, "BOTTOMLEFT", 0, -10)
+hooksecurefunc("ObjectiveTrackerProgressBar_SetValue", function(self)
+	self.Bar.BorderLeft:Hide()
+	self.Bar.BorderRight:Hide()
+	self.Bar.BorderMid:Hide()
+	
+	if not self.Bar.styled then
+		self.Bar:GetStatusBarTexture():SetDrawLayer("BORDER", -1);
+		self.Bar:SetStatusBarTexture(core.media.textures.blank);
+		core.util.gen_backdrop(self.Bar)
+		self.Bar.styled = true
+	end
 end)
 
---ObjectiveTrackerFrame:SetHeight(750)
---style_children(ObjectiveTrackerBlocksFrame)
+hooksecurefunc("BonusObjectiveTrackerProgressBar_UpdateReward", function(self)
+	self.Bar.IconBG:Hide()
+end)
+
+hooksecurefunc("BonusObjectiveTrackerProgressBar_SetValue", function(self)
+	self.Bar.BarFrame:Hide()
+	self.Bar.IconBG:Hide()
+	self.Bar.BarFrame2:Hide()
+	self.Bar.BarFrame3:Hide()
+	self.Bar.BarBG:Hide()	
+	self.Bar.BarGlow:Hide()
+	self.Bar.Sheen:Hide()
+	self.Bar.Starburst:Hide()
+
+	self.Bar.Icon:SetMask(nil)
+	self.Bar.Icon:SetTexCoord(.1, .9, .1, .9);
+
+	if not self.Bar.styled then
+		self.Bar:SetHeight(18)
+		self.Bar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
+		self.Bar:SetStatusBarTexture(core.media.textures.blank)
+		core.util.gen_backdrop(self.Bar)
+		
+		self.Bar.Icon.border = self.Bar:CreateTexture()
+		self.Bar.Icon.border:SetDrawLayer("BACKGROUND", -2)
+		core.util.set_outside(self.Bar.Icon.border, self.Bar.Icon)
+		self.Bar.Icon.border:SetTexture(core.media.textures.blank)
+		self.Bar.Icon.border:SetVertexColor(unpack(core.config.frame_border))
+		self.Bar.Icon:SetPoint("RIGHT", 32, 0)
+		
+		self.Bar.styled = true
+	end
+end)
+
+hooksecurefunc("ObjectiveTracker_AddHeader", function(header)
+	header.Background:Hide()
+end)
+
+-- ObjectiveTrackerFrame.BlocksFrame.CampaignQuestHeader.Background:Hide()
+-- ObjectiveTrackerFrame.BlocksFrame.QuestHeader.Background:Hide()
+-- ObjectiveTrackerFrame.BlocksFrame.AchievementHeader.Background:Hide()
+-- ObjectiveTrackerFrame.BlocksFrame.ScenarioHeader.Background:Hide()
+-- ObjectiveTrackerFrame.BlocksFrame.UIWidgetsHeader.Background:Hide()
+
+ObjectiveTrackerFrame.alt_SetPoint = ObjectiveTrackerFrame.SetPoint
+hooksecurefunc(ObjectiveTrackerFrame, "SetPoint", function(self)
+	self:alt_SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -10)
+end)
 
 DurabilityFrame.alt_SetPoint = DurabilityFrame.SetPoint
 hooksecurefunc(DurabilityFrame, "SetPoint", function(self)

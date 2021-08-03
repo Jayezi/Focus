@@ -1,4 +1,6 @@
 local _, addon = ...
+if not addon.bag.enabled then return end
+
 local core = addon.core
 
 local CreateFrame = CreateFrame
@@ -163,7 +165,8 @@ local style_itembutton = function(button)
 	--     OVERLAY
 	local border = button.IconBorder
 	--     OVERLAY 1
-	--local overlay = button.IconOverlay -- Azerite/Corruption
+	local overlay = button.IconOverlay -- Azerite/Corruption
+	local overlay2 = button.IconOverlay2 -- Conduit
 	--     OVERLAY 2
 	--local levellock = button.LevelLinkLockTexture
 	--     OVERLAY 4
@@ -207,7 +210,6 @@ local style_itembutton = function(button)
 	-- Layers
 
 	-- BORDER
-
 	icon:SetDrawLayer("ARTWORK", -7)
 	icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 	core.util.set_inside(icon, button)
@@ -231,6 +233,11 @@ local style_itembutton = function(button)
 	-- OVERLAY 2
 	quest:SetAllPoints(icon)
 	quest:SetTexCoord(.07, .93, .07, .93)
+
+	overlay:SetAllPoints(icon)
+	if overlay2 then
+		overlay2:SetAllPoints(icon)
+	end
 
 	if flash then
 		flash:SetAllPoints(icon)
