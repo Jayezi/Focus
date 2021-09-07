@@ -193,12 +193,6 @@ hooksecurefunc("ObjectiveTracker_AddHeader", function(header)
 	header.Background:Hide()
 end)
 
--- ObjectiveTrackerFrame.BlocksFrame.CampaignQuestHeader.Background:Hide()
--- ObjectiveTrackerFrame.BlocksFrame.QuestHeader.Background:Hide()
--- ObjectiveTrackerFrame.BlocksFrame.AchievementHeader.Background:Hide()
--- ObjectiveTrackerFrame.BlocksFrame.ScenarioHeader.Background:Hide()
--- ObjectiveTrackerFrame.BlocksFrame.UIWidgetsHeader.Background:Hide()
-
 ObjectiveTrackerFrame.alt_SetPoint = ObjectiveTrackerFrame.SetPoint
 hooksecurefunc(ObjectiveTrackerFrame, "SetPoint", function(self)
 	self:alt_SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -10)

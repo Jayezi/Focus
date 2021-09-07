@@ -145,6 +145,10 @@ cfg.frames = {
 		},
 		power = {
 			h = 4
+		},
+		alpha = {
+			target = 1,
+			non_target = 0.6
 		}
 	},
 }
@@ -186,170 +190,169 @@ cfg.raid_role = {
 
 -- override color on specific units to help see them
 cfg.nameplate_colors = {
-	[175992] = {1, 0.25, 1},
-	[169924] = {1, 0.25, 1},
+	[120651] = {0.25, 0.75, 0.25},	-- Explosive
+	[177891] = {0.75, 0.25, 0.75},	-- Mawforged Summoner
+	[179963] = {0.75, 0.75, 0.25},	-- Terror Orb
 }
 
 cfg.pet_buff_whitelist = {
-	[136] = true,			--Mend Pet
+	[136] = true,			-- Mend Pet
 }
 
+-- in addition to magic and enrage buffs, show these buffs on nameplates
 cfg.nameplate_buff_whitelist = {
-	[277242] = true,		--Symbiote of G'huun
-	[288219] = true,		--Refractive Ice
-	[300635] = true,		--Gathering Nightmare
 }
 
+-- useless stuff that crowds enemy nameplate debuffs
+cfg.nameplate_debuff_blacklist = {
+	[356329] = true,		-- Scouring Touch (Shard of Dyz)
+	[269576] = true,		-- Master Marksman
+	[257044] = true,		-- Rapid Fire
+	[353354] = true,		-- Dream Delver
+	[356372] = true,		-- Exsanguinated (SHard of Bek)
+}
+
+-- track above player unitframe
 cfg.player_buff_whitelist = {
 
 	-- All
-	[208431] = true,		--Corruption: Descent into Madness
-	[26297] = true,			--Berserking
-	[80353] = true,			--Time Warp
-	[2825] = true,			--Bloodlust
-	[32182] = true,			--Heroism
-	[90355] = true,			--Ancient Hysteria
-	[160452] = true,		--Netherwinds
-	[230935] = true,		--Drums of the Mountain
-	[178207] = true,		--Drums of Fury
-	[242584] = true,		--Concordance of the Legionfall
-	[208052] = true,		--Sephuz's Secret
-	[234143] = true,		--Temptation
-	[188024] = true,		--Skystep Potion
-	[287916] = true,		--V.I.G.O.R Engaged
-	[268311] = true,		--Galecaller's Boon
-	[279152] = true,		--Battle Potion of Agility
-	[268899] = true,		--Masterful Navigation
-	[268898] = true,		--Masterful Navigation
-	[274443] = true,		--Dance of Death
-	[303570] = true,		--Razor Coral
-	[315763] = true,		--Void Titanshard
-	[10060] = true,			--Power Infusion
-
+	[208431] = true,		-- Corruption: Descent into Madness
+	[26297] = true,			-- Berserking
+	[80353] = true,			-- Time Warp
+	[2825] = true,			-- Bloodlust
+	[32182] = true,			-- Heroism
+	[90355] = true,			-- Ancient Hysteria
+	[160452] = true,		-- Netherwinds
+	[230935] = true,		-- Drums of the Mountain
+	[178207] = true,		-- Drums of Fury
+	[242584] = true,		-- Concordance of the Legionfall
+	[208052] = true,		-- Sephuz's Secret
+	[234143] = true,		-- Temptation
+	[188024] = true,		-- Skystep Potion
+	[287916] = true,		-- V.I.G.O.R Engaged
+	[268311] = true,		-- Galecaller's Boon
+	[279152] = true,		-- Battle Potion of Agility
+	[268899] = true,		-- Masterful Navigation
+	[268898] = true,		-- Masterful Navigation
+	[274443] = true,		-- Dance of Death
+	[303570] = true,		-- Razor Coral
+	[315763] = true,		-- Void Titanshard
+	[10060] = true,			-- Power Infusion
+ 
 	-- Paladin
-	[132403] = true,		--Shield of the Righteous
-	[1044] = true,			--Blessing of Freedom
-	[1022] = true,			--Blessing of Protection
-	[223819] = true,		--Divine Purpose
-	[200652] = true,		--Tyr's Deliverance
-	[31842] = true,			--Avenging Wrath (Holy)
-	[31884] = true,			--Avenging Wrath (Ret, Prot)
-	[31821] = true,			--Aura Mastery
-	[105809] = true,		--Holy Avenger
-	[642] = true,			--Divine Shield
-	[498] = true,			--Divine Protection
-	[211422] = true,		--Knight of the Silver Hand
-	[207589] = true,		--Ilterendi, Crown Jewel of Silvermoon
-	[234862] = true,		--Maraad's Dying Breath
+	[132403] = true,		-- Shield of the Righteous
+	[1044] = true,			-- Blessing of Freedom
+	[1022] = true,			-- Blessing of Protection
+	[223819] = true,		-- Divine Purpose
+	[200652] = true,		-- Tyr's Deliverance
+	[31842] = true,			-- Avenging Wrath (Holy)
+	[31884] = true,			-- Avenging Wrath (Ret, Prot)
+	[31821] = true,			-- Aura Mastery
+	[105809] = true,		-- Holy Avenger
+	[642] = true,			-- Divine Shield
+	[498] = true,			-- Divine Protection
+	[211422] = true,		-- Knight of the Silver Hand
+	[207589] = true,		-- Ilterendi, Crown Jewel of Silvermoon
+	[234862] = true,		-- Maraad's Dying Breath
 
 	-- Hunter
-	[35079] = true,			--Misdirect
-	[193526] = true,		--Trueshot
-	[204090] = true,		--Bullseye
-	[193530] = true,		--Aspect of the Wild
-	[19574] = true,			--Bestial Wrath
-	[221796] = true,		--Blood Frenzy
-	[186289] = true,		--Aspect of the Eagle
-	[186265] = true,		--Aspect of the Turtle
-	[208913] = true,		--Sentinels Sight
-	[235712] = true,		--Gyroscopic Stabilization
-	[190515] = true,		--Survival of the Fittest
-	[266779] = true,		--Coordinated Assault
-	[259388] = true,		--Mongoose Fury
-	[260402] = true,		--Double Tap
-	[288613] = true,		--Trueshot
-	[269576] = true,		--Master Marksman
-	[257622] = true,		--Trick Shots
-	[272733] = true,		--In The Rhythm
-	[193534] = true,		--Steady Shot
+	[35079] = true,			-- Misdirect
+	[193526] = true,		-- Trueshot
+	[204090] = true,		-- Bullseye
+	[193530] = true,		-- Aspect of the Wild
+	[19574] = true,			-- Bestial Wrath
+	[221796] = true,		-- Blood Frenzy
+	[186289] = true,		-- Aspect of the Eagle
+	[186265] = true,		-- Aspect of the Turtle
+	[208913] = true,		-- Sentinels Sight
+	[235712] = true,		-- Gyroscopic Stabilization
+	[190515] = true,		-- Survival of the Fittest
+	[266779] = true,		-- Coordinated Assault
+	[259388] = true,		-- Mongoose Fury
+	[260402] = true,		-- Double Tap
+	[288613] = true,		-- Trueshot
+	[269576] = true,		-- Master Marksman
+	[257622] = true,		-- Trick Shots
+	[272733] = true,		-- In The Rhythm
+	[193534] = true,		-- Steady Shot
 	
 	-- Monk
-	[137639] = true, 		--Storm, Earth, and Fire
-	[215479] = true,		--Ironskin Brew
-	[119085] = true,		--Chi Torpedo
-	[235054] = true,		--The Emperor's Capacitor
-	[129914] = true,		--Power Strikes
-	[196741] = true,		--Hit Combo
+	[137639] = true, 		-- Storm, Earth, and Fire
+	[215479] = true,		-- Ironskin Brew
+	[119085] = true,		-- Chi Torpedo
+	[235054] = true,		-- The Emperor's Capacitor
+	[129914] = true,		-- Power Strikes
+	[196741] = true,		-- Hit Combo
 
 	-- Pet
-	[118455] = true,		--Beast Cleave
-	[136] = true,			--Mend Pet
+	[118455] = true,		-- Beast Cleave
+	[136] = true,			-- Mend Pet
 
 	-- Death Knight
-	[195181] = true,		--Bone Shield
-	[81256] = true,			--Dancing Rune Weapon
-	[55233] = true,			--Vampiric Blood
-	[48707] = true,			--Anti-Magic Shell
-	[116888] = true,		--Shroud of Purgatory
-	[235559] = true,		--Haemostasis
-	[48792] = true,			--Icebound Fortitude
-	[194679] = true,		--Rune Tap
-	[207256] = true,		--Obliteration
-	[196770] = true,		--Remorseless Winter
-	[51271] = true,			--Pillar of Frost
-	[53365] = true,			--Unholy Strength
+	[195181] = true,		-- Bone Shield
+	[81256] = true,			-- Dancing Rune Weapon
+	[55233] = true,			-- Vampiric Blood
+	[48707] = true,			-- Anti-Magic Shell
+	[116888] = true,		-- Shroud of Purgatory
+	[235559] = true,		-- Haemostasis
+	[48792] = true,			-- Icebound Fortitude
+	[194679] = true,		-- Rune Tap
+	[207256] = true,		-- Obliteration
+	[196770] = true,		-- Remorseless Winter
+	[51271] = true,			-- Pillar of Frost
+	[53365] = true,			-- Unholy Strength
 }
 
--- A debuff whitelist mainly useful for showing only select auras on small frames.
-cfg.debuff_whitelist = {
-
-	[116888] = true,		--Shroud of Purgatory
-	[225080] = true,		--Reincarnation
-	[255234] = true,		--Totemic Revival
-	[221837] = true,		--Solitude
-	[87023] = true,			--Cauterize
-}
-
--- A debuff blacklist useful for keeping larger frames from getting too crowded but still generally showing all auras.
+-- things that aren't useful to track on larger frames that otherwise show all debuffs
 cfg.debuff_blacklist = {
 
-	[57724] = true,			--Sated
-	[57723] = true,			--Exhaustion
-	[80354] = true,			--Temporal Displacement
-	[95809] = true,			--Insanity
-	[25771] = true,			--Forbearance
-	[87024] = true,			--Cauterized
-	[41425] = true,			--Hypothermia
-	[108095] = true,		--Recently Shapeshifted
-	[11196] = true,			--Recently Bandaged
-	[95223] = true,			--Recently Mass Resurrected
-	[36032] = true,			--Arcane Charge
-	[6788] = true,			--Weakened Soul
-	[206151] = true,		--Challenger's Burden
-	[45181] = true,			--Cheated Death
-	[214648] = true,		--Warlord's Exhaustion
-	[113942] = true,		--Demonic Gateway
-	[234143] = true,		--Temptation
-	[43265] = true,			--Death and Decay
-	[211426] = true,		--The Light Saves
-	[245764] = true,		--Essence of the Lifebinder
-	[182496] = true,		--Unbreakable Will
-	[226802] = true,		--Lord of Flames
+	[57724] = true,			-- Sated
+	[57723] = true,			-- Exhaustion
+	[80354] = true,			-- Temporal Displacement
+	[95809] = true,			-- Insanity
+	[25771] = true,			-- Forbearance
+	[87024] = true,			-- Cauterized
+	[41425] = true,			-- Hypothermia
+	[108095] = true,		-- Recently Shapeshifted
+	[11196] = true,			-- Recently Bandaged
+	[95223] = true,			-- Recently Mass Resurrected
+	[36032] = true,			-- Arcane Charge
+	[6788] = true,			-- Weakened Soul
+	[206151] = true,		-- Challenger's Burden
+	[45181] = true,			-- Cheated Death
+	[214648] = true,		-- Warlord's Exhaustion
+	[113942] = true,		-- Demonic Gateway
+	[234143] = true,		-- Temptation
+	[43265] = true,			-- Death and Decay
+	[211426] = true,		-- The Light Saves
+	[245764] = true,		-- Essence of the Lifebinder
+	[182496] = true,		-- Unbreakable Will
+	[226802] = true,		-- Lord of Flames
 
-	[253752] = true,		--Sense of Dread
-	[253753] = true,		--Sense of Dread
+	[253752] = true,		-- Sense of Dread
+	[253753] = true,		-- Sense of Dread
 
-	[243968] = true,		--Torment of Flames
-	[243980] = true,		--Torment of Fel
-	[243977] = true,		--Torment of Frost
+	[243968] = true,		-- Torment of Flames
+	[243980] = true,		-- Torment of Fel
+	[243977] = true,		-- Torment of Frost
 
-	[257215] = true,		--Titanforged
+	[257215] = true,		-- Titanforged
 
-	[195776] = true,		--Moonfeather Fever
+	[195776] = true,		-- Moonfeather Fever
 
-	[36893] = true,			--Transporter Malfunction
-	[36895] = true,			--Transporter Malfunction
-	[36897] = true,			--Transporter Malfunction
-	[36899] = true,			--Transporter Malfunction
+	[36893] = true,			-- Transporter Malfunction
+	[36895] = true,			-- Transporter Malfunction
+	[36897] = true,			-- Transporter Malfunction
+	[36899] = true,			-- Transporter Malfunction
 
-	[188409] = true,		--Felflame Campfire
+	[188409] = true,		-- Felflame Campfire
 
-	[23445] = true,			--Evil Twin
-	[36900] = true,			--Soul Split: Evil!
+	[23445] = true,			-- Evil Twin
+	[36900] = true,			-- Soul Split: Evil!
 
-	[249224] = true,		--Chaotic Flames
-	[265206] = true,		--Immunosuppression
+	[249224] = true,		-- Chaotic Flames
+	[265206] = true,		-- Immunosuppression
 
-	[287967] = true,		--V.I.G.O.R Cooldown
-	[284645] = true,		--Topaz of Brilliant Sunlight
+	[287967] = true,		-- V.I.G.O.R Cooldown
+	[284645] = true,		-- Topaz of Brilliant Sunlight
 }

@@ -741,14 +741,14 @@ hooksecurefunc("ManageBackpackTokenFrame", function()
 end)
 
 local strip_textures = function(frame, only_textures)
-	local regions = { frame:GetRegions() }
+	local regions = {frame:GetRegions()}
 	for _, region in ipairs(regions) do
-		if region:GetObjectType() ~= "Texture" then
-			if only_textures then return end
-		else
+		if region:GetObjectType() == "Texture" then
 			region:SetTexture()
+			region:Hide()
+		elseif not only_textures then
+			region:Hide()
 		end
-		region:Hide()
 	end
 end
 

@@ -31,6 +31,7 @@ addon.map = { enabled = true }
 addon.stats = { enabled = true }
 addon.bag = { enabled = true }
 addon.binds = { enabled = true }
+addon.skin = { enabled = true }
 
 local _, player_class = UnitClass("player")
 local player_color = RAID_CLASS_COLORS[player_class]
@@ -60,7 +61,7 @@ local tooltip_frame_border_color = CreateColor(0.75, 0.75, 0.75, 1)
 
 core.config = {
 	default_font = core.media.fonts.gotham_ultra,
-	font_size_sml = 10,
+	font_size_sml = 12,
 	font_size_med = 15,
 	font_size_lrg = 20,
 	font_size_big = 30,
@@ -81,6 +82,14 @@ core.config = {
 			top = 0,
 			bottom = 0
 		},
+	},
+	color = {
+		highlight = {1, 1, 1, 0.25},
+		pushed = {0.5, 0.5, 1, 0.25},
+		selected = {1, 1, 0.5, 0.25},
+		border = {0, 0, 0, 1},
+		light_border = {0.75, 0.75, 0.75, 1},
+		background = {0.15, 0.15, 0.15, 1},
 	},
 
 	ui_scale = PixelUtil.GetPixelToUIUnitFactor(),
@@ -188,61 +197,93 @@ core.util = {
 		fs:SetShadowOffset(0, 0)
 	end,
 
+	crop_icon = function(icon)
+		icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+	end,
+
 	fix_scrollbar = function(scrollbar)
+		-- HybridScrollFrameTemplate
+		--		.ScrollChild
+		--		.scrollBar
+		--		HybridScrollBarBackgroundTemplate
+		--			.trackBG
+		--			.ScrollBarTop
+		--			.ScrollBarBottom
+		--			.ScrollBarMiddle
+		--			.thumbTexture
+		--		HybridScrollBarTemplate
+		--			.ScrollUpButton		UIPanelScrollUpButtonTemplate
+		--			.ScrollDownButton	UIPanelScrollDownButtonTemplate
+
+		-- UIPanelScrollBarTemplate
+		--		.ThumbTexture
+
+		--		.ScrollUpButton		UIPanelScrollUpButtonTemplate
+		--		.ScrollDownButton	UIPanelScrollDownButtonTemplate
+
+		if scrollbar.trackBG then scrollbar.trackBG:Hide() end
+		if scrollbar.ScrollBarTop then scrollbar.ScrollBarTop:Hide() end
+		if scrollbar.ScrollBarBottom then scrollbar.ScrollBarBottom:Hide() end
+		if scrollbar.ScrollBarMiddle then scrollbar.ScrollBarMiddle:Hide() end
+
 		core.util.gen_backdrop(scrollbar)
 		scrollbar:SetWidth(20)
 
-		scrollbar.ThumbTexture:SetTexture(core.media.textures.blank)
-		scrollbar.ThumbTexture:SetWidth(18)
-		scrollbar.ThumbTexture:SetVertexColor(.5, .5, .5)
+		local scrollUpButton = scrollbar.ScrollUpButton or scrollbar.ScrollUp
+		local scrollDownButton = scrollbar.ScrollDownButton or scrollbar.ScrollDown
+		local thumbTexture = scrollbar.ThumbTexture or scrollbar.thumbTexture
+		
+		thumbTexture:SetTexture(core.media.textures.blank)
+		thumbTexture:SetWidth(18)
+		thumbTexture:SetVertexColor(0.5, 0.5, 0.5)
 
-		do
-			core.util.gen_backdrop(scrollbar.ScrollUpButton)
-			scrollbar.ScrollUpButton:SetSize(20, 15)
-			scrollbar.ScrollUpButton:SetPoint("BOTTOM", scrollbar, "TOP", 0, 1)
+		if scrollUpButton then
+			core.util.gen_backdrop(scrollUpButton)
+			scrollUpButton:SetSize(20, 15)
+			scrollUpButton:SetPoint("BOTTOM", scrollbar, "TOP", 0, 1)
 
-			local highlight = scrollbar.ScrollUpButton:GetHighlightTexture()
+			local highlight = scrollUpButton:GetHighlightTexture()
 			highlight:SetTexture(core.media.textures.blank)
 			highlight:SetVertexColor(.6, .6, .6, .3)
-			core.util.set_inside(highlight, scrollbar.ScrollUpButton)
+			core.util.set_inside(highlight, scrollUpButton)
 
-			local normal = scrollbar.ScrollUpButton:GetNormalTexture()
+			local normal = scrollUpButton:GetNormalTexture()
 			normal:SetTexture([[interface/buttons/arrow-up-up]])
 			normal:SetTexCoord(-0.1, 1, 0.25, 1)
 			normal:SetAllPoints(highlight)
 
-			local pushed = scrollbar.ScrollUpButton:GetPushedTexture()
+			local pushed = scrollUpButton:GetPushedTexture()
 			pushed:SetTexture([[interface/buttons/arrow-up-down]])
 			pushed:SetTexCoord(0, 1.1, 0.35, 1.05)
 			pushed:SetAllPoints(highlight)
 
-			local disabled = scrollbar.ScrollUpButton:GetDisabledTexture()
+			local disabled = scrollUpButton:GetDisabledTexture()
 			disabled:SetTexture([[interface/buttons/arrow-up-disabled]])
 			disabled:SetTexCoord(-0.1, 1, 0.25, 1)
 			disabled:SetAllPoints(highlight)
 		end
 
-		do
-			core.util.gen_backdrop(scrollbar.ScrollDownButton)
-			scrollbar.ScrollDownButton:SetSize(20, 15)
-			scrollbar.ScrollDownButton:SetPoint("TOP", scrollbar, "BOTTOM", 0, -1)
+		if scrollDownButton then
+			core.util.gen_backdrop(scrollDownButton)
+			scrollDownButton:SetSize(20, 15)
+			scrollDownButton:SetPoint("TOP", scrollbar, "BOTTOM", 0, -1)
 
-			local highlight = scrollbar.ScrollDownButton:GetHighlightTexture()
+			local highlight = scrollDownButton:GetHighlightTexture()
 			highlight:SetTexture(core.media.textures.blank)
 			highlight:SetVertexColor(.6, .6, .6, .3)
-			core.util.set_inside(highlight, scrollbar.ScrollDownButton)
+			core.util.set_inside(highlight, scrollDownButton)
 
-			local normal = scrollbar.ScrollDownButton:GetNormalTexture()
+			local normal = scrollDownButton:GetNormalTexture()
 			normal:SetTexture([[interface/buttons/arrow-down-up]])
 			normal:SetTexCoord(-0.1, 1, -0.1, 0.65)
 			normal:SetAllPoints(highlight)
 
-			local pushed = scrollbar.ScrollDownButton:GetPushedTexture()
+			local pushed = scrollDownButton:GetPushedTexture()
 			pushed:SetTexture([[interface/buttons/arrow-down-down]])
 			pushed:SetTexCoord(0, 1.1, -0.05, 0.75)
 			pushed:SetAllPoints(highlight)
 
-			local disabled = scrollbar.ScrollDownButton:GetDisabledTexture()
+			local disabled = scrollDownButton:GetDisabledTexture()
 			disabled:SetTexture([[interface/buttons/arrow-down-disabled]])
 			disabled:SetTexCoord(-0.1, 1, -0.1, 0.65)
 			disabled:SetAllPoints(highlight)
@@ -428,15 +469,17 @@ local settings = CreateFrame("Frame", "FocusSettings", UIParent)
 core.settings = settings
 
 settings:SetParent(GameMenuFrame)
-settings:SetSize(150, 1)
-core.util.gen_backdrop(settings)
+settings:SetSize(1, 1)
+settings:SetPoint("BOTTOMLEFT", GameMenuFrame, "TOPLEFT", 0, -1)
+settings:SetPoint("BOTTOMRIGHT", GameMenuFrame, "TOPRIGHT", 0, -1)
+core.util.gen_backdrop(settings, unpack(core.config.frame_background_transparent))
 settings.actions = {}
 
 settings.add_action = function(self, name, func)
 	local button = CreateFrame("Button", nil, self)
 	button.click = func
 	core.util.gen_backdrop(button)
-	button:SetSize(140, 25)
+	button:SetSize(140, 20)
 	button:SetText(name)
 	core.util.fix_string(button:GetFontString())
 	button:SetScript("OnClick", function(self)
@@ -445,20 +488,19 @@ settings.add_action = function(self, name, func)
 	table.insert(self.actions, button)
 	local highlight = button:CreateTexture(nil, "HIGHLIGHT")
 	core.util.set_inside(highlight, button)
-	highlight:SetTexture(core.media.textures.blank)
-	highlight:SetVertexColor(.6, .6, .6, .3)
+	highlight:SetColorTexture(unpack(core.config.color.highlight))
 end
 
 settings.build = function(self)
-	local height = 5
+	local height = 30
 	local last
 	for _, button in ipairs(self.actions) do
 		if last then
-			button:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -5)
+			button:SetPoint("TOP", last, "BOTTOM", 0, -1)
 		else
-			button:SetPoint("TOPLEFT", self, "TOPLEFT", 5, -5)
+			button:SetPoint("TOP", self, "TOP", 0, -15)
 		end
-		height = height + button:GetHeight() + 5
+		height = height + button:GetHeight() + 1
 		last = button
 	end
 	self:SetHeight(height)
@@ -466,7 +508,7 @@ end
 
 GameMenuFrame:HookScript("OnShow", function(self)
 	settings:build()
-	settings:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", Round(self:GetRight()), Round(self:GetTop()))
+	--settings:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", Round(self:GetRight()), Round(self:GetTop()))
 end)
 
 local load_frame = CreateFrame("Frame")
@@ -706,7 +748,7 @@ login_frame:SetScript("OnEvent", function()
 	SetCVar("nameplateMotion", 1)
 
 	SetCVar("nameplateMotionSpeed", 0.1)
-	SetCVar("nameplateMaxDistance", 60)
+	SetCVar("nameplateMaxDistance", 100)
 	SetCVar("nameplateOccludedAlphaMult", 0.2)
 	
 	SetCVar("nameplateGlobalScale", 2)
@@ -717,15 +759,15 @@ login_frame:SetScript("OnEvent", function()
 	SetCVar("nameplateOverlapH", 1)
 	SetCVar("nameplateOverlapV", 1)
 
-	SetCVar("nameplateMinAlpha", 0.5)
+	SetCVar("nameplateMinAlpha", 1)
 	SetCVar("nameplateMinScale", 1)
 	SetCVar("nameplateMinScaleDistance", 10)
 	SetCVar("nameplateMinAlphaDistance", 10)
 
-	SetCVar("nameplateMaxAlpha", 0.5)
+	SetCVar("nameplateMaxAlpha", 1)
 	SetCVar("nameplateMaxScale", 1)
-	SetCVar("nameplateMaxScaleDistance", 60)
-	SetCVar("nameplateMaxAlphaDistance", 60)
+	SetCVar("nameplateMaxScaleDistance", 100)
+	SetCVar("nameplateMaxAlphaDistance", 100)
 	
 	SetCVar("nameplateSelectedAlpha", 1)
 	SetCVar("nameplateSelectedScale", 1)

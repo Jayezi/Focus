@@ -5,6 +5,7 @@
 ## RequiredDeps: oUF
 
 core.lua
+Skin\lib.lua
 
 Bars\config.lua
 Bars\styles.lua
@@ -28,3 +29,5 @@ Stats\stats.lua
 Bag\bag.lua
 
 Binds\binds.lua
+
+Skin\skin.lua

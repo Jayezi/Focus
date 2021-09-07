@@ -276,54 +276,56 @@ local skin_chat_frame = function(frame)
 
 	-- ChatTabArtTemplate
 	--   BACKGROUND
-	tab.leftTexture:SetTexture() -- $parentLeft
-	tab.middleTexture:SetTexture() -- $parentMiddle
-	tab.rightTexture:SetTexture() -- $parentRight
-	--   BORDER
-	tab.leftSelectedTexture:SetTexture() -- $parentSelectedLeft
-	tab.middleSelectedTexture:SetTexture() -- $parentSelectedMiddle
-	tab.rightSelectedTexture:SetTexture() -- $parentSelectedRight
-	local glow = tab.glow -- $parentGlow
-	--   HIGHLIGHT
-	tab.leftHighlightTexture:SetTexture() -- $parentHighlightLeft
-	tab.middleHighlightTexture:SetTexture() -- $parentHighlightMiddle
-	tab.rightHighlightTexture:SetTexture() -- $parentHighlightRight
+	-- tab.leftTexture:SetTexture() -- $parentLeft
+	-- tab.middleTexture:SetTexture() -- $parentMiddle
+	-- tab.rightTexture:SetTexture() -- $parentRight
+	-- --   BORDER
+	-- tab.leftSelectedTexture:SetTexture() -- $parentSelectedLeft
+	-- tab.middleSelectedTexture:SetTexture() -- $parentSelectedMiddle
+	-- tab.rightSelectedTexture:SetTexture() -- $parentSelectedRight
+	-- local glow = tab.glow -- $parentGlow
+	-- --   HIGHLIGHT
+	-- tab.leftHighlightTexture:SetTexture() -- $parentHighlightLeft
+	-- tab.middleHighlightTexture:SetTexture() -- $parentHighlightMiddle
+	-- tab.rightHighlightTexture:SetTexture() -- $parentHighlightRight
 
-	-- ChatTabTemplate
-	local tab_flash = _G[tab:GetName().."Flash"]
-	local tab_text = tab.Text -- $parentText
+	-- -- ChatTabTemplate
+	-- local tab_flash = _G[tab:GetName().."Flash"]
+	-- local tab_text = tab.Text -- $parentText
 
-	tab:SetAlpha(1)
-	tab.alt_SetAlpha = tab.SetAlpha
-	hooksecurefunc(tab, "SetAlpha", function(self)
-		self:alt_SetAlpha(1)
-	end)
+	-- tab:SetAlpha(1)
+	-- tab.alt_SetAlpha = tab.SetAlpha
+	-- hooksecurefunc(tab, "SetAlpha", function(self)
+	-- 	self:alt_SetAlpha(1)
+	-- end)
 
-	tab_flash:SetAllPoints()
+	--tab.skinned = true
 
-	core.util.fix_string(tab_text)
-	tab.leftTexture:SetWidth(10)
-	tab.rightTexture:SetWidth(15)
-	tab:SetHeight(25)
-	tab_text:ClearAllPoints()
-	tab_text:SetPoint("LEFT", tab.leftTexture, "RIGHT", 0, 0)
-	tab_text:SetTextColor(unpack(core.player.color))
+	--tab_flash:SetAllPoints()
 
-	tab.alt_SetWidth = tab.SetWidth
-	hooksecurefunc(tab, "SetWidth", function(self)
-		self.Text:SetSize(0, 0)
-		local width = self.Text:GetSize()
-		self.middleTexture:SetWidth(width)
-		self:alt_SetWidth(width + 20)
-	end)
+	-- core.util.fix_string(tab_text)
+	-- tab.leftTexture:SetWidth(10)
+	-- tab.rightTexture:SetWidth(15)
+	-- tab:SetHeight(25)
+	-- tab_text:ClearAllPoints()
+	-- tab_text:SetPoint("LEFT", tab.leftTexture, "RIGHT", 0, 0)
+	-- tab_text:SetTextColor(unpack(core.player.color))
 
-	frame:HookScript("OnHide", function(self)
-		tab_text:SetTextColor(unpack(cfg.not_selected_tab_color))
-	end)
+	-- tab.alt_SetWidth = tab.SetWidth
+	-- hooksecurefunc(tab, "SetWidth", function(self)
+	-- 	self.Text:SetSize(0, 0)
+	-- 	local width = self.Text:GetSize()
+	-- 	self.middleTexture:SetWidth(width)
+	-- 	self:alt_SetWidth(width + 20)
+	-- end)
 
-	frame:HookScript("OnShow", function(self)
-		tab_text:SetTextColor(unpack(core.player.color))
-	end)
+	-- frame:HookScript("OnHide", function(self)
+	-- 	tab_text:SetTextColor(unpack(cfg.not_selected_tab_color))
+	-- end)
+
+	-- frame:HookScript("OnShow", function(self)
+	-- 	tab_text:SetTextColor(unpack(core.player.color))
+	-- end)
 
 	update_background(frame)
 end
@@ -408,11 +410,11 @@ hooksecurefunc("FCF_StopDragging", function(frame)
 end)
 
 hooksecurefunc("FCFTab_UpdateColors", function(tab, selected)
-	if selected then
-		tab.Text:SetTextColor(unpack(core.player.color))
-	else
-		tab.Text:SetTextColor(unpack(cfg.not_selected_tab_color))
-	end
+	-- if selected then
+	-- 	tab.Text:SetTextColor(unpack(core.player.color))
+	-- else
+	-- 	tab.Text:SetTextColor(unpack(cfg.not_selected_tab_color))
+	-- end
 end)
 
 hooksecurefunc("FloatingChatFrame_UpdateBackgroundAnchors", update_background)

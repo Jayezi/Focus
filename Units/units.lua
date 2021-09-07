@@ -318,7 +318,7 @@ local create_nameplate_style = function(base)
 	base.Debuffs = lib.gen_auras(base, w, cfg.auras.nameplate_debuff, "Debuffs")
 	base.Debuffs:SetPoint("TOPLEFT", base.Health, "TOPRIGHT", 1, 0)
 	base.Debuffs.disableMouse = false
-	lib.apply_whitelist_to(base.Debuffs, nil, {player = true, pet = true})
+	lib.apply_blacklist_to(base.Debuffs, cfg.nameplate_debuff_blacklist, {player = true, pet = true})
 	
 	base.Buffs = lib.gen_auras(base, w, cfg.auras.nameplate_buff, "Buffs")
 	base.Buffs:SetPoint("TOPRIGHT", base.Castbar.Icon, "TOPLEFT", -2, 1)
@@ -755,7 +755,15 @@ oUF:Factory(function(self)
 	if cfg.enabled.nameplates then
 		oUF:RegisterStyle("FocusUnitsNameplate", create_nameplate_style)
 		oUF:SpawnNamePlates("FocusUnits", function(nameplate, event, unit)
+			local nameplate_cfg = cfg.frames.nameplate
 			if event == "NAME_PLATE_UNIT_ADDED" then
+				local target = C_NamePlate.GetNamePlateForUnit('target')
+				if target and target.unitFrame and target.unitFrame:GetName() == nameplate:GetName() then
+					nameplate:SetAlpha(nameplate_cfg.alpha.target)
+				else
+					nameplate:SetAlpha(nameplate_cfg.alpha.non_target)
+				end
+
 				nameplate.WidgetContainer:UnregisterForWidgetSet()
 				local widgetSet = UnitWidgetSet(unit)
 				if widgetSet and ((playerControlled and UnitIsOwnerOrControllerOfUnit('player', unit)) or not playerControlled) then
@@ -764,6 +772,14 @@ oUF:Factory(function(self)
 				end
 			elseif event == "NAME_PLATE_UNIT_REMOVED" then
 				nameplate.WidgetContainer:UnregisterForWidgetSet()
+			elseif event == "PLAYER_TARGET_CHANGED" then
+				if nameplate then
+					nameplate:SetAlpha(nameplate_cfg.alpha.target)
+				end
+				if oUF_NamePlateDriver.target_nameplate then
+					oUF_NamePlateDriver.target_nameplate:SetAlpha(nameplate_cfg.alpha.non_target)
+				end
+				oUF_NamePlateDriver.target_nameplate = nameplate
 			end
 		end)
 	end
