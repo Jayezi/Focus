@@ -191,6 +191,8 @@ local skin_chat_frame = function(frame)
 	core.util.fix_string(editbox.header)
 	core.util.fix_string(editbox.headerSuffix)
 
+	frame:SetShadowOffset(0, 0)
+
 	frame.backdrop = CreateFrame("Frame", nil, frame)
 	frame.backdrop:SetAllPoints(frame_bg)
 	frame.backdrop:SetFrameStrata(frame:GetFrameStrata())
@@ -276,48 +278,53 @@ local skin_chat_frame = function(frame)
 
 	-- ChatTabArtTemplate
 	--   BACKGROUND
-	-- tab.leftTexture:SetTexture() -- $parentLeft
-	-- tab.middleTexture:SetTexture() -- $parentMiddle
-	-- tab.rightTexture:SetTexture() -- $parentRight
-	-- --   BORDER
-	-- tab.leftSelectedTexture:SetTexture() -- $parentSelectedLeft
-	-- tab.middleSelectedTexture:SetTexture() -- $parentSelectedMiddle
-	-- tab.rightSelectedTexture:SetTexture() -- $parentSelectedRight
-	-- local glow = tab.glow -- $parentGlow
-	-- --   HIGHLIGHT
-	-- tab.leftHighlightTexture:SetTexture() -- $parentHighlightLeft
-	-- tab.middleHighlightTexture:SetTexture() -- $parentHighlightMiddle
-	-- tab.rightHighlightTexture:SetTexture() -- $parentHighlightRight
+	-- $parentLeft
+	-- $parentMiddle
+	-- $parentRight
+	--   BORDER
+	-- $parentSelectedLeft
+	-- $parentSelectedMiddle
+	-- $parentSelectedRight
+	local tab_glow = tab.glow -- $parentGlow
+	--   HIGHLIGHT
+	-- $parentHighlightLeft
+	-- $parentHighlightMiddle
+	-- $parentHighlightRight
 
-	-- -- ChatTabTemplate
-	-- local tab_flash = _G[tab:GetName().."Flash"]
-	-- local tab_text = tab.Text -- $parentText
+	-- ChatTabTemplate
+	local tab_flash = _G[tab:GetName().."Flash"]
+	local tab_text = tab.Text -- $parentText
 
-	-- tab:SetAlpha(1)
-	-- tab.alt_SetAlpha = tab.SetAlpha
-	-- hooksecurefunc(tab, "SetAlpha", function(self)
-	-- 	self:alt_SetAlpha(1)
-	-- end)
+	core.util.strip_textures(tab, true, {
+		tab_glow,
+		tab_flash
+	})
 
-	--tab.skinned = true
+	tab:SetAlpha(1)
+	tab.alt_SetAlpha = tab.SetAlpha
+	hooksecurefunc(tab, "SetAlpha", function(self)
+		self:alt_SetAlpha(1)
+	end)
 
-	--tab_flash:SetAllPoints()
+	tab.skinned = true
 
-	-- core.util.fix_string(tab_text)
-	-- tab.leftTexture:SetWidth(10)
-	-- tab.rightTexture:SetWidth(15)
-	-- tab:SetHeight(25)
-	-- tab_text:ClearAllPoints()
-	-- tab_text:SetPoint("LEFT", tab.leftTexture, "RIGHT", 0, 0)
-	-- tab_text:SetTextColor(unpack(core.player.color))
+	tab_flash:SetAllPoints(tab_text)
+	select(1, tab_flash:GetRegions()):SetColorTexture(unpack(core.config.color.highlight))
 
-	-- tab.alt_SetWidth = tab.SetWidth
-	-- hooksecurefunc(tab, "SetWidth", function(self)
-	-- 	self.Text:SetSize(0, 0)
-	-- 	local width = self.Text:GetSize()
-	-- 	self.middleTexture:SetWidth(width)
-	-- 	self:alt_SetWidth(width + 20)
-	-- end)
+	core.util.fix_string(tab_text)
+	tab.leftTexture:SetWidth(10)
+	tab.rightTexture:SetWidth(15)
+	tab_text:ClearAllPoints()
+	tab_text:SetPoint("CENTER", 0, 0)
+	tab_text:SetTextColor(unpack(core.player.color))
+
+	tab.alt_SetWidth = tab.SetWidth
+	hooksecurefunc(tab, "SetWidth", function(self)
+		self.Text:SetSize(0, 0)
+		local width = self.Text:GetSize()
+		self.middleTexture:SetWidth(width)
+		self:alt_SetWidth(width + 20)
+	end)
 
 	-- frame:HookScript("OnHide", function(self)
 	-- 	tab_text:SetTextColor(unpack(cfg.not_selected_tab_color))
@@ -410,11 +417,11 @@ hooksecurefunc("FCF_StopDragging", function(frame)
 end)
 
 hooksecurefunc("FCFTab_UpdateColors", function(tab, selected)
-	-- if selected then
-	-- 	tab.Text:SetTextColor(unpack(core.player.color))
-	-- else
-	-- 	tab.Text:SetTextColor(unpack(cfg.not_selected_tab_color))
-	-- end
+	if selected then
+		tab.Text:SetTextColor(unpack(core.player.color))
+	else
+		tab.Text:SetTextColor(unpack(cfg.not_selected_tab_color))
+	end
 end)
 
 hooksecurefunc("FloatingChatFrame_UpdateBackgroundAnchors", update_background)
@@ -444,6 +451,7 @@ hooksecurefunc("FCF_UpdateScrollbarAnchors", update_scrollbar)
 
 hooksecurefunc("FCF_OpenTemporaryWindow", function()
 	local frame = FCF_GetCurrentChatFrame()
+	--print("FCF_OpenTemporaryWindow " .. frame:GetDebugName())
 	skin_chat_frame(frame)
 	update_scrollbar(frame)
 end)
@@ -498,9 +506,11 @@ end
 
 hooksecurefunc("FCF_SetButtonSide", fix_button_side)
 
-for i = 1, NUM_CHAT_WINDOWS do
+for i = 1, NUM_CHAT_WINDOWS + 1 do
 	local frame = _G["ChatFrame"..i]
-	skin_chat_frame(frame)
+	if frame then
+		skin_chat_frame(frame)
+	end
 end
 
 ChatAlertFrame:SetPoint("BOTTOMLEFT", ChatFrame1.editBox, "TOPLEFT", 0, 5)

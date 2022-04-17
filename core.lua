@@ -1,7 +1,11 @@
-﻿-- Might without control is wasted...
--- Focus.
--- Dominate.
---                    - The Primus
+﻿--[[
+
+	Might without control is wasted.
+	Focus. Dominate.
+
+	- The Primus
+
+]]
 
 local _, addon = ...
 local core = {}
@@ -22,6 +26,7 @@ local UnitName = UnitName
 local WorldFrame = WorldFrame
 local UnitIsAFK = UnitIsAFK
 local CinematicFrame = CinematicFrame
+local SetCVar = SetCVar
 
 addon.bars = { enabled = true }
 addon.units = { enabled = true }
@@ -46,8 +51,9 @@ core.player = {
 
 core.media = {
 	fonts = {
-		role_symbols = [[Interface\Addons\Focus\fonts\role_symbols.ttf]],
-		gotham_ultra = [[Interface\Addons\Focus\fonts\gotham_ultra.ttf]],
+		role_symbols = [[Interface\Addons\Focus\Media\role_symbols.ttf]],
+		gotham_ultra = [[Interface\Addons\Focus\Media\gotham_ultra.ttf]],
+		default_blizz = [[Fonts\FRIZQT__.TTF]]
 	},
 
 	textures = {
@@ -60,15 +66,16 @@ local frame_border_color = CreateColor(0, 0, 0, 1)
 local tooltip_frame_border_color = CreateColor(0.75, 0.75, 0.75, 1)
 
 core.config = {
-	default_font = core.media.fonts.gotham_ultra,
+	default_font = core.media.fonts.default_blizz,
+	font_size_mini = 10,
 	font_size_sml = 12,
-	font_size_med = 15,
+	font_size_med = 14,
 	font_size_lrg = 20,
 	font_size_big = 30,
 	font_flags = "THINOUTLINE",
 	frame_background = {0.15, 0.15, 0.15, 1},
 	frame_background_light = {0.3, 0.3, 0.3, 1},
-	frame_background_transparent = {0.15, 0.15, 0.15, 0.6},
+	frame_background_transparent = {0.1, 0.1, 0.1, 0.85},
 	frame_border = {0, 0, 0, 1},
 	frame_backdrop = {
 		bgFile = core.media.textures.blank,
@@ -85,8 +92,8 @@ core.config = {
 	},
 	color = {
 		highlight = {1, 1, 1, 0.25},
-		pushed = {0.5, 0.5, 1, 0.25},
-		selected = {1, 1, 0.5, 0.25},
+		selected = {0.66, 0.66, 0.66, 0.25},
+		pushed = {0.33, 0.33, 0.33, 0.25},
 		border = {0, 0, 0, 1},
 		light_border = {0.75, 0.75, 0.75, 1},
 		background = {0.15, 0.15, 0.15, 1},
@@ -150,6 +157,7 @@ core.util = {
 			Mixin(frame, BackdropTemplateMixin)
 		end
 		frame:SetBackdrop(core.config.frame_backdrop)
+		frame.Center:SetDrawLayer("BACKGROUND", -8)
 		frame:SetBackdropBorderColor(unpack(core.config.frame_border))
 		if (...) then
 			frame:SetBackdropColor(...)
@@ -192,13 +200,25 @@ core.util = {
 		end
 	end,
 
-	fix_string = function(fs, size, flags, font)
-		fs:SetFont(font or core.config.default_font, size or core.config.font_size_med, flags or core.config.font_flags)
-		fs:SetShadowOffset(0, 0)
+	fix_string = function(font_string, size, flags, font)
+		font_string:SetFont(font or core.config.default_font, size or core.config.font_size_med, flags or core.config.font_flags)
+		font_string:SetShadowOffset(0, 0)
 	end,
 
 	crop_icon = function(icon)
 		icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+	end,
+
+	circle_mask = function(parent, tex, crop)
+		if tex.mask then
+			tex:RemoveMaskTexture(tex.mask)
+		end
+		local mask = tex.mask or parent:CreateMaskTexture()
+		tex.mask = mask
+		mask:SetPoint("TOPLEFT", tex, "TOPLEFT", crop or 0, crop and -crop or 0)
+		mask:SetPoint("BOTTOMRIGHT", tex, "BOTTOMRIGHT", crop and -crop or 0, crop or 0)
+		mask:SetTexture("Interface/CHARACTERFRAME/TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+		tex:AddMaskTexture(mask)
 	end,
 
 	fix_scrollbar = function(scrollbar)
@@ -221,16 +241,30 @@ core.util = {
 		--		.ScrollUpButton		UIPanelScrollUpButtonTemplate
 		--		.ScrollDownButton	UIPanelScrollDownButtonTemplate
 
+		-- HybridScrollBarTrimTemplate
+		-- 		.trackBG
+		-- 		.Top
+		-- 		.Bottom
+		-- 		.Middle
+
+		-- 		.UpButton
+		-- 		.DownButton
+		
+		-- 		.thumbTexture
+
 		if scrollbar.trackBG then scrollbar.trackBG:Hide() end
 		if scrollbar.ScrollBarTop then scrollbar.ScrollBarTop:Hide() end
+		if scrollbar.Top then scrollbar.Top:Hide() end
 		if scrollbar.ScrollBarBottom then scrollbar.ScrollBarBottom:Hide() end
+		if scrollbar.Bottom then scrollbar.Bottom:Hide() end
 		if scrollbar.ScrollBarMiddle then scrollbar.ScrollBarMiddle:Hide() end
+		if scrollbar.Middle then scrollbar.Middle:Hide() end
 
 		core.util.gen_backdrop(scrollbar)
 		scrollbar:SetWidth(20)
 
-		local scrollUpButton = scrollbar.ScrollUpButton or scrollbar.ScrollUp
-		local scrollDownButton = scrollbar.ScrollDownButton or scrollbar.ScrollDown
+		local scrollUpButton = scrollbar.ScrollUpButton or scrollbar.ScrollUp or scrollbar.UpButton
+		local scrollDownButton = scrollbar.ScrollDownButton or scrollbar.ScrollDown or scrollbar.DownButton
 		local thumbTexture = scrollbar.ThumbTexture or scrollbar.thumbTexture
 		
 		thumbTexture:SetTexture(core.media.textures.blank)
@@ -287,6 +321,83 @@ core.util = {
 			disabled:SetTexture([[interface/buttons/arrow-down-disabled]])
 			disabled:SetTexCoord(-0.1, 1, -0.1, 0.65)
 			disabled:SetAllPoints(highlight)
+		end
+	end,
+
+	fix_editbox = function(frame, width, height, max)
+		if frame.styled then return end
+		frame.styled = true
+	
+		-- SearchBoxTemplate
+		--   Layers
+		--     OVERLAY
+		local search_icon = frame.searchIcon -- $parentSearchIcon
+		--   Frames
+		--local clear_button = frame.clearButton -- $parentClearButton
+		--     Layers
+		--       ARTWORK
+		--local clear_button_texture = clear_button.texture
+	
+	
+		-- InputBoxInstructionsTemplate (SearchBoxTemplate)
+		--   Layers
+		--     ARTWORK
+		local instructions = frame.Instructions
+	
+	
+		-- InputBoxTemplate (InputBoxInstructionsTemplate)
+		--   Layers
+		--     BACKGROUND
+		local left = frame.Left
+		local right = frame.Right
+		local middle = frame.Middle or frame.Mid -- Mid from CommunitiesChatEditBoxTemplate
+	
+		---------------------------------
+	
+		left:Hide()
+		middle:Hide()
+		right:Hide()
+		if search_icon then search_icon:Hide() end
+	
+		core.util.gen_backdrop(frame)
+		
+		frame:SetWidth(width or frame:GetWidth())
+		frame:SetHeight(22)
+		frame:SetMaxLetters(max)
+		frame:SetTextInsets(5, 15, 0, 0)
+		if instructions then core.util.fix_string(instructions, core.config.font_size_med) end
+		core.util.fix_string(frame, core.config.font_size_med)
+
+		local regions = {frame:GetRegions()}
+		for _, region in ipairs(regions) do
+			if region:GetObjectType() == "FontString" then
+				region:ClearAllPoints()
+				region:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, 0)
+				region:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -15, 0)
+			end
+		end
+	end,
+
+	strip_textures = function(frame, only_textures, exclusions)
+		local regions = {frame:GetRegions()}
+		for _, region in ipairs(regions) do
+			local exluded = false
+			if exclusions then
+				for _, exclusion in ipairs(exclusions) do
+					if region == exclusion then
+						exluded = true
+						break
+					end
+				end
+			end
+			if not exluded then
+				if region:GetObjectType() == "Texture" then
+					region:SetTexture()
+					region:Hide()
+				elseif not only_textures then
+					region:Hide()
+				end
+			end
 		end
 	end,
 
@@ -491,6 +602,10 @@ settings.add_action = function(self, name, func)
 	highlight:SetColorTexture(unpack(core.config.color.highlight))
 end
 
+FocusAddMenuOption = function(name, func)
+	settings:add_action(name, func)
+end
+
 settings.build = function(self)
 	local height = 30
 	local last
@@ -600,9 +715,9 @@ end)
 local style_backdrop = function(tooltip)
 	if tooltip.IsEmbedded then return end
 
-	tooltip:SetBackdrop(core.config.frame_backdrop)
-	tooltip:SetBackdropColor(unpack(core.config.frame_background))
-	tooltip:SetBackdropBorderColor(tooltip_frame_border_color:GetRGB())
+	--tooltip:SetBackdrop(core.config.frame_backdrop)
+	--tooltip:SetBackdropColor(unpack(core.config.frame_background))
+	--tooltip:SetBackdropBorderColor(tooltip_frame_border_color:GetRGB())
 end
 
 hooksecurefunc("SharedTooltip_SetBackdropStyle", style_backdrop)
@@ -624,105 +739,6 @@ hooksecurefunc("EmbeddedItemTooltip_UpdateSize", function(button)
 	button.Icon:SetTexCoord(.1, .9, .1, .9)
 end)
 
--- afk screen
-
-if false then
-	local afk = CreateFrame("Frame", nil, nil, BackdropTemplateMixin and "BackdropTemplate")
-	afk:SetAllPoints(WorldFrame)
-	core.util.gen_backdrop(afk, 0, 0, 0, .75)
-	afk:Hide()
-
-	local anims = {
-		MONK = 732, -- Meditate
-		HUNTER = 115 -- Kneel
-	}
-
-	local character_frame = CreateFrame("DressUpModel", "FocusPlayerModel", nil)
-	character_frame:SetSize(700, 750)
-	character_frame:SetPoint("CENTER", WorldFrame)
-
-	local pet_frame = CreateFrame("PlayerModel", "FocusPetModel", nil)
-	pet_frame:SetSize(600, 600)
-	pet_frame:SetPoint("BOTTOMRIGHT", character_frame, "BOTTOM", 0, -100)
-	pet_frame:SetFrameLevel(character_frame:GetFrameLevel() + 1)
-
-	local afk_name = core.util.gen_string(afk, 50, nil, nil, "CENTER")
-	afk_name:SetText(core.player.name)
-	afk_name:SetPoint("LEFT", WorldFrame, "CENTER")
-	afk_name:SetPoint("RIGHT", WorldFrame, "RIGHT")
-	afk_name:SetTextColor(unpack(core.player.color))
-
-	local rotate_model = function(model, add_distance, add_yaw, add_pitch)
-
-		model:SetPortraitZoom(0)
-		model:SetCamDistanceScale(1)
-		model:SetPosition(0, 0, 0)
-		model:SetRotation(0)
-		model:RefreshCamera()
-		model:SetCustomCamera(1)
-
-		local x, y, z = model:GetCameraPosition()
-		local tx, ty, tz = model:GetCameraTarget()
-		model:SetCameraTarget(0, ty, tz)
-
-		local distance = math.sqrt(x * x + y * y + z * z) + add_distance
-		local yaw = -math.atan(y / x) + add_yaw
-		local pitch = -math.atan(z / x) + add_pitch
-
-		local x = distance * math.cos(yaw) * math.cos(pitch)
-		local y = distance * math.sin(-yaw) * math.cos(pitch)
-		local z = distance * math.sin(-pitch)
-		model:SetCameraPosition(x, y, z)
-	end
-
-	local start_afk = function()
-		character_frame:Show()
-		character_frame:SetUnit("player")
-		character_frame:SetSheathed(true)
-		rotate_model(character_frame, .5, math.rad(25), math.rad(0))
-		if anims[core.player.class] then
-			character_frame:SetAnimation(anims[core.player.class])
-		end
-
-		if UnitExists("pet") then
-			pet_frame:Show()
-			pet_frame:SetUnit("pet")
-			rotate_model(pet_frame, .5, math.rad(30), math.rad(0))
-			afk_name:SetText(core.player.name.."\nand\n"..UnitName("pet"))
-		end
-
-		afk:Show()
-		UIParent:SetAlpha(0)
-		WorldFrame:SetAlpha(0)
-	end
-
-	local end_afk = function()
-		character_frame:Hide()
-		pet_frame:Hide()
-		afk:Hide()
-		UIParent:SetAlpha(1)
-		WorldFrame:SetAlpha(1)
-	end
-
-	afk:EnableMouse(true)
-	afk:SetScript("OnMouseUp", function(self, click)
-		if click == "LeftButton" then
-			end_afk()
-		end
-	end)
-
-	afk:RegisterEvent("PLAYER_FLAGS_CHANGED")
-	afk:RegisterEvent("PLAYER_ENTERING_WORLD")
-	afk:RegisterEvent("PLAYER_LEAVING_WORLD")
-	afk:SetScript("OnEvent", function()
-		if UnitIsAFK("player") then
-			start_afk()
-		else
-			end_afk()
-		end
-	end)
-end
-
 ChatBubbleFont:SetFont(core.config.default_font, core.config.font_size_lrg, core.config.font_flags)
 
 CinematicFrame:HookScript("OnShow", function(self)
@@ -736,56 +752,65 @@ end)
 
 local login_frame = CreateFrame("Frame")
 login_frame:RegisterEvent("PLAYER_LOGIN")
-login_frame:SetScript("OnEvent", function()
-	UIParent:SetScale(core.config.ui_scale)
-	WorldFrame:SetScale(core.config.ui_scale)
-
-	C_NamePlate.SetNamePlateEnemySize(125, 25)
-	C_NamePlate.SetNamePlateFriendlySize(1, 1)
-	SetCVar("nameplateShowOnlyNames", 1)
-
-	-- stacking
-	SetCVar("nameplateMotion", 1)
-
-	SetCVar("nameplateMotionSpeed", 0.1)
-	SetCVar("nameplateMaxDistance", 100)
-	SetCVar("nameplateOccludedAlphaMult", 0.2)
+login_frame:RegisterEvent("UI_SCALE_CHANGED")
+login_frame:SetScript("OnEvent", function(self, event)
 	
-	SetCVar("nameplateGlobalScale", 2)
-	SetCVar("nameplateHorizontalScale", 1)
-	SetCVar("nameplateVerticalScale", 1)
-	SetCVar("nameplateLargerScale", 1)
-	
-	SetCVar("nameplateOverlapH", 1)
-	SetCVar("nameplateOverlapV", 1)
+	if event == "UI_SCALE_CHANGED" then
+		UIParent:SetScale(core.config.ui_scale)
+		WorldFrame:SetScale(core.config.ui_scale)
+	else
+		UIParent:SetScale(core.config.ui_scale)
+		WorldFrame:SetScale(core.config.ui_scale)
 
-	SetCVar("nameplateMinAlpha", 1)
-	SetCVar("nameplateMinScale", 1)
-	SetCVar("nameplateMinScaleDistance", 10)
-	SetCVar("nameplateMinAlphaDistance", 10)
+		C_NamePlate.SetNamePlateEnemySize(125, 25)
+		C_NamePlate.SetNamePlateFriendlySize(1, 1)
+		SetCVar("nameplateShowOnlyNames", 1)
 
-	SetCVar("nameplateMaxAlpha", 1)
-	SetCVar("nameplateMaxScale", 1)
-	SetCVar("nameplateMaxScaleDistance", 100)
-	SetCVar("nameplateMaxAlphaDistance", 100)
-	
-	SetCVar("nameplateSelectedAlpha", 1)
-	SetCVar("nameplateSelectedScale", 1)
+		-- stacking
+		SetCVar("nameplateMotion", 1)
 
-	SetCVar("nameplateLargeBottomInset", -0.01)
-	SetCVar("nameplateLargeTopInset", 0.03)
-	SetCVar("nameplateOtherBottomInset", -0.01)
-	SetCVar("nameplateOtherTopInset", 0.03)
-	
-	SetCVar("nameplateSelfAlpha", 1)
-	SetCVar("nameplateSelfScale", 1)
-	SetCVar("nameplateSelfTopInset", 0)
-	SetCVar("nameplateSelfBottomInset", 0.4)
+		SetCVar("nameplateMotionSpeed", 0.1)
+		SetCVar("nameplateMaxDistance", 100)
+		SetCVar("nameplateOccludedAlphaMult", 0.2)
+		
+		SetCVar("nameplateGlobalScale", 2)
+		SetCVar("nameplateHorizontalScale", 1)
+		SetCVar("nameplateVerticalScale", 1)
+		SetCVar("nameplateLargerScale", 1)
+		
+		SetCVar("nameplateOverlapH", 1)
+		SetCVar("nameplateOverlapV", 1)
+
+		SetCVar("nameplateMinAlpha", 1)
+		SetCVar("nameplateMinScale", 1)
+		SetCVar("nameplateMinScaleDistance", 10)
+		SetCVar("nameplateMinAlphaDistance", 10)
+
+		SetCVar("nameplateMaxAlpha", 1)
+		SetCVar("nameplateMaxScale", 1)
+		SetCVar("nameplateMaxScaleDistance", 100)
+		SetCVar("nameplateMaxAlphaDistance", 100)
+		
+		SetCVar("nameplateSelectedAlpha", 1)
+		SetCVar("nameplateSelectedScale", 1)
+
+		SetCVar("nameplateLargeBottomInset", -0.01)
+		SetCVar("nameplateLargeTopInset", 0.03)
+		SetCVar("nameplateOtherBottomInset", -0.01)
+		SetCVar("nameplateOtherTopInset", 0.03)
+		
+		SetCVar("nameplateSelfAlpha", 1)
+		SetCVar("nameplateSelfScale", 1)
+		SetCVar("nameplateSelfTopInset", 0)
+		SetCVar("nameplateSelfBottomInset", 0.4)
+	end
 end)
 
 -- widgets
 
 hooksecurefunc(UIWidgetTemplateStatusBarMixin, "Setup", function(self, widgetInfo, widgetContainer)
+	if self.Bar:IsForbidden() then return end
+	
 	self.Bar.BGLeft:Hide()
 	self.Bar.BGRight:Hide()
 	self.Bar.BGCenter:Hide()
@@ -804,6 +829,374 @@ if not IsAddOnLoaded("Blizzard_DebugTools") then
 	LoadAddOn("Blizzard_DebugTools")
 end
 
+local game_fonts = {
+	-- SharedFonts.xml
+	SystemFont_Tiny2,
+	SystemFont_Tiny,
+	SystemFont_Shadow_Small,
+	Game10Font_o1,
+	--SystemFont_Small,
+	SystemFont_Small2,
+	SystemFont_Shadow_Small2,
+	SystemFont_Shadow_Med1_Outline,
+	SystemFont_Shadow_Med1,
+	--SystemFont_Med2,
+	--SystemFont_Med3,
+	SystemFont_Shadow_Med3,
+	SystemFont_Shadow_Med3_Outline,
+	QuestFont_Large,
+	--QuestFont_Huge,
+	QuestFont_30,
+	QuestFont_39,
+	SystemFont_Large,
+	SystemFont_Shadow_Large_Outline,
+	SystemFont_Shadow_Med2,
+	SystemFont_Shadow_Med2_Outline,
+	SystemFont_Shadow_Large,
+	SystemFont_Shadow_Large2,
+	Game17Font_Shadow,
+	SystemFont_Shadow_Huge1,
+	SystemFont_Huge2,
+	SystemFont_Shadow_Huge2,
+	SystemFont_Shadow_Huge2_Outline,
+	SystemFont_Shadow_Huge3,
+	SystemFont_Shadow_Outline_Huge3,
+	SystemFont_Huge4,
+	SystemFont_Shadow_Huge4,
+	SystemFont_Shadow_Huge4_Outline,
+	SystemFont_World,
+	SystemFont_World_ThickOutline,
+	SystemFont22_Outline,
+	SystemFont22_Shadow_Outline,
+	--SystemFont_Med1,
+	SystemFont_WTF2,
+	SystemFont_Outline_WTF2,
+	--GameTooltipHeader,
+	System_IME,
+	NumberFont_Shadow_Tiny,
+	NumberFont_Shadow_Small,
+	NumberFont_Shadow_Med,
+	NumberFont_Shadow_Large,
+	ChatFontNormal,
+	ChatFontSmall,
+	ConsoleFontNormal,
+	ConsoleFontSmall,
+	Tooltip_Med,
+	Tooltip_Small,
+	System15Font,
+	Game30Font,
+	Game32Font_Shadow2,
+	Game36Font_Shadow2,
+	Game40Font_Shadow2,
+	Game46Font_Shadow2,
+	Game52Font_Shadow2,
+	Game58Font_Shadow2,
+	Game69Font_Shadow2,
+	Game72Font,
+	Game72Font_Shadow,
+	-- SharedFontStyles.xml
+	GameFontNormal,
+	GameFontNormal_NoShadow,
+	GameFontNormalCenter,
+	GameFontDisable,
+	GameFontHighlight,
+	GameFontHighlightLeft,
+	GameFontHighlightCenter,
+	GameFontHighlightRight,
+	GameFontNormalHuge,
+	GameFontHighlightHuge,
+	GameFontDisableHuge,
+	GameFontNormalSmall,
+	GameFontNormalTiny,
+	GameFontWhiteTiny,
+	GameFontDisableTiny,
+	GameFontBlackTiny,
+	GameFontNormalTiny2,
+	GameFontWhiteTiny2,
+	GameFontDisableTiny2,
+	GameFontBlackTiny2,
+	GameFontNormalMed1,
+	GameFontNormalMed2,
+	GameFontNormalLarge,
+	GameFontHighlightLarge,
+	GameFontDisableLarge,
+	GameFontNormalMed2Outline,
+	GameFontNormalLargeOutline,
+	GameFontDisableSmall,
+	GameFontDisableSmall2,
+	GameFontNormalShadowOutline22,
+	GameFontHighlightShadowOutline22,
+	GameFontNormalOutline,
+	GameFontHighlightOutline,
+	QuestFontNormalLarge,
+	QuestFontNormalHuge,
+	QuestFontHighlightHuge,
+	GameFontHighlightMedium,
+	GameFontBlackMedium,
+	GameFontBlackSmall,
+	GameFontRed,
+	GameFontRedLarge,
+	GameFontGreen,
+	--GameFontBlack,
+	GameFontWhite,
+	GameFontHighlightMed2,
+	GameFontHighlightLarge,
+	GameFontNormalMed3,
+	GameFontNormalMed3Outline,
+	GameFontDisableMed3,
+	GameFontDisableLarge,
+	GameFontDisableMed2,
+	GameFontHighlightSmall,
+	GameFontHighlightSmallLeft,
+	GameFontDisableSmallLeft,
+	GameFontHighlightSmall2,
+	GameFontBlackSmall2,
+	GameFontNormalSmall2,
+	GameFontNormalLarge2,
+	GameFontHighlightLarge2,
+	GameFontNormalWTF2,
+	GameFontNormalWTF2Outline,
+	GameFontNormalHuge2,
+	GameFontHighlightHuge2,
+	GameFontNormalShadowHuge2,
+	GameFontHighlightShadowHuge2,
+	GameFontNormalOutline22,
+	GameFontHighlightOutline22,
+	GameFontDisableOutline22,
+	GameFontNormalHugeOutline,
+	GameFontNormalHuge3,
+	GameFontNormalHuge3Outline,
+	GameFontNormalHuge4,
+	GameFontNormalHuge4Outline,
+	GameFont72Normal,
+	GameFont72Highlight,
+	GameFont72NormalShadow,
+	GameFont72HighlightShadow,
+	GameTooltipHeaderText,
+	GameTooltipText,
+	GameTooltipTextSmall,
+	IMENormal,
+	IMEHighlight,
+	-- FontStyles.xml
+	GameFontNormalLeft,
+	GameFontNormalLeftBottom,
+	GameFontNormalLeftGreen,
+	GameFontNormalLeftYellow,
+	GameFontNormalLeftOrange,
+	GameFontNormalLeftLightGreen,
+	GameFontNormalLeftGrey,
+	GameFontNormalLeftRed,
+	GameFontNormalRight,
+	GameFontDisableLeft,
+	GameFontGreen,
+	GameFontWhiteSmall,
+	GameFontNormalSmallLeft,
+	GameFontHighlightSmallLeftTop,
+	GameFontHighlightSmallRight,
+	GameFontHighlightExtraSmall,
+	GameFontHighlightExtraSmallLeft,
+	GameFontHighlightExtraSmallLeftTop,
+	GameFontDarkGraySmall,
+	GameFontNormalGraySmall,
+	GameFontGreenSmall,
+	GameFontRedSmall,
+	GameFontHighlightSmallOutline,
+	GameFontNormalLargeLeft,
+	GameFontNormalLargeLeftTop,
+	GameFontGreenLarge,
+	GameFontNormalHugeBlack,
+	BossEmoteNormalHuge,
+	NumberFontNormal,
+	NumberFontNormalRight,
+	NumberFontNormalRightRed,
+	NumberFontNormalRightGreen,
+	NumberFontNormalRightYellow,
+	NumberFontNormalRightGray,
+	NumberFontNormalYellow,
+	NumberFontNormalSmall,
+	NumberFontNormalSmallGray,
+	NumberFontNormalGray,
+	NumberFontNormalLarge,
+	NumberFontNormalLargeRight,
+	NumberFontNormalLargeRightRed,
+	NumberFontNormalLargeRightYellow,
+	NumberFontNormalLargeRightGray,
+	NumberFontNormalLargeYellow,
+	NumberFontNormalHuge,
+	NumberFontSmallYellowLeft,
+	NumberFontSmallWhiteLeft,
+	NumberFontSmallBattleNetBlueLeft,
+	GameFontNormalSmallBattleNetBlueLeft,
+	Number11FontWhite,
+	Number13FontWhite,
+	Number13FontYellow,
+	Number13FontGray,
+	Number13FontRed,
+	PriceFontWhite,
+	PriceFontYellow,
+	PriceFontGray,
+	PriceFontRed,
+	PriceFontGreen,
+	Number14FontWhite,
+	Number14FontGray,
+	Number14FontGreen,
+	Number14FontRed,
+	Number15FontWhite,
+	Number18FontWhite,
+	--QuestTitleFont,
+	--QuestTitleFontBlackShadow,
+	--QuestFont,
+	--QuestFontLeft,
+	--QuestFontNormalSmall,
+	QuestDifficulty_Impossible,
+	QuestDifficulty_VeryDifficult,
+	QuestDifficulty_Difficult,
+	QuestDifficulty_Standard,
+	QuestDifficulty_Trivial,
+	QuestDifficulty_Header,
+	ItemTextFontNormal,
+	MailTextFontNormal,
+	SubSpellFont,
+	NewSubSpellFont,
+	DialogButtonNormalText,
+	DialogButtonHighlightText,
+	ZoneTextFont,
+	SubZoneTextFont,
+	PVPInfoTextFont,
+	ErrorFont,
+	TextStatusBarText,
+	GameNormalNumberFont,
+	WhiteNormalNumberFont,
+	TextStatusBarTextLarge,
+	CombatLogFont,
+	WorldMapTextFont,
+	--InvoiceTextFontNormal,
+	InvoiceTextFontSmall,
+	CombatTextFont,
+	CombatTextFontOutline,
+	MissionCombatTextFontOutline,
+	MovieSubtitleFont,
+	AchievementPointsFont,
+	AchievementPointsFontSmall,
+	--AchievementDescriptionFont,
+	AchievementCriteriaFont,
+	AchievementDateFont,
+	VehicleMenuBarStatusBarText,
+	FocusFontSmall,
+	ObjectiveFont,
+	ArtifactAppearanceSetNormalFont,
+	ArtifactAppearanceSetHighlightFont,
+	CommentatorTeamScoreFont,
+	CommentatorDampeningFont,
+	CommentatorTeamNameFont,
+	CommentatorCCFont,
+	CommentatorFontSmall,
+	CommentatorFontMedium,
+	CommentatorVictoryFanfare,
+	CommentatorVictoryFanfareTeam,
+	SystemFont_Small2,
+	-- Fonts.xml
+	SystemFont_Outline_Small,
+	SystemFont_Outline,
+	SystemFont_InverseShadow_Small,
+	SystemFont_Huge1,
+	SystemFont_Huge1_Outline,
+	SystemFont_OutlineThick_Huge2,
+	SystemFont_OutlineThick_Huge4,
+	SystemFont_OutlineThick_WTF,
+	NumberFont_GameNormal,
+	NumberFont_OutlineThick_Mono_Small,
+	Number12Font_o1,
+	NumberFont_Small,
+	Number11Font,
+	Number12Font,
+	Number13Font,
+	PriceFont,
+	Number15Font,
+	Number16Font,
+	Number18Font,
+	NumberFont_Normal_Med,
+	NumberFont_Outline_Med,
+	NumberFont_Outline_Large,
+	NumberFont_Outline_Huge,
+	Fancy22Font,
+	--QuestFont_Shadow_Huge,
+	QuestFont_Outline_Huge,
+	--QuestFont_Super_Huge,
+	QuestFont_Shadow_Super_Huge,
+	QuestFont_Super_Huge_Outline,
+	SplashHeaderFont,
+	Game11Font_Shadow,
+	Game11Font,
+	Game12Font,
+	Game13Font,
+	Game13FontShadow,
+	Game15Font,
+	Game16Font,
+	Game18Font,
+	Game20Font,
+	Game24Font,
+	Game27Font,
+	Game32Font,
+	Game36Font,
+	Game40Font,
+	Game42Font,
+	Game46Font,
+	Game48Font,
+	Game48FontShadow,
+	Game60Font,
+	Game120Font,
+	Game11Font_o1,
+	Game12Font_o1,
+	Game13Font_o1,
+	Game15Font_o1,
+	--QuestFont_Enormous,
+	QuestFont_Shadow_Enormous,
+	DestinyFontMed,
+	DestinyFontLarge,
+	CoreAbilityFont,
+	--DestinyFontHuge,
+	QuestFont_Shadow_Small,
+	MailFont_Large,
+	SpellFont_Small,
+	--InvoiceFont_Med,
+	InvoiceFont_Small,
+	AchievementFont_Small,
+	ReputationDetailFont,
+	FriendsFont_Normal,
+	FriendsFont_11,
+	FriendsFont_Small,
+	FriendsFont_Large,
+	FriendsFont_UserText,
+	GameFont_Gigantic,
+	ChatBubbleFont,
+	Fancy12Font,
+	Fancy14Font,
+	--Fancy16Font,
+	Fancy18Font,
+	Fancy20Font,
+	Fancy24Font,
+	Fancy27Font,
+	Fancy30Font,
+	Fancy32Font,
+	Fancy48Font,
+	SystemFont_NamePlateFixed,
+	SystemFont_LargeNamePlateFixed,
+	SystemFont_NamePlate,
+	SystemFont_LargeNamePlate,
+	SystemFont_NamePlateCastBar,
+}
+for _, font in ipairs(game_fonts) do
+	local _, height = font:GetFont()
+	
+	core.util.fix_string(font, math.floor(height + 0.5))
+end
+
+SystemFont_NamePlate:SetFont(core.media.fonts.default_blizz, core.config.font_size_mini, "THINOUTLINE")
+
+QuestTitleFont:SetShadowOffset(0, 0)
+QuestTitleFontBlackShadow:SetShadowOffset(0, 0)
+
 TableAttributeDisplay:SetSize(1000, 800)
 TableAttributeDisplay.LinesScrollFrame:SetSize(900, 700)
 TableAttributeDisplay.LinesScrollFrame.LinesContainer:SetWidth(600)
@@ -817,3 +1210,15 @@ hooksecurefunc(TableAttributeLineMixin, "Initialize", function(self)
 		self.ValueButton.Text:SetWidth(620)
 	end
 end)
+
+ExtraAbilityContainer:ClearAllPoints()
+
+-- mock libstub
+
+if not LibStub then
+	LibStub = {}
+	LibStub.libs = {}
+	LibStub.minors = {}
+	LibStub.minor = 0
+	setmetatable(LibStub, { __call = function() return nil end })
+end

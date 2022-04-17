@@ -197,24 +197,44 @@ local setup_microbar = function()
 	end
 end
 
+local place_widget = function()
+	UIWidgetPowerBarContainerFrame.alt_SetPoint = UIWidgetPowerBarContainerFrame.SetPoint
+	hooksecurefunc(UIWidgetPowerBarContainerFrame, "SetPoint", function(self)
+		UIWidgetPowerBarContainerFrame:ClearAllPoints()
+		UIWidgetPowerBarContainerFrame:alt_SetPoint("TOP", UIParent, "TOP", 0, -5)
+	end)
+	UIWidgetPowerBarContainerFrame:ClearAllPoints()
+	UIWidgetPowerBarContainerFrame:SetPoint("TOP", UIParent, "TOP", 0, -5)
+end
+
 local loader = CreateFrame("Frame")
 loader:RegisterEvent("PLAYER_LOGIN")
-loader:SetScript("OnEvent", function()
-	setup_actionbars()
-	setup_microbar()
-	setup_stancebar()
-	setup_petbar()
-	setup_possessbar()
-	setup_bagbar()
+loader:RegisterEvent("ADDON_LOADED")
+loader:SetScript("OnEvent", function(self, event, addon)
+	if event == "PLAYER_LOGIN" then
+		setup_actionbars()
+		setup_microbar()
+		setup_stancebar()
+		setup_petbar()
+		setup_possessbar()
+		setup_bagbar()
+	else
+		if addon == "Blizzard_UIWidgets" then
+			place_widget()
+		end
+	end
 end)
 
-ExtraActionBarFrame:ClearAllPoints()
-ExtraActionBarFrame:SetPoint(unpack(cfg.bars.extra.pos))
-ExtraActionBarFrame.ignoreFramePositionManager = true
+local extra_action_parent = core.util.get_mover_frame("ExtraAction")
+extra_action_parent:SetPoint("TOP", UIParent, "TOP", 0, -10)
+ExtraActionButton1:ClearAllPoints()
+ExtraActionButton1:SetPoint("TOP", extra_action_parent)
 
-ZoneAbilityFrame:ClearAllPoints()
-ZoneAbilityFrame:SetPoint(unpack(cfg.bars.zone.pos))
-ZoneAbilityFrame.ignoreFramePositionManager = true
+local zone_ability_parent = core.util.get_mover_frame("ZoneAbility")
+zone_ability_parent:SetPoint("TOP", UIParent, "TOP", 0, -120)
+ZoneAbilityFrame.Style:SetPoint("CENTER", ZoneAbilityFrame.SpellButtonContainer)
+ZoneAbilityFrame.SpellButtonContainer:ClearAllPoints()
+ZoneAbilityFrame.SpellButtonContainer:SetPoint("TOP", zone_ability_parent)
 
 hooksecurefunc('CooldownFrame_Set', function(self)
 	if strfind(self:GetDebugName(), "ChargeCooldown") then
@@ -310,3 +330,7 @@ hooksecurefunc('AutoCastShine_OnUpdate', function()
 		end
 	end
 end)
+
+if IsAddOnLoaded("Blizzard_UIWidgets") then
+	place_widget()
+end

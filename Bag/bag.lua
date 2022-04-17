@@ -444,52 +444,6 @@ local update_bag_items = function(bag)
 	end
 end
 
-local skin_edit_box = function(frame)
-	if frame.styled then return end
-	frame.styled = true
-
-	-- SearchBoxTemplate
-	--   Layers
-	--     OVERLAY
-	local search_icon = frame.searchIcon -- $parentSearchIcon
-	--   Frames
-	--local clear_button = frame.clearButton -- $parentClearButton
-	--     Layers
-	--       ARTWORK
-	--local clear_button_texture = clear_button.texture
-
-
-	-- InputBoxInstructionsTemplate (SearchBoxTemplate)
-	--   Layers
-	--     ARTWORK
-	local instructions = frame.Instructions
-
-
-	-- InputBoxTemplate (InputBoxInstructionsTemplate)
-	--   Layers
-	--     BACKGROUND
-	local left = frame.Left
-	local right = frame.Right
-	local middle = frame.Middle
-
-	---------------------------------
-
-	left:Hide()
-	middle:Hide()
-	right:Hide()
-	search_icon:Hide()
-
-	core.util.gen_backdrop(frame)
-	
-	frame:SetWidth(cfg.edit_size)
-	frame:SetHeight(cfg.bag_size)
-	frame:SetMaxLetters(cfg.edit_letters)
-	frame:SetTextInsets(5, 0, 0, 0);
-	instructions:SetPoint("TOPLEFT", 5, 0)
-	core.util.fix_string(instructions, core.config.font_size_med)
-	core.util.fix_string(frame, core.config.font_size_med)
-end
-
 local skin_cleanup_button = function(button)
 	if button.styled then return end
 	button.styled = true
@@ -519,7 +473,7 @@ hooksecurefunc("ContainerFrame_Update", function(bag)
 	local id = bag:GetID()
 
 	if id == BACKPACK_CONTAINER then
-		skin_edit_box(BagItemSearchBox)
+		core.util.fix_editbox(BagItemSearchBox, cfg.edit_size, 22, cfg.edit_letters)
 		BagItemSearchBox:ClearAllPoints()
 		BagItemSearchBox:SetPoint("TOPLEFT", focus_backpack, "TOPRIGHT", -(cfg.inset + BagItemSearchBox:GetWidth()), -cfg.inset)
 
@@ -762,7 +716,7 @@ BankFrameMoneyFrameBorder:Hide()
 
 BankItemSearchBox:ClearAllPoints()
 BankItemSearchBox:SetPoint("TOPRIGHT", focus_bank, "TOPRIGHT", -cfg.inset, -cfg.inset)
-skin_edit_box(BankItemSearchBox)
+core.util.fix_editbox(BankItemSearchBox, cfg.edit_size, 22, cfg.edit_letters)
 
 BankItemAutoSortButton:ClearAllPoints()
 BankItemAutoSortButton:SetPoint("TOPRIGHT", BankItemSearchBox, "TOPLEFT", -cfg.spacing, 0)

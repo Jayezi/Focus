@@ -1,7 +1,7 @@
 local _, addon = ...
 if not addon.units.enabled then return end
+local oUF = addon.oUF
 
-local oUF = oUF
 local ALTERNATE_POWER_INDEX = ALTERNATE_POWER_INDEX
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local UnitIsConnected = UnitIsConnected

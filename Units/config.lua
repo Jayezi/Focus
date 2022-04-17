@@ -1,6 +1,7 @@
 local _, addon = ...
 if not addon.units.enabled then return end
 local core = addon.core
+local oUF = addon.oUF
 
 local cfg = {}
 addon.units.cfg = cfg
@@ -193,6 +194,7 @@ cfg.nameplate_colors = {
 	[120651] = {0.25, 0.75, 0.25},	-- Explosive
 	[177891] = {0.75, 0.25, 0.75},	-- Mawforged Summoner
 	[179963] = {0.75, 0.75, 0.25},	-- Terror Orb
+	[184140] = {0.75, 0.75, 0.25},	-- Xy Acolyte
 }
 
 cfg.pet_buff_whitelist = {
@@ -274,7 +276,8 @@ cfg.player_buff_whitelist = {
 	[269576] = true,		-- Master Marksman
 	[257622] = true,		-- Trick Shots
 	[272733] = true,		-- In The Rhythm
-	[193534] = true,		-- Steady Shot
+	[193534] = true,		-- Steady Focus
+	[320224] = true,		-- Podtender
 	
 	-- Monk
 	[137639] = true, 		-- Storm, Earth, and Fire

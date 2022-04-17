@@ -6,6 +6,6 @@ local cfg = {}
 addon.chat.cfg = cfg
 
 cfg.selected_tab_color = core.player.color
-cfg.not_selected_tab_color = {0.5, 0.5, 0.5}
+cfg.not_selected_tab_color = {0.5, 0.5, 0.5, 1.0}
 cfg.link_color = "0099FF"
 cfg.url_pattern = "([wWhH][wWtT][wWtT][%.pP]%S+[^%p%s])"

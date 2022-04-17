@@ -12,39 +12,71 @@ local CreateFrame = CreateFrame
 local InCombatLockdown = InCombatLockdown
 
 local bar_list = {
-	"MultiActionBar1",
-	"MultiActionBar2",
-	"MultiActionBar3",
-	"MultiActionBar4",
+	"MULTIACTIONBAR1",
+	"MULTIACTIONBAR2",
+	"MULTIACTIONBAR3",
+	"MULTIACTIONBAR4",
 }
 
-local key_list = {"1","2","3","4","5","6","7","8","9","0","-","="}
+local default_action_bar = {
+	["1"] = true,
+	["2"] = true,
+	["3"] = true,
+	["4"] = true,
+	["5"] = true,
+	["6"] = true,
+	["7"] = true,
+	["8"] = true,
+	["9"] = true,
+	["0"] = true,
+	["-"] = true,
+	["="] = true,
+}
 
 local load_layout = function(spec)
 	local new_layout = FocusBindsLayouts[core.player.realm][core.player.name][spec]
 	if new_layout then
-		-- clears any existing binds if there are no new ones in the new layout
-		
-		-- do main action bar separate to preserve 1 through =
+
+		-- clears any existing binds
 		for i = 1, 12 do
-			--clears the non default binds
-			local keys = {GetBindingKey("ActionButton"..i)}
+			local keys = {GetBindingKey("ACTIONBUTTON"..i)}
 			for k = 1, #keys do
-				if not (keys[k] == key_list[i]) then
+				SetBinding(keys[k])
+			end
+		end
+
+		for _, bar in pairs(bar_list) do
+			for i = 1, 12 do
+				local keys = {GetBindingKey(bar.."BUTTON"..i)}
+				for k = 1, #keys do
 					SetBinding(keys[k])
 				end
 			end
-			if new_layout["ActionButton"..i] then
-				SetBinding(new_layout["ActionButton"..i], "ActionButton"..i)
+		end
+
+		for i = 1, 12 do
+			if new_layout["ACTIONBUTTON"..i] then
+				-- do the default number binds first so they show up on the buttons
+				for k = 1, #new_layout["ACTIONBUTTON"..i] do
+					if default_action_bar[new_layout["ACTIONBUTTON"..i][k]] then
+						SetBinding(new_layout["ACTIONBUTTON"..i][k], "ACTIONBUTTON"..i)
+					end
+				end
+				for k = 1, #new_layout["ACTIONBUTTON"..i] do
+					if not default_action_bar[new_layout["ACTIONBUTTON"..i][k]] then
+						SetBinding(new_layout["ACTIONBUTTON"..i][k], "ACTIONBUTTON"..i)
+					end
+				end
 			end
 		end
 		
 		for _, bar in pairs(bar_list) do
 			for i = 1, 12 do
-				local keys = {GetBindingKey(bar.."Button"..i)}
-				for k = 1, #keys do SetBinding(keys[k]) end
-				if new_layout[bar.."Button"..i] then
-					SetBinding(new_layout[bar.."Button"..i], bar.."Button"..i)
+				local keys = {GetBindingKey(bar.."BUTTON"..i)}
+				if new_layout[bar.."BUTTON"..i] then
+					for k = 1, #new_layout[bar.."BUTTON"..i] do
+						SetBinding(new_layout[bar.."BUTTON"..i][k], bar.."BUTTON"..i)
+					end
 				end
 			end
 		end
@@ -57,13 +89,12 @@ end
 local save_layout = function()
 	local _, spec = GetSpecializationInfo(GetSpecialization())
 	local new_layout = {}
-	-- do this separate since the first key defaults to 1 through =
 	for i = 1, 12 do
-		_, new_layout["ActionButton"..i] = GetBindingKey("ActionButton"..i)
+		new_layout["ACTIONBUTTON"..i] = {GetBindingKey("ACTIONBUTTON"..i)}
 	end
 	for _, bar in pairs(bar_list) do
 		for i = 1, 12 do
-			new_layout[bar.."Button"..i] = GetBindingKey(bar.."Button"..i)
+			new_layout[bar.."BUTTON"..i] = {GetBindingKey(bar.."BUTTON"..i)}
 		end
 	end
 	FocusBindsLayouts[core.player.realm][core.player.name][spec] = new_layout
@@ -72,6 +103,7 @@ end
 
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
+frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 frame:SetScript("OnEvent", function(self, event, ...)
 	if event == "ADDON_LOADED" then
@@ -80,6 +112,9 @@ frame:SetScript("OnEvent", function(self, event, ...)
 			if not FocusBindsLayouts[core.player.realm] then FocusBindsLayouts[core.player.realm] = {} end
 			if not FocusBindsLayouts[core.player.realm][core.player.name] then FocusBindsLayouts[core.player.realm][core.player.name] = {} end
 		end
+	elseif event == "PLAYER_LOGIN" then
+		local _, spec = GetSpecializationInfo(GetSpecialization())
+		load_layout(spec)
 	elseif event == "PLAYER_SPECIALIZATION_CHANGED" and not InCombatLockdown() and ... == "player" then
 		local _, spec = GetSpecializationInfo(GetSpecialization())
 		load_layout(spec)

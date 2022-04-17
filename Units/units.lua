@@ -3,15 +3,17 @@ if not addon.units.enabled then return end
 local core = addon.core
 local cfg = addon.units.cfg
 local lib = addon.units.lib
+local oUF = addon.oUF
 
-local oUF = oUF
 local CreateFrame = CreateFrame
 local C_NamePlate = C_NamePlate
 local MAX_BOSS_FRAMES = MAX_BOSS_FRAMES
-local UIWidgetSetLayoutDirection = Enum.UIWidgetSetLayoutDirection
-local UIWidgetLayoutDirection = Enum.UIWidgetLayoutDirection
 local UnitGUID = UnitGUID
 local strsplit = strsplit
+local CastingBarFrame_SetUnit = CastingBarFrame_SetUnit
+local CastingBarFrame = CastingBarFrame
+local PetCastingBarFrame = PetCastingBarFrame
+local UnitExists = UnitExists
 
 local create_player_style = function(base)
 
@@ -79,7 +81,7 @@ local create_player_style = function(base)
 	base:SetHeight(base.stack_height)
 
 	-- strings
-	local hp_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, nil, "LEFT", "BOTTOM")
+	local hp_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "BOTTOM")
 	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 1)
 	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
 	base:Tag(hp_string, "[focus:color][focus:hp:curr/max state]")
@@ -92,7 +94,7 @@ local create_player_style = function(base)
 	hp_perc_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, 10)
 	base:Tag(hp_perc_string, "[focus:color][focus:hp:perc.]")
 
-	local name_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, nil, "RIGHT", "TOP")
+	local name_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, core.media.fonts.gotham_ultra, "RIGHT", "TOP")
 	name_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", -1, 10)
 	name_string:SetPoint("LEFT", hp_perc_string, "RIGHT", 5, 0)
 	base:Tag(name_string, "[focus:color][focus:status][name]")
@@ -264,15 +266,6 @@ local create_nameplate_style = function(base)
 	local nameplate_cfg = cfg.frames.nameplate
 	local w, h = nameplate_cfg.size.w, nameplate_cfg.size.h
 
-	--core.util.gen_backdrop(base, 0, 0, 0, .25)
-
-	-- Widgets
-	base.WidgetContainer = CreateFrame('Frame', nil, base, 'UIWidgetContainerNoResizeTemplate')
-	base.WidgetContainer:SetPoint('BOTTOM', base, 'TOP', 0, 20)
-	base.WidgetContainer:Hide()
-	base.WidgetContainer:SetScale(1.0 / PixelUtil.GetPixelToUIUnitFactor())
-	base.WidgetContainer.showAndHideOnWidgetSetRegistration = false
-
 	-- health
 	base.Health = core.util.gen_statusbar(base, w, h, false)
 	base.Health.colorClass = true
@@ -283,6 +276,7 @@ local create_nameplate_style = function(base)
 
 	base.Health.PostUpdateColor = function(self, unit)
 		local guid = UnitGUID(unit)
+		if not guid then return end
 		local _, _, _, _, _, npc_id, _ = strsplit("-", guid)
     	if cfg.nameplate_colors[tonumber(npc_id)] then
 			self:SetStatusBarColor(unpack(cfg.nameplate_colors[tonumber(npc_id)]))
@@ -627,129 +621,6 @@ local create_raid_style = function(role)
 	end
 end
 
-local widgetLayout = function(widgetContainerFrame, sortedWidgets)
-	local horizontalRowContainer = nil
-	local horizontalRowHeight = 0
-	local horizontalRowWidth = 0
-	local totalWidth = 0
-	local totalHeight = 0
-
-	widgetContainerFrame.horizontalRowContainerPool:ReleaseAll()
-
-	for index, widgetFrame in ipairs(sortedWidgets) do
-		widgetFrame:ClearAllPoints()
-
-		local widgetSetUsesVertical = widgetContainerFrame.widgetSetLayoutDirection == UIWidgetSetLayoutDirection.Vertical
-		local widgetUsesVertical = widgetFrame.layoutDirection == UIWidgetLayoutDirection.Vertical
-
-		local useOverlapLayout = widgetFrame.layoutDirection == UIWidgetLayoutDirection.Overlap
-		local useVerticalLayout = widgetUsesVertical or (widgetFrame.layoutDirection == UIWidgetLayoutDirection.Default and widgetSetUsesVertical)
-
-		if useOverlapLayout then
-			if index == 1 then
-				if widgetSetUsesVertical then
-					widgetFrame:SetPoint(widgetContainerFrame.verticalAnchorPoint, widgetContainerFrame)
-				else
-					widgetFrame:SetPoint(widgetContainerFrame.horizontalAnchorPoint, widgetContainerFrame)
-				end
-			else
-				local relative = sortedWidgets[index - 1]
-				if widgetSetUsesVertical then
-					widgetFrame:SetPoint(widgetContainerFrame.verticalAnchorPoint, relative, widgetContainerFrame.verticalAnchorPoint, 0, 0)
-				else
-					widgetFrame:SetPoint(widgetContainerFrame.horizontalAnchorPoint, relative, widgetContainerFrame.horizontalAnchorPoint, 0, 0)
-				end
-			end
-
-			local width, height = widgetFrame:GetSize()
-			if width > totalWidth then
-				totalWidth = width
-			end
-			if height > totalHeight then
-				totalHeight = height
-			end
-
-			widgetFrame:SetParent(widgetContainerFrame)
-		elseif useVerticalLayout then
-			if index == 1 then
-				widgetFrame:SetPoint(widgetContainerFrame.verticalAnchorPoint, widgetContainerFrame)
-			else
-				local relative = horizontalRowContainer or sortedWidgets[index - 1]
-				widgetFrame:SetPoint(widgetContainerFrame.verticalAnchorPoint, relative, widgetContainerFrame.verticalRelativePoint, 0, widgetContainerFrame.verticalAnchorYOffset)
-
-				if horizontalRowContainer then
-					horizontalRowContainer:SetSize(horizontalRowWidth, horizontalRowHeight)
-					totalWidth = totalWidth + horizontalRowWidth
-					totalHeight = totalHeight + horizontalRowHeight
-					horizontalRowHeight = 0
-					horizontalRowWidth = 0
-					horizontalRowContainer = nil
-				end
-
-				totalHeight = totalHeight + widgetContainerFrame.verticalAnchorYOffset
-			end
-
-			widgetFrame:SetParent(widgetContainerFrame)
-
-			local width, height = widgetFrame:GetSize()
-			if width > totalWidth then
-				totalWidth = width
-			end
-			totalHeight = totalHeight + height
-		else
-			local forceNewRow = widgetFrame.layoutDirection == UIWidgetLayoutDirection.HorizontalForceNewRow
-			local needNewRowContainer = not horizontalRowContainer or forceNewRow
-			if needNewRowContainer then
-				if horizontalRowContainer then
-					--horizontalRowContainer:Layout()
-					horizontalRowContainer:SetSize(horizontalRowWidth, horizontalRowHeight)
-					totalWidth = totalWidth + horizontalRowWidth
-					totalHeight = totalHeight + horizontalRowHeight
-					horizontalRowHeight = 0
-					horizontalRowWidth = 0
-				end
-
-				local newHorizontalRowContainer = widgetContainerFrame.horizontalRowContainerPool:Acquire()
-				newHorizontalRowContainer:Show()
-
-				if index == 1 then
-					newHorizontalRowContainer:SetPoint(widgetContainerFrame.verticalAnchorPoint, widgetContainerFrame, widgetContainerFrame.verticalAnchorPoint)
-				else
-					local relative = horizontalRowContainer or sortedWidgets[index - 1]
-					newHorizontalRowContainer:SetPoint(widgetContainerFrame.verticalAnchorPoint, relative, widgetContainerFrame.verticalRelativePoint, 0, widgetContainerFrame.verticalAnchorYOffset)
-
-					totalHeight = totalHeight + widgetContainerFrame.verticalAnchorYOffset
-				end
-				widgetFrame:SetPoint('TOPLEFT', newHorizontalRowContainer)
-				widgetFrame:SetParent(newHorizontalRowContainer)
-
-				horizontalRowWidth = horizontalRowWidth + widgetFrame:GetWidth()
-				horizontalRowContainer = newHorizontalRowContainer
-			else
-				local relative = sortedWidgets[index - 1]
-				widgetFrame:SetParent(horizontalRowContainer)
-				widgetFrame:SetPoint(widgetContainerFrame.horizontalAnchorPoint, relative, widgetContainerFrame.horizontalRelativePoint, widgetContainerFrame.horizontalAnchorXOffset, 0)
-
-				horizontalRowWidth = horizontalRowWidth + widgetFrame:GetWidth() + widgetContainerFrame.horizontalAnchorXOffset
-			end
-
-			local widgetHeight = widgetFrame:GetHeight()
-			if widgetHeight > horizontalRowHeight then
-				horizontalRowHeight = widgetHeight
-			end
-		end
-	end
-
-	if horizontalRowContainer then
-		horizontalRowContainer:SetSize(horizontalRowWidth, horizontalRowHeight)
-		totalWidth = totalWidth + horizontalRowWidth
-		totalHeight = totalHeight + horizontalRowHeight
-	end
-
-	widgetContainerFrame:SetSize(totalWidth, totalHeight)
-	widgetContainerFrame:Show()
-end
-
 oUF:Factory(function(self)
 
 	if cfg.enabled.nameplates then
@@ -757,31 +628,49 @@ oUF:Factory(function(self)
 		oUF:SpawnNamePlates("FocusUnits", function(nameplate, event, unit)
 			local nameplate_cfg = cfg.frames.nameplate
 			if event == "NAME_PLATE_UNIT_ADDED" then
-				local target = C_NamePlate.GetNamePlateForUnit('target')
-				if target and target.unitFrame and target.unitFrame:GetName() == nameplate:GetName() then
+				nameplate.blizz_plate = nameplate:GetParent().UnitFrame
+
+				if UnitIsUnit(unit, "target") then
 					nameplate:SetAlpha(nameplate_cfg.alpha.target)
 				else
 					nameplate:SetAlpha(nameplate_cfg.alpha.non_target)
 				end
 
-				nameplate.WidgetContainer:UnregisterForWidgetSet()
-				local widgetSet = UnitWidgetSet(unit)
-				if widgetSet and ((playerControlled and UnitIsOwnerOrControllerOfUnit('player', unit)) or not playerControlled) then
-					nameplate.WidgetContainer:RegisterForWidgetSet(widgetSet, widgetLayout, nil, unit)
-					nameplate.WidgetContainer:ProcessAllWidgets()
+				nameplate.widgets = nameplate.blizz_plate.WidgetContainer
+				if nameplate.widgets then
+					nameplate.widgets:SetParent(nameplate)
+					nameplate.widgets:ClearAllPoints()
+					nameplate.widgets:SetPoint("BOTTOM", nameplate, "TOP", 0, 30)
+					nameplate.widgets:SetScale(1.0 / PixelUtil.GetPixelToUIUnitFactor())
 				end
 			elseif event == "NAME_PLATE_UNIT_REMOVED" then
-				nameplate.WidgetContainer:UnregisterForWidgetSet()
-			elseif event == "PLAYER_TARGET_CHANGED" then
-				if nameplate then
-					nameplate:SetAlpha(nameplate_cfg.alpha.target)
+				if nameplate.widgets then
+					nameplate.widgets:SetParent(nameplate.blizz_plate)
+					nameplate.widgets:ClearAllPoints()
+					nameplate.widgets:SetPoint("TOP", nameplate.blizz_plate.castBar, "BOTTOM")
+					nameplate.widgets:SetScale(1.0)
 				end
+				nameplate:SetAlpha(nameplate_cfg.alpha.non_target)
+			elseif event == "PLAYER_TARGET_CHANGED" then
 				if oUF_NamePlateDriver.target_nameplate then
 					oUF_NamePlateDriver.target_nameplate:SetAlpha(nameplate_cfg.alpha.non_target)
+				end
+				if nameplate then
+					nameplate:SetAlpha(nameplate_cfg.alpha.target)
 				end
 				oUF_NamePlateDriver.target_nameplate = nameplate
 			end
 		end)
+
+		-- oUF_NamePlateDriver:SetScript("OnUpdate", function()
+		-- 	if not oUF_NamePlateDriver.target_nameplate then
+		-- 		local target = UnitExists("target") and C_NamePlate.GetNamePlateForUnit("target")
+		-- 		if target and target.unitFrame then
+		-- 			oUF_NamePlateDriver.target_nameplate = target.unitFrame
+		-- 			target.unitFrame:SetAlpha(cfg.frames.nameplate.alpha.target)
+		-- 		end
+		-- 	end
+		-- end)
 	end
 
 	if cfg.enabled.player then
@@ -790,6 +679,9 @@ oUF:Factory(function(self)
 		oUF:RegisterStyle("FocusUnitsPlayer", create_player_style)
 		oUF:SetActiveStyle("FocusUnitsPlayer")
 		oUF:Spawn("player"):SetPoint("TOPRIGHT", mover)
+
+		CastingBarFrame_SetUnit(CastingBarFrame)
+		CastingBarFrame_SetUnit(PetCastingBarFrame)
 	end
 
 	if cfg.enabled.pet then
@@ -827,7 +719,7 @@ oUF:Factory(function(self)
 		local boss = {}
 		local mover = core.util.get_mover_frame("Boss", cfg.frames.boss.pos)
 
-		for i = 1, MAX_BOSS_FRAMES do
+		for i = 1, 8 do
 			boss[i] = oUF:Spawn("boss"..i, "oUF_FocusUnitsBoss"..i)
 
 			if i == 1 then
@@ -836,6 +728,40 @@ oUF:Factory(function(self)
 				boss[i]:SetPoint("TOPRIGHT", boss[i - 1], "BOTTOMRIGHT", 0, -(20 + cfg.frames.boss.cast.h + 2 * core.config.font_size_med))
 			end
 		end
+
+		core.settings:add_action("Test Boss", function()
+			oUF_FocusUnitsBoss1.unit = "target"
+			oUF_FocusUnitsBoss1.Hide = function() end
+			oUF_FocusUnitsBoss1:Show()
+		
+			oUF_FocusUnitsBoss2.unit = "player"
+			oUF_FocusUnitsBoss2.Hide = function() end
+			oUF_FocusUnitsBoss2:Show()
+			
+			oUF_FocusUnitsBoss3.unit = "pet"
+			oUF_FocusUnitsBoss3.Hide = function() end
+			oUF_FocusUnitsBoss3:Show()
+			
+			oUF_FocusUnitsBoss4.unit = "player"
+			oUF_FocusUnitsBoss4.Hide = function() end
+			oUF_FocusUnitsBoss4:Show()
+			
+			oUF_FocusUnitsBoss5.unit = "player"
+			oUF_FocusUnitsBoss5.Hide = function() end
+			oUF_FocusUnitsBoss5:Show()
+
+			oUF_FocusUnitsBoss6.unit = "mouseover"
+			oUF_FocusUnitsBoss6.Hide = function() end
+			oUF_FocusUnitsBoss6:Show()
+
+			oUF_FocusUnitsBoss7.unit = "target"
+			oUF_FocusUnitsBoss7.Hide = function() end
+			oUF_FocusUnitsBoss7:Show()
+
+			oUF_FocusUnitsBoss8.unit = "focus"
+			oUF_FocusUnitsBoss8.Hide = function() end
+			oUF_FocusUnitsBoss8:Show()
+		end)
 	end
 
 	if cfg.enabled.party then
@@ -876,11 +802,11 @@ oUF:Factory(function(self)
 		oUF:SetActiveStyle("FocusUnitsTank")
 		local tank = oUF:SpawnHeader(
 			"oUF_FocusUnitsTank", 	nil,
-			'raid',
-			'showRaid', 		true,
+			"raid",
+			"showRaid", 		true,
 			"groupFilter", 		"MAINTANK",
-			'yoffset', 			1,
-			'xoffset', 			0,
+			"yoffset", 			1,
+			"xoffset", 			0,
 			"oUF-initialConfigFunction", ([[
 				self:SetWidth(%d)
 				self:SetHeight(%d)
@@ -954,12 +880,4 @@ oUF:Factory(function(self)
 		)
 		raid_big:SetPoint("TOPLEFT", mover_big)
 	end
-end)
-
-core.settings:add_action("Test Boss", function()
-	oUF_FocusUnitsBoss1:Show(); oUF_FocusUnitsBoss1.Hide = function() end oUF_FocusUnitsBoss1.unit = "target"
-	oUF_FocusUnitsBoss2:Show(); oUF_FocusUnitsBoss2.Hide = function() end oUF_FocusUnitsBoss2.unit = "player"
-	oUF_FocusUnitsBoss3:Show(); oUF_FocusUnitsBoss3.Hide = function() end oUF_FocusUnitsBoss3.unit = "player"
-	oUF_FocusUnitsBoss4:Show(); oUF_FocusUnitsBoss4.Hide = function() end oUF_FocusUnitsBoss4.unit = "player"
-	oUF_FocusUnitsBoss5:Show(); oUF_FocusUnitsBoss5.Hide = function() end oUF_FocusUnitsBoss5.unit = "player"
 end)

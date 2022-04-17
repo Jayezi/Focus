@@ -141,7 +141,7 @@ end)
 
 hooksecurefunc(GameTooltip, "SetUnitAura", function(self, unit, index, filter)
 	local _, _, _, _, _, _, caster, _, _, id = UnitAura(unit, index, filter)
-	
+
 	local name = caster and UnitName(caster)
 	if name then
 		self:AddLine(" ")
