@@ -31,6 +31,7 @@ local SetCVar = SetCVar
 addon.bars = { enabled = true }
 addon.units = { enabled = true }
 addon.buffs = { enabled = true }
+addon.raid = { enabled = true }
 addon.chat = { enabled = true }
 addon.map = { enabled = true }
 addon.stats = { enabled = true }
@@ -94,6 +95,7 @@ core.config = {
 		highlight = {1, 1, 1, 0.25},
 		selected = {0.66, 0.66, 0.66, 0.25},
 		pushed = {0.33, 0.33, 0.33, 0.25},
+		disabled = {0, 0, 0, 0.5},
 		border = {0, 0, 0, 1},
 		light_border = {0.75, 0.75, 0.75, 1},
 		background = {0.15, 0.15, 0.15, 1},
@@ -136,7 +138,7 @@ core.util = {
 		bar:SetSize(w, h)
 	    bar:SetStatusBarTexture(core.media.textures.blank)
 		bar:SetBackdrop(core.config.frame_backdrop)
-		bar:GetStatusBarTexture():SetDrawLayer("BORDER", -1);
+		bar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
 		bar:SetBackdropBorderColor(unpack(core.config.frame_border))
 
 		if fg_color then
@@ -153,6 +155,8 @@ core.util = {
     end,
 
 	gen_backdrop = function(frame, ...)
+		if frame:IsForbidden() then return end
+
 		if not frame.SetBackdrop then
 			Mixin(frame, BackdropTemplateMixin)
 		end
@@ -348,15 +352,15 @@ core.util = {
 		-- InputBoxTemplate (InputBoxInstructionsTemplate)
 		--   Layers
 		--     BACKGROUND
-		local left = frame.Left
-		local right = frame.Right
-		local middle = frame.Middle or frame.Mid -- Mid from CommunitiesChatEditBoxTemplate
+		local left = frame.Left or (frame:GetName() and _G[frame:GetName().."Left"])
+		if left then left:Hide() end
+		local right = frame.Right or (frame:GetName() and _G[frame:GetName().."Right"])
+		if right then right:Hide() end
+		local middle = frame.Middle or frame.Mid  or (frame:GetName() and _G[frame:GetName().."Mid"])
+		if middle then middle:Hide() end
 	
 		---------------------------------
-	
-		left:Hide()
-		middle:Hide()
-		right:Hide()
+
 		if search_icon then search_icon:Hide() end
 	
 		core.util.gen_backdrop(frame)
@@ -531,7 +535,7 @@ core.util = {
 			end
 		end)
 
-		core.util.gen_backdrop(mover_frame)
+		core.util.gen_backdrop(mover_frame, unpack(core.config.frame_background_transparent))
 
 		local note = core.util.gen_string(mover_frame, core.config.font_size_med)
 		note:SetPoint("CENTER")
@@ -710,21 +714,6 @@ combatlog_checker:SetScript("OnClick", function(self, button)
 	end
 end)
 
--- tooltips
-
-local style_backdrop = function(tooltip)
-	if tooltip.IsEmbedded then return end
-
-	--tooltip:SetBackdrop(core.config.frame_backdrop)
-	--tooltip:SetBackdropColor(unpack(core.config.frame_background))
-	--tooltip:SetBackdropBorderColor(tooltip_frame_border_color:GetRGB())
-end
-
-hooksecurefunc("SharedTooltip_SetBackdropStyle", style_backdrop)
-style_backdrop(GameTooltip)
-
-GameTooltipStatusBar:SetStatusBarTexture(core.media.textures.blank)
-
 local tooltip_parent = core.util.get_mover_frame("Tooltip")
 tooltip_parent:SetPoint("BOTTOMRIGHT", UIParent, -10, 10)
 
@@ -848,7 +837,7 @@ local game_fonts = {
 	--QuestFont_Huge,
 	QuestFont_30,
 	QuestFont_39,
-	SystemFont_Large,
+	--SystemFont_Large,
 	SystemFont_Shadow_Large_Outline,
 	SystemFont_Shadow_Med2,
 	SystemFont_Shadow_Med2_Outline,
@@ -1055,7 +1044,7 @@ local game_fonts = {
 	QuestDifficulty_Trivial,
 	QuestDifficulty_Header,
 	ItemTextFontNormal,
-	MailTextFontNormal,
+	--MailTextFontNormal,
 	SubSpellFont,
 	NewSubSpellFont,
 	DialogButtonNormalText,
@@ -1139,7 +1128,7 @@ local game_fonts = {
 	Game27Font,
 	Game32Font,
 	Game36Font,
-	Game40Font,
+	--Game40Font,
 	Game42Font,
 	Game46Font,
 	Game48Font,
@@ -1157,7 +1146,7 @@ local game_fonts = {
 	CoreAbilityFont,
 	--DestinyFontHuge,
 	QuestFont_Shadow_Small,
-	MailFont_Large,
+	--MailFont_Large,
 	SpellFont_Small,
 	--InvoiceFont_Med,
 	InvoiceFont_Small,
@@ -1192,7 +1181,7 @@ for _, font in ipairs(game_fonts) do
 	core.util.fix_string(font, math.floor(height + 0.5))
 end
 
-SystemFont_NamePlate:SetFont(core.media.fonts.default_blizz, core.config.font_size_mini, "THINOUTLINE")
+SystemFont_NamePlate:SetFont(core.media.fonts.gotham_ultra, core.config.font_size_mini, "THINOUTLINE")
 
 QuestTitleFont:SetShadowOffset(0, 0)
 QuestTitleFontBlackShadow:SetShadowOffset(0, 0)
@@ -1222,3 +1211,13 @@ if not LibStub then
 	LibStub.minor = 0
 	setmetatable(LibStub, { __call = function() return nil end })
 end
+
+
+
+
+
+
+
+
+
+-- SplashFrame

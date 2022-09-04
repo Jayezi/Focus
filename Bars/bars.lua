@@ -237,6 +237,8 @@ ZoneAbilityFrame.SpellButtonContainer:ClearAllPoints()
 ZoneAbilityFrame.SpellButtonContainer:SetPoint("TOP", zone_ability_parent)
 
 hooksecurefunc('CooldownFrame_Set', function(self)
+	if self:IsForbidden() then return end
+	
 	if strfind(self:GetDebugName(), "ChargeCooldown") then
 		self:SetHideCountdownNumbers(false)
 		self:SetDrawEdge(false)

@@ -11,6 +11,8 @@ Bars\config.lua
 Bars\styles.lua
 Bars\bars.lua
 
+Raid\raid.lua
+
 Libs\oUF\oUF.xml
 Libs\oUF_Plugins\oUF_AuraWatch.lua
 

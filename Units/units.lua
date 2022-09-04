@@ -31,7 +31,6 @@ local create_player_style = function(base)
 	
 	-- power
 	base.Power = core.util.gen_statusbar(base, power_w, power_h)
-	base.Power.frequentUpdates = true
 	base.Power.colorClass = true
 	if power_invert then
 		base.Power.PostUpdateColor = lib.invert_color
@@ -59,14 +58,12 @@ local create_player_style = function(base)
 	base.Health = core.util.gen_statusbar(base, player_cfg.size.w, player_cfg.size.h)
 	base.Health.colorClass = true
 	base.Health.colorReaction = true
-	base.Health.frequentUpdates = true
 	base.Health.PostUpdateColor = lib.invert_color
 	lib.push_bar(base, base.Health)
 
 	base.HealthPrediction = lib.gen_heal_bar(base.Health)
-	base.HealthPrediction.frequentUpdates = true
 
-	-- "druid mana" etc.
+	-- druid mana etc.
 	base.AdditionalPower = core.util.gen_statusbar(base, player_cfg.size.w, player_cfg.power.h)
 	base.AdditionalPower:SetFrameLevel(base.Health:GetFrameLevel() + 1)
 	base.AdditionalPower:SetPoint("TOPLEFT", base.Health, "TOPLEFT", 2, -2)
@@ -86,11 +83,11 @@ local create_player_style = function(base)
 	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
 	base:Tag(hp_string, "[focus:color][focus:hp:curr/max state]")
 	
-	local altp_string = core.util.gen_string(base.AlternativePower, core.config.font_size_med, nil, nil, "BOTTOM", "CENTER")
+	local altp_string = core.util.gen_string(base.AlternativePower, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "BOTTOM", "CENTER")
 	altp_string:SetPoint("CENTER")
 	base:Tag(altp_string, "[focus:color][focus:altp:perc]")
 
-	local hp_perc_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, nil, "LEFT", "TOP")
+	local hp_perc_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, core.media.fonts.gotham_ultra, "LEFT", "TOP")
 	hp_perc_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, 10)
 	base:Tag(hp_perc_string, "[focus:color][focus:hp:perc.]")
 
@@ -101,10 +98,10 @@ local create_player_style = function(base)
 	
 	local power_string
 	if (power_standalone) then
-		power_string = core.util.gen_string(base.Power, core.config.font_size_lrg, nil, nil, "CENTER", "BOTTOM")
+		power_string = core.util.gen_string(base.Power, core.config.font_size_lrg, nil, core.media.fonts.gotham_ultra, "CENTER", "BOTTOM")
 		power_string:SetPoint("BOTTOM", 0, -10)
 	else
-		power_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, nil, "RIGHT", "BOTTOM")
+		power_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "RIGHT", "BOTTOM")
 		power_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
 	end
 	base:Tag(power_string, power_tag)
@@ -117,8 +114,9 @@ local create_player_style = function(base)
 	base.Buffs:SetPoint("BOTTOMRIGHT", base.Debuffs, "TOPRIGHT", 0, 1)
 	lib.apply_whitelist_to(base.Buffs, cfg.player_buff_whitelist)
 	
-	-- mark
-	lib.gen_raid_mark(base, cfg.raid_marks.primary)
+	base.RaidTargetIndicator = base.Health:CreateTexture(nil, "OVERLAY")
+	base.RaidTargetIndicator:SetSize(player_cfg.mark.size, player_cfg.mark.size)
+	base.RaidTargetIndicator:SetPoint("RIGHT", base.Health, "LEFT", -2, 0)
 end
 
 local create_target_style = function(base)
@@ -132,7 +130,6 @@ local create_target_style = function(base)
 	base.Power.colorReaction = true
 	base.Power.colorClass = true
 	base.Power.colorDisconnected = true
-	base.Power.frequentUpdates = true
 	base.Power.colorTapping = true
 	lib.push_bar(base, base.Power)
 	
@@ -141,7 +138,6 @@ local create_target_style = function(base)
 	base.Health.colorTapping = true
 	base.Health.colorClass = true
 	base.Health.colorReaction = true
-	base.Health.frequentUpdates = true
 	base.Health.PostUpdateColor = lib.invert_color
 	lib.push_bar(base, base.Health)
 
@@ -158,20 +154,20 @@ local create_target_style = function(base)
 	base:SetHeight(base.stack_height)
 
 	-- strings
-	local power_string = core.util.gen_string(base, core.config.font_size_med, nil, nil, "RIGHT", "BOTTOM")
+	local power_string = core.util.gen_string(base, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "RIGHT", "BOTTOM")
 	power_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", 1, 1)
 	base:Tag(power_string, "[focus:color][focus:pp:curr-perc]")
 
-	local hp_string = core.util.gen_string(base, core.config.font_size_med, nil, nil, "LEFT", "BOTTOM")
+	local hp_string = core.util.gen_string(base, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "BOTTOM")
 	hp_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 1)
 	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
 	base:Tag(hp_string, "[focus:color][focus:hp:curr/max state]")
 
-	local hp_perc_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, nil, "RIGHT", "TOP")
+	local hp_perc_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, core.media.fonts.gotham_ultra, "RIGHT", "TOP")
 	hp_perc_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", -1, 10)
 	base:Tag(hp_perc_string, "[focus:color][focus:hp:perc.]")
 
-	local name_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, nil, "LEFT", "TOP")
+	local name_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, core.media.fonts.gotham_ultra, "LEFT", "TOP")
 	name_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, 10)
 	name_string:SetPoint("RIGHT", hp_perc_string, "LEFT", -5, 0)
 	base:Tag(name_string, "[focus:color][focus:status][name]")
@@ -183,11 +179,12 @@ local create_target_style = function(base)
 	base.Buffs = lib.gen_auras(base, target_cfg.size.w, cfg.auras.target_buff, "Buffs")
 	base.Buffs:SetPoint("BOTTOMLEFT", base.Debuffs, "TOPLEFT", 0, 1)
 
-	-- mark
-	lib.gen_raid_mark(base, cfg.raid_marks.primary)
+	base.RaidTargetIndicator = base.Health:CreateTexture(nil, "OVERLAY")
+	base.RaidTargetIndicator:SetSize(target_cfg.mark.size, target_cfg.mark.size)
+	base.RaidTargetIndicator:SetPoint("LEFT", base.Health, "RIGHT", 2, 0)
 end
 
-local create_tot_style = function(base)
+local create_targettarget_style = function(base)
 
 	local tot_cfg = cfg.frames.targettarget
 	base:SetWidth(tot_cfg.size.w)
@@ -204,7 +201,7 @@ local create_tot_style = function(base)
 	base:SetHeight(base.stack_height)
 
 	-- strings
-	local name_string = core.util.gen_string(base, core.config.font_size_med, nil, nil, "LEFT", "TOP")
+	local name_string = core.util.gen_string(base, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "TOP")
 	name_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, -1)
 	name_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", -1, -1)
 	base:Tag(name_string, "[focus:color][name]")
@@ -235,17 +232,17 @@ local create_pet_style = function(base)
 	base:SetHeight(base.stack_height)
 	
 	-- strings
-	local name_string = core.util.gen_string(base, core.config.font_size_med, nil, nil, "RIGHT", "TOP")
+	local name_string = core.util.gen_string(base, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "RIGHT", "TOP")
 	name_string:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 0, -1)
 	name_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 0, -1)
 	base:Tag(name_string, "[focus:color][name]")
 	name_string:SetWordWrap(false)
 
-	local hp_string = core.util.gen_string(base, core.config.font_size_med, nil, nil, "RIGHT", "TOP")
+	local hp_string = core.util.gen_string(base, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "RIGHT", "TOP")
 	hp_string:SetPoint("TOPRIGHT", base, "TOPLEFT", 0, -1)
 	base:Tag(hp_string, "[focus:color][focus:hp:curr]")
 
-	local power_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, nil, "RIGHT", "BOTTOM")
+	local power_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "RIGHT", "BOTTOM")
 	power_string:SetPoint("BOTTOMRIGHT", base, "BOTTOMLEFT", 0, 1)
 	base:Tag(power_string, "[focus:color][focus:pp:curr]")
 	
@@ -274,6 +271,8 @@ local create_nameplate_style = function(base)
 	base.Health.frequentUpdates = true
 	base.Health:SetPoint("BOTTOM", base, "BOTTOM", 0, 20)
 
+	base.HealthPrediction = lib.gen_heal_bar(base.Health)
+
 	base.Health.PostUpdateColor = function(self, unit)
 		local guid = UnitGUID(unit)
 		if not guid then return end
@@ -296,11 +295,11 @@ local create_nameplate_style = function(base)
 	base.Power.colorPower = true
 	
 	-- strings
-	local name_string = core.util.gen_string(base, core.config.font_size_med, nil, nil, "LEFT", "BOTTOM")
-	base:Tag(name_string, "[focus:color][name]")
-	name_string:SetPoint("BOTTOMLEFT", base.Health, "TOPLEFT", 1, 1)
+	base.name_string = core.util.gen_string(base, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "BOTTOM")
+	base:Tag(base.name_string, "[focus:color][name]")
+	base.name_string:SetPoint("BOTTOMLEFT", base.Health, "TOPLEFT", 1, 1)
 
-	local hp_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, nil, "RIGHT", "TOP")
+	local hp_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, core.media.fonts.gotham_ultra, "RIGHT", "TOP")
 	base:Tag(hp_string, "[focus:color][focus:hp:perc]")
 	hp_string:SetPoint("RIGHT", base.Health, "BOTTOMRIGHT", -1, 0)
 
@@ -329,7 +328,9 @@ local create_nameplate_style = function(base)
 	end
 	
 	-- mark
-	lib.gen_raid_mark(base, cfg.raid_marks.nameplate)
+	base.RaidTargetIndicator = base.Health:CreateTexture(nil, "OVERLAY")
+	base.RaidTargetIndicator:SetSize(nameplate_cfg.mark.size, nameplate_cfg.mark.size)
+	base.RaidTargetIndicator:SetPoint("CENTER", base.Health, "BOTTOM")
 end
 
 local create_focus_style = function(base)
@@ -349,8 +350,8 @@ local create_focus_style = function(base)
 	base:SetHeight(base.stack_height)
 
 	-- strings
-	local name_string = core.util.gen_string(base, core.config.font_size_med, nil, nil, "LEFT", "TOP")
-	name_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, -1)
+	local name_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "TOP")
+	name_string:SetPoint("TOPLEFT", base.Health, "BOTTOMLEFT", 1, 8)
 	base:Tag(name_string, "[focus:color][name]")
 
 	-- auras
@@ -359,11 +360,15 @@ local create_focus_style = function(base)
 	base.Debuffs:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 0, 1)
 	
 	-- cast
-	base.Castbar = lib.gen_cast_bar(base, focus_cfg.size.w, focus_cfg.cast.h, core.config.font_size_med)
-	base.Castbar:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 0, -(core.config.font_size_med + 2))
+	local castbar = lib.gen_cast_bar(base, focus_cfg.size.w, focus_cfg.cast.h, core.config.font_size_med)
+	castbar:SetPoint("TOPRIGHT", base, "BOTTOMRIGHT", 0, 1)
+	castbar.Icon:ClearAllPoints()
+	castbar.Icon:SetPoint("RIGHT", castbar, "TOPRIGHT", -1, 0)
 	
 	-- mark
-	lib.gen_raid_mark(base, cfg.raid_marks.focus)
+	base.RaidTargetIndicator = base.Health:CreateTexture(nil, "OVERLAY")
+	base.RaidTargetIndicator:SetSize(focus_cfg.mark.size, focus_cfg.mark.size)
+	base.RaidTargetIndicator:SetPoint("RIGHT", base.Health, "LEFT", -2, 0)
 end
 
 local create_boss_style = function(base)
@@ -398,22 +403,22 @@ local create_boss_style = function(base)
 	base.Castbar:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 0, 1)
 
 	-- strings
-	local altp_string = core.util.gen_string(base, core.config.font_size_med, nil, nil, "RIGHT", "BOTTOM")
+	local altp_string = core.util.gen_string(base, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "RIGHT", "BOTTOM")
 	altp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
 	base:Tag(altp_string, "[focus:color][focus:altp:perc]")
 	
-	local name_string = core.util.gen_string(base, core.config.font_size_med, nil, nil, "LEFT", "TOP")
+	local name_string = core.util.gen_string(base, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "TOP")
 	name_string:SetPoint("BOTTOMLEFT", base, "TOPLEFT", 1, 1)
 	name_string:SetPoint("RIGHT", altp_string, "LEFT", -5, 0)
 	base:Tag(name_string, "[focus:color][name]")
 
-	local hp_string = core.util.gen_string(base, core.config.font_size_med, nil, nil, "LEFT", "TOP")
+	local hp_string = core.util.gen_string(base, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "TOP")
 	hp_string:SetPoint("TOPLEFT", base, "TOPRIGHT", 1, -1)
 	base:Tag(hp_string, "[focus:color][focus:hp:curr-perc]")
 	
-	local power_string = core.util.gen_string(base, core.config.font_size_med, nil, nil, "LEFT", "TOP")
+	local power_string = core.util.gen_string(base, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "TOP")
 	power_string:SetPoint("BOTTOMLEFT", base, "BOTTOMRIGHT", 1, 1)
-	base:Tag(power_string, "[focus:color][focus:pp:curr-perc]")
+	base:Tag(power_string, "[focus:color][focus:pp:curr]")
 	
 	-- auras
 	base.Debuffs = lib.gen_auras(base, boss_cfg.size.w , cfg.auras.boss, "Debuffs")
@@ -421,7 +426,9 @@ local create_boss_style = function(base)
 	base.Debuffs.onlyShowPlayer = true
 	
 	-- mark
-	lib.gen_raid_mark(base, cfg.raid_marks.boss)
+	base.RaidTargetIndicator = base.Health:CreateTexture(nil, "OVERLAY")
+	base.RaidTargetIndicator:SetSize(boss_cfg.mark.size, boss_cfg.mark.size)
+	base.RaidTargetIndicator:SetPoint("CENTER")
 end
 
 local create_tank_style = function(base)
@@ -445,7 +452,11 @@ local create_tank_style = function(base)
 	lib.push_bar(base, base.Power)
 
 	-- strings
-	local name_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, nil, "CENTER", "TOP")
+	local role = core.util.gen_string(base.Health, 15, nil, core.media.fonts.role_symbols)
+	role:SetPoint("BOTTOMRIGHT", -1, 1)
+	base:Tag(role, '[focus:role]')
+
+	local name_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "CENTER", "TOP")
 	name_string:SetPoint("TOPLEFT")
 	name_string:SetPoint("TOPRIGHT")
 	base:Tag(name_string, "[focus:color][name]")
@@ -456,8 +467,10 @@ local create_tank_style = function(base)
 	lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
 	
 	-- misc
-	lib.gen_raid_mark(base, cfg.raid_marks.party)
-	lib.gen_raid_role(base)
+	base.RaidTargetIndicator = base.Health:CreateTexture(nil, "OVERLAY")
+	base.RaidTargetIndicator:SetSize(tank_cfg.mark.size, tank_cfg.mark.size)
+	base.RaidTargetIndicator:SetPoint("TOPLEFT", 2, -2)
+
 	lib.gen_ready_check(base)
 	
 	base.Range = {
@@ -491,27 +504,33 @@ local create_party_style = function(base)
 	lib.push_bar(base, base.Power)
 
 	-- strings
-	local name_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, nil, "CENTER", "TOP")
-	name_string:SetPoint("TOPLEFT")
-	name_string:SetPoint("TOPRIGHT")
+	local role = core.util.gen_string(base.Health, 15, nil, core.media.fonts.role_symbols)
+	role:SetPoint("BOTTOMRIGHT", -1, 1)
+	base:Tag(role, '[focus:role]')
+
+	local name_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "BOTTOM")
+	name_string:SetPoint("BOTTOMLEFT", 1, 1)
+	name_string:SetPoint("BOTTOMRIGHT", role, "BOTTOMLEFT", 2, 0)
 	base:Tag(name_string, "[focus:color][name]")
+	name_string:SetWordWrap(false)
 	
-	local hp_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, nil, "CENTER", "TOP")
-	hp_string:SetPoint("TOPLEFT", name_string, "BOTTOMLEFT")
-	hp_string:SetPoint("TOPRIGHT", name_string, "BOTTOMRIGHT")
-	base:Tag(hp_string, "[focus:color][focus:hp:group]")
-	
+	local hp_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "BOTTOM")
+	hp_string:SetPoint("BOTTOMLEFT", name_string, "TOPLEFT")
+	base:Tag(hp_string, "[focus:color][focus:hp:group]")	
+
 	-- auras
 	base.Debuffs = lib.gen_auras(base, party_cfg.size.w, cfg.auras.party, "Debuffs")
-	base.Debuffs:SetPoint("BOTTOM", base.Health, "BOTTOM", 0, -5)
+	base.Debuffs:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -1, -1)
 	lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
 	
-	-- misc
-	base.AuraWatch = lib.gen_indicators(base, party_cfg.indicators)
+	-- base.AuraWatch = lib.gen_indicators(base, party_cfg.indicators)
 	
-	lib.gen_raid_mark(base, cfg.raid_marks.party)
-	lib.gen_raid_role(base)
+	base.RaidTargetIndicator = base.Health:CreateTexture(nil, "OVERLAY")
+	base.RaidTargetIndicator:SetSize(party_cfg.mark.size, party_cfg.mark.size)
+	base.RaidTargetIndicator:SetPoint("TOPRIGHT", base.Health, "TOPLEFT", -2, -2)
+	
 	lib.gen_ready_check(base)
+	lib.gen_summon(base)
 	
 	base.Range = {
 		insideAlpha = 1,
@@ -519,9 +538,9 @@ local create_party_style = function(base)
 	}
 end
 
-local create_raid_style = function(role)
+local create_raid_style = function(spec_role)
 
-	if role == "dps" then
+	if spec_role == "minimal" then
 	
 		return function(base)
 		
@@ -529,7 +548,7 @@ local create_raid_style = function(role)
 			lib.enable_mouse(base)
 			
 			-- health
-			base.Health = core.util.gen_statusbar(base, raid_cfg.size.dps.w, raid_cfg.size.dps.h)
+			base.Health = core.util.gen_statusbar(base, raid_cfg.size[spec_role].w, raid_cfg.size[spec_role].h)
 			base.Health.frequentUpdates = true
 			base.Health.colorDisconnected = true
 			base.Health.colorClass = true
@@ -538,33 +557,41 @@ local create_raid_style = function(role)
 			lib.push_bar(base, base.Health)
 
 			-- power
-			base.Power = core.util.gen_statusbar(base, raid_cfg.size.dps.w, raid_cfg.power.h)
+			base.Power = core.util.gen_statusbar(base, raid_cfg.size[spec_role].w, raid_cfg.power.h)
 			base.Power.colorPower = true
 			lib.push_bar(base, base.Power)
 	
 			-- strings
-			local name_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, nil, "CENTER", "TOP")
-			name_string:SetPoint("TOPLEFT")
-			name_string:SetPoint("TOPRIGHT")
+			local role = core.util.gen_string(base.Health, 15, nil, core.media.fonts.role_symbols)
+			role:SetPoint("TOPLEFT", 1, -1)
+			base:Tag(role, '[focus:role]')
+
+			local name_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "BOTTOM")
+			name_string:SetPoint("BOTTOMLEFT", 1, 1)
+			name_string:SetPoint("BOTTOMRIGHT", -1, 1)
+			name_string:SetWordWrap(false)
 			base:Tag(name_string, "[focus:color][name]")
 			
 			-- auras
-			base.Debuffs = lib.gen_auras(base, raid_cfg.size.dps.w, cfg.auras.dps, "Debuffs")
-			base.Debuffs:SetPoint("BOTTOM", base.Health, "BOTTOM", 0, -5)
-			lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
+			base.Debuffs = lib.gen_auras(base, raid_cfg.size[spec_role].w, cfg.auras.minimal, "Debuffs")
+			base.Debuffs:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -1, -1)
+			lib.apply_whitelist_to(base.Debuffs, cfg.debuff_whitelist)
 			
-			-- misc
-			base.AuraWatch = lib.gen_indicators(base, raid_cfg.indicators)
+			-- base.AuraWatch = lib.gen_indicators(base, raid_cfg.indicators)
 			
-			lib.gen_raid_mark(base, cfg.raid_marks.raid)
-			lib.gen_raid_role(base)
+			base.RaidTargetIndicator = base.Health:CreateTexture(nil, "OVERLAY")
+			base.RaidTargetIndicator:SetSize(raid_cfg.mark.size, raid_cfg.mark.size)
+			base.RaidTargetIndicator:SetPoint("CENTER", base.Health, "LEFT", 2, 0)
+
 			lib.gen_ready_check(base)
+			lib.gen_summon(base)
 			
 			base.Range = {
 				insideAlpha = 1,
 				outsideAlpha = cfg.range_alpha,
 			}
 		end
+
 	else
 	
 		return function(base)
@@ -573,8 +600,7 @@ local create_raid_style = function(role)
 			lib.enable_mouse(base)
 			
 			-- health
-			base.Health = core.util.gen_statusbar(base, raid_cfg.size.healer.w, raid_cfg.size.healer.h)
-			base.Health.frequentUpdates = true
+			base.Health = core.util.gen_statusbar(base, raid_cfg.size[spec_role].w, raid_cfg.size[spec_role].h)
 			base.Health.colorDisconnected = true
 			base.Health.colorClass = true
 			base.Health.colorReaction = true
@@ -582,36 +608,42 @@ local create_raid_style = function(role)
 			lib.push_bar(base, base.Health)
 			
 			base.HealthPrediction = lib.gen_heal_bar(base.Health)
-			base.HealthPrediction.frequentUpdates = true
 
 			-- power
-			base.Power = core.util.gen_statusbar(base, raid_cfg.size.healer.w, raid_cfg.power.h)
+			base.Power = core.util.gen_statusbar(base, raid_cfg.size[spec_role].w, raid_cfg.power.h)
 			base.Power.colorPower = true
 			base.Power.colorDisconnected = true
 			lib.push_bar(base, base.Power)
 	
 			-- strings
-			local name_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, nil, "CENTER", "TOP")
-			name_string:SetPoint("TOPLEFT")
-			name_string:SetPoint("TOPRIGHT")
+			local role = core.util.gen_string(base.Health, 15, nil, core.media.fonts.role_symbols)
+			role:SetPoint("BOTTOMRIGHT", -1, 1)
+			base:Tag(role, '[focus:role]')
+
+			local name_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "BOTTOM")
+			name_string:SetPoint("BOTTOMLEFT", 1, 1)
+			name_string:SetPoint("BOTTOMRIGHT", role, "BOTTOMLEFT", 2, 0)
+			name_string:SetWordWrap(false)
 			base:Tag(name_string, "[focus:color][name]")
 			
-			local hp_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, nil, "CENTER", "TOP")
+			local hp_string = core.util.gen_string(base.Health, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "CENTER", "TOP")
 			hp_string:SetPoint("TOPLEFT", name_string, "BOTTOMLEFT")
 			hp_string:SetPoint("TOPRIGHT", name_string, "BOTTOMRIGHT")
 			base:Tag(hp_string, "[focus:color][focus:hp:group]")
 			
 			-- auras
-			base.Debuffs = lib.gen_auras(base, raid_cfg.size.healer.w, cfg.auras.healer, "Debuffs")
-			base.Debuffs:SetPoint("BOTTOM", base.Health, "BOTTOM", 0, -5)
+			base.Debuffs = lib.gen_auras(base, raid_cfg.size[spec_role].w, cfg.auras.detailed, "Debuffs")
+			base.Debuffs:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -1, -1)
 			lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
 			
-			-- misc
-			base.AuraWatch = lib.gen_indicators(base, raid_cfg.indicators)
+			-- base.AuraWatch = lib.gen_indicators(base, raid_cfg.indicators)
 			
-			lib.gen_raid_mark(base, cfg.raid_marks.raid)
-			lib.gen_raid_role(base)
+			base.RaidTargetIndicator = base.Health:CreateTexture(nil, "OVERLAY")
+			base.RaidTargetIndicator:SetSize(raid_cfg.mark.size, raid_cfg.mark.size)
+			base.RaidTargetIndicator:SetPoint("TOPLEFT", 1, -1)
+
 			lib.gen_ready_check(base)
+			lib.gen_summon(base)
 			
 			base.Range = {
 				insideAlpha = 1,
@@ -631,6 +663,10 @@ oUF:Factory(function(self)
 				nameplate.blizz_plate = nameplate:GetParent().UnitFrame
 
 				if UnitIsUnit(unit, "target") then
+					if oUF_NamePlateDriver.target_nameplate then
+						oUF_NamePlateDriver.target_nameplate:SetAlpha(nameplate_cfg.alpha.non_target)
+					end
+					oUF_NamePlateDriver.target_nameplate = nameplate
 					nameplate:SetAlpha(nameplate_cfg.alpha.target)
 				else
 					nameplate:SetAlpha(nameplate_cfg.alpha.non_target)
@@ -643,6 +679,31 @@ oUF:Factory(function(self)
 					nameplate.widgets:SetPoint("BOTTOM", nameplate, "TOP", 0, 30)
 					nameplate.widgets:SetScale(1.0 / PixelUtil.GetPixelToUIUnitFactor())
 				end
+
+				if UnitReaction(unit, 'player') > 4 then
+					nameplate:DisableElement("Health")
+					nameplate:DisableElement("Power")
+					nameplate:DisableElement("Castbar")
+					nameplate:DisableElement("Debuffs")
+					nameplate:DisableElement("Buffs")
+					nameplate.name_string:ClearAllPoints()
+					nameplate.name_string:SetPoint("BOTTOM", 0, 20)
+					nameplate.name_string:SetJustifyH("CENTER")
+					nameplate.name_string:SetJustifyV("MIDDLE")
+					nameplate.name_string:SetFont(core.media.fonts.gotham_ultra, core.config.font_size_lrg, "THINOUTLINE")
+				else
+					nameplate:EnableElement("Health")
+					nameplate:EnableElement("Power")
+					nameplate:EnableElement("Castbar")
+					nameplate:EnableElement("Debuffs")
+					nameplate:EnableElement("Buffs")
+					nameplate.name_string:ClearAllPoints()
+					nameplate.name_string:SetPoint("BOTTOMLEFT", nameplate.Health, "TOPLEFT", 1, 1)
+					nameplate.name_string:SetJustifyH("LEFT")
+					nameplate.name_string:SetJustifyV("BOTTOM")
+					nameplate.name_string:SetFont(core.media.fonts.gotham_ultra, core.config.font_size_med, "THINOUTLINE")
+				end
+				
 			elseif event == "NAME_PLATE_UNIT_REMOVED" then
 				if nameplate.widgets then
 					nameplate.widgets:SetParent(nameplate.blizz_plate)
@@ -661,16 +722,6 @@ oUF:Factory(function(self)
 				oUF_NamePlateDriver.target_nameplate = nameplate
 			end
 		end)
-
-		-- oUF_NamePlateDriver:SetScript("OnUpdate", function()
-		-- 	if not oUF_NamePlateDriver.target_nameplate then
-		-- 		local target = UnitExists("target") and C_NamePlate.GetNamePlateForUnit("target")
-		-- 		if target and target.unitFrame then
-		-- 			oUF_NamePlateDriver.target_nameplate = target.unitFrame
-		-- 			target.unitFrame:SetAlpha(cfg.frames.nameplate.alpha.target)
-		-- 		end
-		-- 	end
-		-- end)
 	end
 
 	if cfg.enabled.player then
@@ -699,7 +750,7 @@ oUF:Factory(function(self)
 	end
 
 	if cfg.enabled.targettarget then
-		oUF:RegisterStyle("FocusUnitsTargetTarget", create_tot_style)
+		oUF:RegisterStyle("FocusUnitsTargetTarget", create_targettarget_style)
 		oUF:SetActiveStyle("FocusUnitsTargetTarget")
 		oUF:Spawn("targettarget")
 	end
@@ -775,14 +826,13 @@ oUF:Factory(function(self)
 		oUF:SetActiveStyle("FocusUnitsParty")
    
 		local party = oUF:SpawnHeader(
-			"oUF_FocusUnitsParty", nil,
-			"custom [@raid1,exists] hide; [group:party,nogroup:raid] show; hide",
-			"showPlayer",         true,
-			"showSolo",           true,
-			"showParty",          true,
-			"point",              "BOTTOM",
-			"yoffset",            -1,
-			"xoffset",            0,
+			"oUF_FocusUnitsParty", nil,	"custom [@raid1,exists] hide; [group:party,nogroup:raid] show; hide",
+			"showPlayer", true,
+			"showSolo", true,
+			"showParty", true,
+			"point", "BOTTOM",
+			"yoffset", -1,
+			"xoffset", 0,
 			"oUF-initialConfigFunction", ([[
 				self:SetWidth(%d)
 				self:SetHeight(%d)
@@ -800,13 +850,11 @@ oUF:Factory(function(self)
 
 		oUF:RegisterStyle("FocusUnitsTank", create_tank_style)
 		oUF:SetActiveStyle("FocusUnitsTank")
-		local tank = oUF:SpawnHeader(
-			"oUF_FocusUnitsTank", 	nil,
-			"raid",
-			"showRaid", 		true,
-			"groupFilter", 		"MAINTANK",
-			"yoffset", 			1,
-			"xoffset", 			0,
+		local tank = oUF:SpawnHeader("oUF_FocusUnitsTank", nil, "raid",
+			"showRaid", true,
+			"groupFilter", "MAINTANK",
+			"yoffset", 1,
+			"xoffset", 0,
 			"oUF-initialConfigFunction", ([[
 				self:SetWidth(%d)
 				self:SetHeight(%d)
@@ -816,68 +864,72 @@ oUF:Factory(function(self)
 	end
  
 	if cfg.enabled.raid then
+
 		local role
 		if GetSpecializationRole(GetSpecialization()) == "HEALER" then
-			role = "healer"
+			role = "detailed"
 		else
-			role = "dps"
+			role = "minimal"
 		end
+
 		local w = cfg.frames.raid.size[role].w
 		local h = cfg.frames.raid.size[role].h + cfg.frames.raid.power.h - 1
-		local mover_small = core.util.get_mover_frame("RaidSmall", cfg.frames.raid.pos)
-		mover_small:SetSize(w * 5 - 4, h * 4 - 3)
+		local mover_mythic = core.util.get_mover_frame("RaidMythic", cfg.frames.raid.pos)
+		mover_mythic:SetSize(w * 5 - 4, h * 4 - 3)
 
-		oUF:RegisterStyle("FocusUnitsRaid", create_raid_style(role))
-		oUF:SetActiveStyle("FocusUnitsRaid")
+		oUF:RegisterStyle("FocusUnitsMinimalRaid", create_raid_style(role))
+		oUF:SetActiveStyle("FocusUnitsMinimalRaid")
    
-		local raid_small = oUF:SpawnHeader(
-			"oUF_FocusUnitsRaidSmall", nil,
-			"custom [@raid21,exists] hide; [@raid1,exists] show; hide",
-			"showPlayer",         true,
-			"showSolo",           true,
-			"showRaid",           true,
-			"point",              "LEFT",
-			"yoffset",            0,
-			"xoffset",            -1,
-			"columnSpacing",      -1,
-			"columnAnchorPoint",  "TOP",
-			"groupFilter",        "1,2,3,4",
-			"groupBy",            "GROUP",
-			"groupingOrder",      "1,2,3,4",
-			"sortMethod",         "INDEX",
-			"maxColumns",         4,
-			"unitsPerColumn",     5,
+		local raid_mythic = oUF:SpawnHeader("oUF_FocusUnitsRaidMythic", nil, "custom [@raid21,exists] hide; [@raid1,exists] show; hide",
+			"showPlayer", true,
+			"showSolo", true,
+			"showRaid", true,
+			"point", "LEFT",
+			"yoffset", 0,
+			"xoffset", -1,
+			"columnSpacing", -1,
+			"columnAnchorPoint", "TOP",
+			"groupFilter", "1,2,3,4",
+			"groupBy", "GROUP",
+			"groupingOrder", "1,2,3,4",
+			"sortMethod", "INDEX",
+			"maxColumns", 4,
+			"unitsPerColumn", 5,
 			"oUF-initialConfigFunction", ([[
 				self:SetWidth(%d)
 				self:SetHeight(%d)
 			]]):format(w, h)
 		)
-		raid_small:SetPoint("TOPLEFT", mover_small)
+		raid_mythic:SetPoint("TOPLEFT", mover_mythic)
 
-		local mover_big = core.util.get_mover_frame("RaidBig", cfg.frames.raid.pos)
-		mover_big:SetSize(w * 5 - 4, h * 8 - 7)
-		local raid_big = oUF:SpawnHeader(
-			"oUF_FocusUnitsRaidBig", nil,
-			"custom [@raid21,exists] show; hide",
-			"showPlayer",         true,
-			"showSolo",           true,
-			"showRaid",           true,
-			"point",              "LEFT",
-			"yoffset",            0,
-			"xoffset",            -1,
-			"columnSpacing",      -1,
-			"columnAnchorPoint",  "TOP",
-			"groupFilter",        "1,2,3,4,5,6,7,8",
-			"groupBy",            "GROUP",
-			"groupingOrder",      "1,2,3,4,5,6,7,8",
-			"sortMethod",         "INDEX",
-			"maxColumns",         8,
-			"unitsPerColumn",     5,
+		w = cfg.frames.raid.size[role].w
+		h = cfg.frames.raid.size[role].h + cfg.frames.raid.power.h - 1
+		local mover_full = core.util.get_mover_frame("RaidFull", cfg.frames.raid.pos)
+		mover_full:SetSize(w * 5 - 4, h * 8 - 7)
+
+		oUF:RegisterStyle("FocusUnitsDetailedRaid", create_raid_style(role))
+		oUF:SetActiveStyle("FocusUnitsDetailedRaid")
+
+		local raid_full = oUF:SpawnHeader("oUF_FocusUnitsRaidFull", nil, "custom [@raid21,exists] show; hide",
+			"showPlayer", true,
+			"showSolo", true,
+			"showRaid", true,
+			"point", "LEFT",
+			"yoffset", 0,
+			"xoffset", -1,
+			"columnSpacing", -1,
+			"columnAnchorPoint", "TOP",
+			"groupFilter", "1,2,3,4,5,6,7,8",
+			"groupBy", "GROUP",
+			"groupingOrder", "1,2,3,4,5,6,7,8",
+			"sortMethod", "INDEX",
+			"maxColumns", 8,
+			"unitsPerColumn", 5,
 			"oUF-initialConfigFunction", ([[
 				self:SetWidth(%d)
 				self:SetHeight(%d)
 			]]):format(w, h)
 		)
-		raid_big:SetPoint("TOPLEFT", mover_big)
+		raid_full:SetPoint("TOPLEFT", mover_full)
 	end
 end)

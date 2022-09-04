@@ -24,7 +24,7 @@ cfg.enabled = {
     boss =          true,
     party =         true,
     raid =          true,
-    tank =          true,
+    tank =          false,
 }
 
 local powers = {
@@ -72,12 +72,14 @@ cfg.frames = {
 			size = {w = 500, h = 30},
 			pos = {"TOP", UIParent, "TOP", 0, -10},
 		},
+		mark = {size = 40},
 	},
 	pet = {
 		size = {w = 220, h = 30},
 		power = {
 			h = 8
-		}
+		},
+		mark = {size = 20},
 	},
 	target = {
 		size = {w = 350, h = 40},
@@ -88,17 +90,19 @@ cfg.frames = {
 		},
 		power = {
 			h = 8
-		}
+		},
+		mark = {size = 40},
 	},
 	targettarget = {
 		size = {w = 220, h = 30},
 	},
 	focus = {
-		size = {w = 300, h = 35},
+		size = {w = 260, h = 40},
 		pos = {"TOPLEFT", UIParent, "TOPLEFT", 10, -10},
 		cast = {
 			h = 30
 		},
+		mark = {size = 30},
 	},
 	tank = {
 		size = {w = 110, h = 60},
@@ -106,25 +110,28 @@ cfg.frames = {
 		power = {
 			h = 8
 		},
+		mark = {size = 20},
 	},
 	party = {
-		size = {w = 110, h = 60},
+		size = {w = 150, h = 60},
 		pos = {"BOTTOMLEFT", UIParent, "BOTTOMLEFT", 10, 10},
 		power = {
 			h = 8
 		},
-		indicators = indicators[core.player.class]
+		indicators = indicators[core.player.class],
+		mark = {size = 30},
 	},
 	raid = {
 		size = {
-			dps = {w = 80, h = 50},
-			healer = {w = 105, h = 55},
+			["minimal"] = {w = 94, h = 50},
+			["detailed"] = {w = 124, h = 60},
 		},
 		pos = {"BOTTOMLEFT", UIParent, "BOTTOMLEFT", 10, 10},
 		power = {
 			h = 8
 		},
-		indicators = indicators[core.player.class]
+		indicators = indicators[core.player.class],
+		mark = {size = 15},
 	},
 	boss = {
 		size = {w = 300, h = 40},
@@ -134,7 +141,8 @@ cfg.frames = {
 		},
 		cast = {
 			h = 25
-		}
+		},
+		mark = {size = 30},
 	},
 	nameplate = {
 		size = {
@@ -150,43 +158,26 @@ cfg.frames = {
 		alpha = {
 			target = 1,
 			non_target = 0.6
-		}
+		},
+		mark = {size = 30},
 	},
 }
 
 cfg.auras = {
---	frame				size	rows	anchor			x-direction		y-direction		rowlimit	countsize	cdsize	squashed
-	player = 			{50,	1,		"BOTTOMRIGHT",	"LEFT",			"UP", 			false,		15,			20,		false},
-	boss = 				{46,	2, 		"TOPRIGHT", 	"LEFT", 		"DOWN",			3, 			15,			20,		true},
-	pet = 				{50,	1, 		"BOTTOMRIGHT", 	"LEFT",			"UP", 			false, 		15,			20,		true},
-	target_buff = 		{50,	3, 		"BOTTOMLEFT", 	"RIGHT",		"UP", 			false,		15,			15,		true},
-	target_debuff = 	{50,	1, 		"BOTTOMLEFT", 	"RIGHT", 		"UP", 			false,		15,			20,		false},
-	nameplate_debuff =	{58,	2, 		"TOPLEFT",		"RIGHT", 		"DOWN", 		3,			15,			20,		true},
-	nameplate_buff =	{58,	2, 		"TOPRIGHT", 	"LEFT",			"DOWN", 		3,			15,			20,		true},
-	tank = 				{22, 	1, 		"BOTTOMLEFT",	"RIGHT",		"DOWN", 		3,			10, 		10,		false},
-	focus = 			{40, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"UP", 			false, 		10, 		15,		true},
-	party = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		3, 			10, 		10,		false},
-	healer = 			{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		3, 			10, 		10,		false},
-	dps = 				{25, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"DOWN", 		2, 			10, 		10,		false},
-}
-
-cfg.raid_marks = {
---  frame			anchor			x offset	y offset	size
-    primary =		{"BOTTOM",      0,          0,          25},
-    secondary =     {"TOPRIGHT",    -5,         -5,         20},
-    boss =          {"TOP",         0,          0,          30},
-    nameplate =     {"LEFT",        0,          0,          30},
-    tank =          {"LEFT",        -50,        0,          25},
-    focus =         {"TOP",         0,          0,          30},
-    party =         {"LEFT",        0,          0,          15},
-    raid =          {"TOP",     	0,          0,         	15},
-}
-
-cfg.raid_role = {
-	point = "TOPLEFT",
-	x = 3,
-	y = -3,
-	size = 10
+--	frame				size	rows	anchor			x-direction		y-direction		rowlimit	countsize	cdsize	cdposition		squashed
+	player = 			{50,	1,		"BOTTOMRIGHT",	"LEFT",			"UP", 			false,		15,			20,		"CENTER",		false},
+	boss = 				{46,	2, 		"TOPRIGHT", 	"LEFT", 		"DOWN",			3, 			15,			20,		"CENTER",		true},
+	pet = 				{50,	1, 		"BOTTOMRIGHT", 	"LEFT",			"UP", 			false, 		15,			20,		"CENTER",		true},
+	target_buff = 		{50,	3, 		"BOTTOMLEFT", 	"RIGHT",		"UP", 			false,		15,			15,		"CENTER",		true},
+	target_debuff = 	{50,	1, 		"BOTTOMLEFT", 	"RIGHT", 		"UP", 			false,		15,			20,		"CENTER",		false},
+	nameplate_debuff =	{58,	2, 		"TOPLEFT",		"RIGHT", 		"DOWN", 		3,			15,			20,		"CENTER",		true},
+	nameplate_buff =	{58,	2, 		"TOPRIGHT", 	"LEFT",			"DOWN", 		3,			15,			20,		"CENTER",		true},
+	tank = 				{22, 	1, 		"BOTTOMLEFT",	"RIGHT",		"DOWN", 		3,			10, 		10,		"CENTER",		false},
+	focus = 			{40, 	1, 		"BOTTOMLEFT",	"RIGHT", 		"UP", 			false, 		10, 		15,		"CENTER",		true},
+	party = 			{30, 	1, 		"TOPRIGHT",		"LEFT", 		"DOWN", 		4, 			12, 		12,		"CENTER",		false},
+	-- raid
+	minimal = 			{36, 	1, 		"TOPRIGHT",		"LEFT", 		"DOWN", 		2, 			10, 		12,		"BELOW_RIGHT",	true},
+	detailed = 			{30, 	1, 		"TOPRIGHT",		"LEFT", 		"DOWN", 		3, 			12, 		12,		"CENTER",		false},
 }
 
 -- override color on specific units to help see them
@@ -195,6 +186,8 @@ cfg.nameplate_colors = {
 	[177891] = {0.75, 0.25, 0.75},	-- Mawforged Summoner
 	[179963] = {0.75, 0.75, 0.25},	-- Terror Orb
 	[184140] = {0.75, 0.75, 0.25},	-- Xy Acolyte
+	[183033] = {0.75, 0.75, 0.25},	-- Grim Reflection
+	[179733] = {0.75, 0.25, 0.75},  -- Invigorating Fish Stick
 }
 
 cfg.pet_buff_whitelist = {
@@ -203,15 +196,26 @@ cfg.pet_buff_whitelist = {
 
 -- in addition to magic and enrage buffs, show these buffs on nameplates
 cfg.nameplate_buff_whitelist = {
+	[343502] = true,		-- Inspiring Presence
 }
 
 -- useless stuff that crowds enemy nameplate debuffs
 cfg.nameplate_debuff_blacklist = {
 	[356329] = true,		-- Scouring Touch (Shard of Dyz)
+	[356372] = true,		-- Exsanguinated (Shard of Bek)
+
+	[50285] = true,			-- Dust Cloud
+	
 	[269576] = true,		-- Master Marksman
 	[257044] = true,		-- Rapid Fire
+
+	[270339] = true,		-- Shrapnel Bomb
+	--[270332] = true,		-- Pheramone Bomb
+	[271049] = true,		-- Volatile Bomb
+	[270343] = true,		-- Internal Bleeding
+
+	[352939] = true,		-- Soulglow Spectrometer
 	[353354] = true,		-- Dream Delver
-	[356372] = true,		-- Exsanguinated (SHard of Bek)
 }
 
 -- track above player unitframe
@@ -303,7 +307,22 @@ cfg.player_buff_whitelist = {
 	[207256] = true,		-- Obliteration
 	[196770] = true,		-- Remorseless Winter
 	[51271] = true,			-- Pillar of Frost
-	[53365] = true,			-- Unholy Strength
+	--[53365] = true,			-- Unholy Strength
+}
+
+-- important debuffs to track on minimal frames
+cfg.debuff_whitelist = {
+
+	-- Jailer
+	[360281] = true,		-- Rune of Damnation
+	[366703] = true,		-- Azerite Radiation
+	[368591] = true,		-- Death Sentence
+	[368592] = true,		-- Death Sentence
+	[368593] = true,		-- Death Sentence
+
+	-- test
+	--[264689] = true,		-- Fatigued
+	--[161918] = true,		-- Fiery Ground
 }
 
 -- things that aren't useful to track on larger frames that otherwise show all debuffs

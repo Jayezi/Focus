@@ -78,10 +78,10 @@ local update_debuffs = function(name, index)
 
 	style_buff(button)
 	button:ClearAllPoints()
-	if index == 1 then
-		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, buff_rows * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
-	elseif index % cfg.per_row == 1 then
+	if index % cfg.per_row == 1 then
 		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", 0, (buff_rows + math.floor(index / cfg.per_row)) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
+	elseif index % cfg.per_row == 0 then
+		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", (cfg.per_row - 1) * -(cfg.size + cfg.col_spacing), (buff_rows + math.floor(index / cfg.per_row) - 1) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
 	else
 		button:SetPoint("TOPRIGHT", BuffFrame, "TOPRIGHT", (index % cfg.per_row - 1) * -(cfg.size + cfg.col_spacing), (buff_rows + math.floor(index / cfg.per_row)) * -(cfg.size + cfg.row_spacing) + -cfg.row_spacing)
 	end

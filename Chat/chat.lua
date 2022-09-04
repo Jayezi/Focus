@@ -134,19 +134,16 @@ local skin_button = function(button, texture, ...)
 
 	local pushed = button:GetPushedTexture()
 	core.util.set_inside(pushed, button)
-	pushed:SetTexture(core.media.textures.blank)
-	pushed:SetVertexColor(.3, .3, .3, .6)
+	pushed:SetColorTexture(unpack(core.config.color.pushed))
 
 	local highlight = button:GetHighlightTexture()
 	core.util.set_inside(highlight, button)
-	highlight:SetTexture(core.media.textures.blank)
-	highlight:SetVertexColor(.6, .6, .6, .3)
+	highlight:SetColorTexture(unpack(core.config.color.highlight))
 
 	local disabled = button:GetDisabledTexture()
 	if disabled then
 		core.util.set_inside(disabled, button)
-		disabled:SetTexture(core.media.textures.blank)
-		disabled:SetVertexColor(0, 0, 0, .6)
+		disabled:SetColorTexture(unpack(core.config.color.disabled))
 	end
 end
 
@@ -520,7 +517,7 @@ GeneralDockManager:SetPoint("BOTTOMRIGHT", ChatFrame1.backdrop, "TOPRIGHT")
 
 ChatFrameMenuButton:ClearAllPoints()
 ChatFrameMenuButton:SetPoint("BOTTOMLEFT", ChatFrame1ButtonFrame, "BOTTOMLEFT")
-ChatFrameMenuButton:SetSize(24, 24)
+ChatFrameMenuButton:SetSize(24, 22)
 skin_button(ChatFrameMenuButton, [[interface/gossipframe/chatbubblegossipicon]])
 
 ChatFrameChannelButton:ClearAllPoints()

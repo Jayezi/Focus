@@ -53,8 +53,8 @@ oUF.Tags.Methods['focus:role'] = function(u)
 		return "|cff8AFF30H|r"
 	elseif role == "TANK" then
 		return "|cff5F9BFFT|r"
-	elseif role == "DAMAGER" then
-		return "|cffFF6161D|r"
+	-- elseif role == "DAMAGER" then
+	-- 	return "|cffFF6161D|r"
 	end
 end
 oUF.Tags.Events['focus:role'] = 'PLAYER_ROLES_ASSIGNED GROUP_ROSTER_UPDATE'
@@ -158,7 +158,7 @@ oUF.Tags.Methods["focus:hp:group"] = function(unit)
 
 	return ""
 end
-oUF.Tags.Events["focus:hp:group"] = "UNIT_NAME_UPDATE UNIT_ABSORB_AMOUNT_CHANGED UNIT_HEAL_ABSORB_AMOUNT_CHANGED UNIT_CONNECTION"
+oUF.Tags.Events["focus:hp:group"] = "UNIT_NAME_UPDATE UNIT_ABSORB_AMOUNT_CHANGED UNIT_HEAL_ABSORB_AMOUNT_CHANGED UNIT_CONNECTION PLAYER_FLAGS_CHANGED"
 
 -- power
 

@@ -37,45 +37,46 @@ lib.gen_heal_bar = function(health)
 	
 	local my_heals = CreateFrame("StatusBar", nil, health)
 	my_heals:SetStatusBarTexture(core.media.textures.blank)
-	my_heals:SetPoint("LEFT", health:GetStatusBarTexture(), "RIGHT")
-	my_heals:SetPoint("TOP")
-	my_heals:SetPoint("BOTTOM")
-	my_heals:SetWidth(health:GetWidth())
-	my_heals:SetStatusBarColor(.25, .75, .50, .75)
+	my_heals:SetPoint("LEFT", health:GetStatusBarTexture(), "RIGHT", 0, 0)
+	my_heals:SetPoint("TOP", 0, -1)
+	my_heals:SetPoint("BOTTOM", 0, 1)
+	my_heals:SetWidth(health:GetWidth() - 2)
+	my_heals:SetStatusBarColor(0.25, 0.75, 0.25, 0.75)
 	my_heals:SetFrameLevel(health:GetFrameLevel())
 	
 	local other_heals = CreateFrame("StatusBar", nil, health)
 	other_heals:SetStatusBarTexture(core.media.textures.blank)
 	other_heals:SetPoint("LEFT", my_heals:GetStatusBarTexture(), "RIGHT")
-	other_heals:SetPoint("TOP")
-	other_heals:SetPoint("BOTTOM")
-	other_heals:SetWidth(health:GetWidth())
-	other_heals:SetStatusBarColor(.75, .75, .25, .75)
+	other_heals:SetPoint("TOP", 0, -1)
+	other_heals:SetPoint("BOTTOM", 0 ,1)
+	other_heals:SetWidth(health:GetWidth() - 2)
+	other_heals:SetStatusBarColor(0.25, 0.75, 0.25, 0.75)
 	other_heals:SetFrameLevel(health:GetFrameLevel())
 	
 	local absorbs = CreateFrame("StatusBar", nil, health)
 	absorbs:SetStatusBarTexture(core.media.textures.blank)
-	absorbs:SetPoint("LEFT", other_heals:GetStatusBarTexture(), "RIGHT")
-	absorbs:SetPoint("TOP")
-	absorbs:SetPoint("BOTTOM")
-	absorbs:SetWidth(health:GetWidth())
-	absorbs:SetStatusBarColor(.75, .75, .75, .75)
+	absorbs:SetPoint("LEFT", health, "LEFT", 1, 0)
+	absorbs:SetPoint("TOP", 0, -1)
+	absorbs:SetPoint("BOTTOM", 0, 1)
+	absorbs:SetWidth(health:GetWidth() - 2)
+	absorbs:SetStatusBarColor(0.75, 0.75, 0.5, 0.25)
 	absorbs:SetFrameLevel(health:GetFrameLevel())
 	
-	-- local heal_absorbs = CreateFrame("StatusBar", nil, health)
-	-- heal_absorbs:SetStatusBarTexture(core.media.textures.blank)
-	-- heal_absorbs:SetPoint("LEFT", absorbs:GetStatusBarTexture(), "RIGHT")
-	-- heal_absorbs:SetPoint("TOP")
-	-- heal_absorbs:SetPoint("BOTTOM")
-	-- heal_absorbs:SetWidth(health:GetWidth())
-	-- heal_absorbs:SetStatusBarColor(.25, .25, .25, .75)
-	-- heal_absorbs:SetFrameLevel(health:GetFrameLevel())
+	local heal_absorbs = CreateFrame("StatusBar", nil, health)
+	heal_absorbs:SetReverseFill(true)
+	heal_absorbs:SetStatusBarTexture(core.media.textures.blank)
+	heal_absorbs:SetPoint("RIGHT", health, "RIGHT", -1, 0)
+	heal_absorbs:SetPoint("TOP", 0, -1)
+	heal_absorbs:SetPoint("BOTTOM", 0, 1)
+	heal_absorbs:SetWidth(health:GetWidth() - 2)
+	heal_absorbs:SetStatusBarColor(0.25, 0.25, 0.25, 0.75)
+	heal_absorbs:SetFrameLevel(health:GetFrameLevel())
 	
 	return {
 		myBar = my_heals,
 		otherBar = other_heals,
 		absorbBar = absorbs,
-		--healAbsorbBar = heal_absorbs,
+		healAbsorbBar = heal_absorbs,
 		maxOverflow = 1,
 	}
 end
@@ -93,7 +94,7 @@ lib.gen_cast_bar = function(base, w, h, text_size, latency, interrupt, color)
 	local cast_icon = cast_bar:CreateTexture()
 	cast_icon:SetDrawLayer("OVERLAY", -6)
 	cast_icon:SetSize(Round(h * 3 / 2), Round(h * 3 / 4))
-	cast_icon:SetPoint("LEFT", cast_bar, "TOP", -Round(cast_icon:GetWidth() / 2), 0)
+	cast_icon:SetPoint("CENTER", cast_bar, "TOP", 0, 0)
 	cast_icon:SetTexCoord(0.1, 0.9, 0.30, 0.70)
 	cast_bar.Icon = cast_icon
 	
@@ -151,6 +152,8 @@ lib.gen_cast_bar = function(base, w, h, text_size, latency, interrupt, color)
 		-- 	end
 		-- end
 	end
+
+	base.Castbar = cast_bar
 
 	return cast_bar
 end
@@ -354,31 +357,20 @@ lib.gen_indicators = function(base, cfg)
 	return indicators
 end
 
-lib.update_raid_mark = function(base, position)
-	base.RaidIcon:ClearAllPoints()
-	base.RaidIcon:SetPoint("CENTER", base, position[1], position[2], position[3])
-	base.RaidIcon:SetSize(position[4], position[4])
-end
-
-lib.gen_raid_mark = function(base, position)
-	local mark = base.Health:CreateTexture(nil, "OVERLAY")
-	mark:SetPoint("CENTER", base.Health, position[1], position[2], position[3])
-	mark:SetSize(position[4], position[4])
-	
-	base.RaidTargetIndicator = mark
-end
-
-lib.gen_raid_role = function(base)
-	local role = core.util.gen_string(base.Health, cfg.raid_role.size, nil, core.media.fonts.role_symbols)
-	role:SetPoint("CENTER", base, cfg.raid_role.point, cfg.raid_role.x, cfg.raid_role.y)
-	base:Tag(role, '[focus:role]')
-end
-
 lib.gen_ready_check = function(base)
 	local ready = base.Health:CreateTexture(nil, 'OVERLAY')
 	ready:SetSize(15, 15)
     ready:SetPoint('CENTER')
+
 	base.ReadyCheckIndicator = ready
+end
+
+lib.gen_summon = function(base)
+	local summon = base.Health:CreateTexture(nil, "OVERLAY")
+	summon:SetSize(35, 35)
+	summon:SetPoint("CENTER")
+
+	base.SummonIndicator = summon
 end
 
 local aura_filter = function(element, _, _, _, _, _, debuffType, _, _, caster, _, _, spellID)
@@ -417,15 +409,49 @@ local post_create_aura = function(buffs, button)
 	button.cd:SetReverse(true)
 	button.cd:SetFrameLevel(button:GetFrameLevel())
 	button.cd:SetHideCountdownNumbers(false)
-	core.util.fix_string(button.cd:GetRegions(), buffs.cdsize)
 	button.cd:SetDrawEdge(false)
+	core.util.fix_string(button.cd:GetRegions(), buffs.cdsize)
 	
 	if buffs.squashed then
 		button.icon:SetTexCoord(0.1, 0.9, 0.3, 0.7)
 	else
 		button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 	end
+	core.util.set_inside(button.cd, button)
 	core.util.set_inside(button.icon, button)
+
+	local y, x = strsplit("_", buffs.cdposition)
+
+	local timer = button.cd:GetRegions()
+	timer:ClearAllPoints()
+
+	if x then
+		if x == "BEFORE" then
+			timer:SetPoint("RIGHT", button, "LEFT")
+		elseif x == "LEFT" then
+			timer:SetPoint("LEFT", button, "LEFT")
+		elseif x == "CENTER" then
+			timer:SetPoint("CENTER", button, "CENTER")
+		elseif x == "RIGHT" then
+			timer:SetPoint("RIGHT", button, "RIGHT")
+		elseif x == "AFTER" then
+			timer:SetPoint("LEFT", button, "RIGHT")
+		end
+	end
+
+	if y then
+		if y == "ABOVE" then
+			timer:SetPoint("BOTTOM", button, "TOP")
+		elseif y == "TOP" then
+			timer:SetPoint("TOP", button, "TOP")
+		elseif y == "CENTER" then
+			timer:SetPoint("CENTER", button, "CENTER")
+		elseif y == "BOTTOM" then
+			timer:SetPoint("BOTTOM", button, "BOTTOM")
+		elseif y == "BELOW" then
+			timer:SetPoint("TOP", button, "BOTTOM")
+		end
+	end
 	
 	button.overlay:SetDrawLayer("BACKGROUND")
 	button.overlay:SetTexture(core.media.textures.blank)
@@ -435,8 +461,9 @@ local post_create_aura = function(buffs, button)
 
 	button.overlay.oldHide = button.overlay.Hide
 	button.overlay.Hide = function(self) self:SetVertexColor(0, 0, 0) end
-	
-	button.count:SetPoint("TOPRIGHT", button, 3, 3)
+
+	button.count:ClearAllPoints()
+	button.count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
 	button.count:SetJustifyH("RIGHT")
 	button.count:SetJustifyV("TOP")
 	button.count:SetFont(core.config.default_font, buffs.countsize, core.config.font_flags)
@@ -465,7 +492,8 @@ lib.gen_auras = function(base, w, cfg, name)
 	auras["growth-y"] = cfg[5]
 	auras.countsize = cfg[7]
 	auras.cdsize = cfg[8]
-	auras.squashed = cfg[9]
+	auras.cdposition = cfg[9]
+	auras.squashed = cfg[10]
 	auras.showType = true
 	auras.spacing = 1
 
