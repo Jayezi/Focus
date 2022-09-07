@@ -150,6 +150,6 @@ hooksecurefunc(GameTooltip, "SetUnitAura", function(self, unit, index, filter)
 	end
 end)
 
-hooksecurefunc("BuffFrame_UpdateAllBuffAnchors", update_buffs)
-hooksecurefunc("DebuffButton_UpdateAnchors", update_debuffs)
-hooksecurefunc("TemporaryEnchantFrame_Update", update_enchants)
+-- hooksecurefunc("BuffFrame_UpdateAllBuffAnchors", update_buffs)
+-- hooksecurefunc("DebuffButton_UpdateAnchors", update_debuffs)
+-- hooksecurefunc("TemporaryEnchantFrame_Update", update_enchants)

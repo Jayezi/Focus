@@ -28,14 +28,14 @@ local UnitIsAFK = UnitIsAFK
 local CinematicFrame = CinematicFrame
 local SetCVar = SetCVar
 
-addon.bars = { enabled = true }
 addon.units = { enabled = true }
+addon.bars = { enabled = true }
 addon.buffs = { enabled = true }
-addon.raid = { enabled = true }
+addon.raid = { enabled = false }
 addon.chat = { enabled = true }
 addon.map = { enabled = true }
 addon.stats = { enabled = true }
-addon.bag = { enabled = true }
+addon.bag = { enabled = false }
 addon.binds = { enabled = true }
 addon.skin = { enabled = true }
 

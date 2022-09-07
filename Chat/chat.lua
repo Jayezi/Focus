@@ -255,8 +255,8 @@ local skin_chat_frame = function(frame)
 		_G[name..texture]:SetTexture()
 	end
 
-	frame:SetMaxResize(UIParent:GetWidth() / 2, UIParent:GetHeight() / 1.5)
-	frame:SetMinResize(200, 100)
+	--frame:SetMaxResize(UIParent:GetWidth() / 2, UIParent:GetHeight() / 1.5)
+	--frame:SetMinResize(200, 100)
 
 	_G[editbox:GetName().."Left"]:Hide()
 	_G[editbox:GetName().."Mid"]:Hide()

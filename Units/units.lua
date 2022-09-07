@@ -730,9 +730,6 @@ oUF:Factory(function(self)
 		oUF:RegisterStyle("FocusUnitsPlayer", create_player_style)
 		oUF:SetActiveStyle("FocusUnitsPlayer")
 		oUF:Spawn("player"):SetPoint("TOPRIGHT", mover)
-
-		CastingBarFrame_SetUnit(CastingBarFrame)
-		CastingBarFrame_SetUnit(PetCastingBarFrame)
 	end
 
 	if cfg.enabled.pet then

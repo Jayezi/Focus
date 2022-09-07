@@ -15,6 +15,21 @@ local AUTOCAST_SHINE_TIMERS = AUTOCAST_SHINE_TIMERS
 local AUTOCAST_SHINE_SPEEDS = AUTOCAST_SHINE_SPEEDS
 local strfind = strfind
 
+local MICRO_BUTTONS = {
+	"CharacterMicroButton",
+	"SpellbookMicroButton",
+	"TalentMicroButton",
+	"AchievementMicroButton",
+	"QuestLogMicroButton",
+	"GuildMicroButton",
+	"LFDMicroButton",
+	"EJMicroButton",
+	"CollectionsMicroButton",
+	"MainMenuMicroButton",
+	"HelpMicroButton",
+	"StoreMicroButton",
+}
+
 local set_tooltip = function(self)
 	local button_type = self.buttonType
 	local action = self.action
@@ -124,40 +139,26 @@ local setup_actionbars = function()
 		end
 	end
 
-	MainMenuBarArtFrameBackground:Hide()
-	MainMenuBarArtFrame.LeftEndCap:Hide()
-	MainMenuBarArtFrame.RightEndCap:Hide()
-	MainMenuBarArtFrame.PageNumber:Hide()
-	StatusTrackingBarManager:Hide()
-	ActionBarUpButton:Hide()
-	ActionBarDownButton:Hide()
-	MicroButtonAndBagsBar.MicroBagBar:Hide()
+	--StatusTrackingBarManager:Hide()
 	MainMenuBar:EnableMouse(false)
 end
 
 local setup_stancebar = function()
 	local name = "Stance"
-	local num = NUM_STANCE_SLOTS
+	local num = StanceBar.numButtons
 	local bar_cfg = cfg.bars[name]
 
 	local bar = create_bar(name, num, bar_cfg)
 	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
-
-	for _, texture in ipairs({StanceBarFrame:GetRegions()}) do
-		texture:SetTexture()
-	end
-	StanceBarFrame:EnableMouse(false)
 end
 
 local setup_petbar = function()
 	local name = "PetAction"
-	local num = NUM_PET_ACTION_SLOTS
+	local num = PetActionBar.numButtons
 	local bar_cfg = cfg.bars[name]
 
 	local bar = create_bar(name, num, bar_cfg)
 	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
-
-	PetActionBarFrame:EnableMouse(false)
 end
 
 local setup_possessbar = function()
@@ -168,10 +169,6 @@ local setup_possessbar = function()
 
 	local bar = create_bar(name, num, bar_cfg)
 	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
-
-	PossessBackground1:SetTexture()
-	PossessBackground2:SetTexture()
-	PossessBarFrame:EnableMouse(false)
 end
 
 local setup_bagbar = function()
@@ -193,7 +190,7 @@ end
 local setup_microbar = function()
 	for _, name in ipairs(MICRO_BUTTONS) do
 		local button = _G[name]
-		styles.microbutton(button)
+		-- styles.microbutton(button)
 	end
 end
 
@@ -255,18 +252,18 @@ hooksecurefunc('ActionButton_UpdateCooldown', function(self)
 	end
 end)
 
-SpellFlyoutBackgroundEnd:SetTexture()
-SpellFlyoutHorizontalBackground:SetTexture()
-SpellFlyoutVerticalBackground:SetTexture()
-SpellFlyout:HookScript("OnShow", function(self)
-	local flyout_buttons = {self:GetChildren()}
-	for _, button in ipairs(flyout_buttons) do
-		if button.styled ~= true then
-			styles.actionbutton(button)
-			button.styled = true
-		end
-	end
-end)
+-- SpellFlyoutBackgroundEnd:SetTexture()
+-- SpellFlyoutHorizontalBackground:SetTexture()
+-- SpellFlyoutVerticalBackground:SetTexture()
+-- SpellFlyout:HookScript("OnShow", function(self)
+-- 	local flyout_buttons = {self:GetChildren()}
+-- 	for _, button in ipairs(flyout_buttons) do
+-- 		if button.styled ~= true then
+-- 			styles.actionbutton(button)
+-- 			button.styled = true
+-- 		end
+-- 	end
+-- end)
 
 MainMenuBarBackpackButtonCount.alt_SetText = MainMenuBarBackpackButtonCount.SetText
 hooksecurefunc(MainMenuBarBackpackButtonCount, "SetText", function(self)

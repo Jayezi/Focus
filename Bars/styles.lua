@@ -26,7 +26,6 @@ styles.actionbutton = function(button, bar_cfg)
 	local icon  = button.icon -- $parentIcon
 	--     ARTWORK 1
 	local flash  = button.Flash -- $parentFlash
-	local fob = button.FlyoutBorder -- $parentFlyoutBorder
 	local fobs = button.FlyoutBorderShadow -- $parentFlyoutBorderShadow
 	--     ARTWORK 2
 	--local foa  = button.FlyoutArrow -- $parentFlyoutArrow
@@ -41,6 +40,7 @@ styles.actionbutton = function(button, bar_cfg)
 	local auto = button.AutoCastable
 	--local levellock = button.LevelLinkLockIcon
 	--   Frames
+	local flyout = button.FlyoutArrowContainer
 	local shine = button.AutoCastShine -- $parentShine
 	local cooldown = button.cooldown -- $parentCooldown
 	--   NormalTexture
@@ -105,7 +105,6 @@ styles.actionbutton = function(button, bar_cfg)
 	flash:SetVertexColor(unpack(cfg.color.flash))
 	flash:SetAllPoints(icon)
 
-	fob:SetTexture()
 	fobs:SetTexture()
 
 	-- ARTWORK 2
