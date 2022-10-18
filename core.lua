@@ -33,11 +33,11 @@ addon.bars = { enabled = true }
 addon.buffs = { enabled = true }
 addon.raid = { enabled = false }
 addon.chat = { enabled = true }
-addon.map = { enabled = true }
+addon.map = { enabled = false }
 addon.stats = { enabled = true }
 addon.bag = { enabled = false }
 addon.binds = { enabled = true }
-addon.skin = { enabled = true }
+addon.skin = { enabled = false }
 
 local _, player_class = UnitClass("player")
 local player_color = RAID_CLASS_COLORS[player_class]
@@ -717,9 +717,9 @@ end)
 local tooltip_parent = core.util.get_mover_frame("Tooltip")
 tooltip_parent:SetPoint("BOTTOMRIGHT", UIParent, -10, 10)
 
-hooksecurefunc("GameTooltip_SetDefaultAnchor", function(self)
-	self:SetOwner(tooltip_parent, "ANCHOR_TOPRIGHT", 0, -tooltip_parent:GetHeight())
-end)
+-- hooksecurefunc("GameTooltip_SetDefaultAnchor", function(self)
+-- 	self:SetOwner(tooltip_parent, "ANCHOR_TOPRIGHT", 0, -tooltip_parent:GetHeight())
+-- end)
 
 hooksecurefunc("EmbeddedItemTooltip_UpdateSize", function(button)
 	button.IconBorder:SetTexture(core.media.textures.blank)
@@ -792,6 +792,8 @@ login_frame:SetScript("OnEvent", function(self, event)
 		SetCVar("nameplateSelfScale", 1)
 		SetCVar("nameplateSelfTopInset", 0)
 		SetCVar("nameplateSelfBottomInset", 0.4)
+
+		SetCVar("deselectOnClick", 1)
 	end
 end)
 
@@ -1211,13 +1213,3 @@ if not LibStub then
 	LibStub.minor = 0
 	setmetatable(LibStub, { __call = function() return nil end })
 end
-
-
-
-
-
-
-
-
-
--- SplashFrame

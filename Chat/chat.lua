@@ -249,6 +249,8 @@ local skin_chat_frame = function(frame)
 		frame.CombatLogQuickButtonFrame:ClearAllPoints()
 		frame.CombatLogQuickButtonFrame:SetPoint("BOTTOMLEFT", frame, "TOPLEFT")
 		frame.CombatLogQuickButtonFrame:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT")
+		frame.CombatLogQuickButtonFrame:SetFrameStrata("HIGH")
+		frame.CombatLogQuickButtonFrame:SetFrameLevel(frame:GetFrameLevel())
 	end
 
 	for _, texture in pairs(button_frame_textures) do
@@ -275,22 +277,23 @@ local skin_chat_frame = function(frame)
 
 	-- ChatTabArtTemplate
 	--   BACKGROUND
-	-- $parentLeft
-	-- $parentMiddle
-	-- $parentRight
+	-- .Left
+	-- .Middle
+	-- .Right
 	--   BORDER
-	-- $parentSelectedLeft
-	-- $parentSelectedMiddle
-	-- $parentSelectedRight
+	-- .ActiveLeft
+	-- .ActiveMiddle
+	-- .ActiveRight
 	local tab_glow = tab.glow -- $parentGlow
 	--   HIGHLIGHT
-	-- $parentHighlightLeft
-	-- $parentHighlightMiddle
-	-- $parentHighlightRight
+	-- .HighlightLeft
+	-- .HighlightMiddle
+	-- .HighlightRight
 
 	-- ChatTabTemplate
 	local tab_flash = _G[tab:GetName().."Flash"]
-	local tab_text = tab.Text -- $parentText
+	local dropdown = _G[tab:GetName().."DropDown"]
+	local tab_text = tab.Text -- .Text
 
 	core.util.strip_textures(tab, true, {
 		tab_glow,
@@ -309,8 +312,8 @@ local skin_chat_frame = function(frame)
 	select(1, tab_flash:GetRegions()):SetColorTexture(unpack(core.config.color.highlight))
 
 	core.util.fix_string(tab_text)
-	tab.leftTexture:SetWidth(10)
-	tab.rightTexture:SetWidth(15)
+	-- tab.leftTexture:SetWidth(10)
+	-- tab.rightTexture:SetWidth(15)
 	tab_text:ClearAllPoints()
 	tab_text:SetPoint("CENTER", 0, 0)
 	tab_text:SetTextColor(unpack(core.player.color))
@@ -319,7 +322,7 @@ local skin_chat_frame = function(frame)
 	hooksecurefunc(tab, "SetWidth", function(self)
 		self.Text:SetSize(0, 0)
 		local width = self.Text:GetSize()
-		self.middleTexture:SetWidth(width)
+		--self.middleTexture:SetWidth(width)
 		self:alt_SetWidth(width + 20)
 	end)
 
@@ -454,18 +457,37 @@ hooksecurefunc("FCF_OpenTemporaryWindow", function()
 end)
 
 hooksecurefunc("FCF_CreateMinimizedFrame", function(frame)
+
+	-- FloatingChatFrameMinimizedTemplate
+	-- BACKGROUND
+	--	.Left
+	--	.Right
+	--	.Middle
+	-- BORDER
+	--	.glow
+	-- ARTWORK
+	--	.conversationIcon
+	-- HIGHLIGHT
+	--	.HighlightLeft
+	--	.HighlightRight
+	--	.HighlightMiddle
+
+	-- $parentMaximizeButton
+
+	-- .Text
+
 	local min = _G[frame:GetName().."Minimized"]
 	core.util.gen_backdrop(min)
 	core.util.fix_string(min.Text)
 	core.util.set_inside(min.glow, min)
 
-	min.leftTexture:SetTexture()
-	min.rightTexture:SetTexture()
-	min.middleTexture:SetTexture()
+	min.Left:SetTexture()
+	min.Right:SetTexture()
+	min.Middle:SetTexture()
 
-	min.leftHighlightTexture:SetTexture()
-	min.rightHighlightTexture:SetTexture()
-	min.middleHighlightTexture:SetTexture()
+	min.HighlightLeft:SetTexture()
+	min.HighlightRight:SetTexture()
+	min.HighlightMiddle:SetTexture()
 
 	min:SetHighlightTexture(core.media.textures.blank)
 	min:GetHighlightTexture():SetVertexColor(.6, .6, .6, .3)
@@ -550,3 +572,6 @@ fix_button_side(ChatFrame1)
 
 core.settings:add_action("Dock Chat", dock_chat)
 core.settings:add_action("Reset Chat", setup_chat)
+
+ChatFrame1.Selection:SetPoint("TOPLEFT")
+ChatFrame1.Selection:SetPoint("BOTTOMRIGHT")

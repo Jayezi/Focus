@@ -12,16 +12,16 @@ local cfg = {
 	row_spacing = 10,
 	col_spacing = 8,
 	per_row = 12,
-	size = 45,
+	size = 44,
 	duration_pos = {"BOTTOM", 0, -4},
 	count_pos = {"TOPRIGHT", 4, 4}
 }
 
 local style_buff = function(button)
-	if button.styled then return end
-	button.styled = true
+	
+	button:SetSize(cfg.size, cfg.size)
 
-	local name = button:GetName()
+	local name = button:GetParent():GetParent():GetName()
 	local is_debuff = string.match(name, "Debuff")
 
 	-- AuraButtonTemplate
@@ -34,7 +34,7 @@ local style_buff = function(button)
 	-- DebuffButtonTemplate
 	--   Layers
 	--     OVERLAY
-	local border = button.Border -- $parentBorder
+	local border = button.Border or button.bg -- $parentBorder
 	--local symbol = button.symbol
 
 	-- TempEnchantButtonTemplate
@@ -44,8 +44,6 @@ local style_buff = function(button)
 
 	-----------------------------
 
-	button:SetSize(cfg.size, cfg.size)
-
 	icon:SetTexCoord(.1, .9, .1, .9)
 	core.util.set_inside(icon, button)
 	icon:SetDrawLayer("BACKGROUND", -7)
@@ -53,6 +51,7 @@ local style_buff = function(button)
 
 	if not border then
 		border = button:CreateTexture()
+		button.bg = border
 	end
 	border:SetTexture(core.media.textures.blank)
 	border:SetTexCoord(0, 1, 0, 1)
@@ -67,9 +66,11 @@ local style_buff = function(button)
 	duration:ClearAllPoints()
 	duration:SetPoint(unpack(cfg.duration_pos))
 
-	core.util.fix_string(count)
-	count:ClearAllPoints()
-	count:SetPoint(unpack(cfg.count_pos))
+	if count then
+		core.util.fix_string(count)
+		count:ClearAllPoints()
+		count:SetPoint(unpack(cfg.count_pos))
+	end
 end
 
 local update_debuffs = function(name, index)
@@ -134,10 +135,10 @@ local update_enchants = function()
 end
 
 -- BuffFrame:SetPoint in UIParent_UpdateTopFramePositions()
-BuffFrame.alt_SetPoint = BuffFrame.SetPoint
-hooksecurefunc(BuffFrame, "SetPoint", function(self)
-	self:alt_SetPoint("TOPRIGHT", Minimap, "TOPLEFT", -20, 0)
-end)
+-- BuffFrame.alt_SetPoint = BuffFrame.SetPoint
+-- hooksecurefunc(BuffFrame, "SetPoint", function(self)
+-- 	self:alt_SetPoint("TOPRIGHT", Minimap, "TOPLEFT", -20, 0)
+-- end)
 
 hooksecurefunc(GameTooltip, "SetUnitAura", function(self, unit, index, filter)
 	local _, _, _, _, _, _, caster, _, _, id = UnitAura(unit, index, filter)
@@ -153,3 +154,15 @@ end)
 -- hooksecurefunc("BuffFrame_UpdateAllBuffAnchors", update_buffs)
 -- hooksecurefunc("DebuffButton_UpdateAnchors", update_debuffs)
 -- hooksecurefunc("TemporaryEnchantFrame_Update", update_enchants)
+
+hooksecurefunc(BuffFrame, "UpdateGridLayout", function()
+	for _, aura in ipairs(BuffFrame.auraFrames) do
+		style_buff(aura)
+	end
+end)
+
+hooksecurefunc(DebuffFrame, "UpdateGridLayout", function()
+	for _, aura in ipairs(DebuffFrame.auraFrames) do
+		style_buff(aura)
+	end
+end)

@@ -14,6 +14,8 @@ local Mixin = Mixin
 local BackdropTemplateMixin = BackdropTemplateMixin
 
 styles.actionbutton = function(button, bar_cfg)
+	if button.styled then return end
+	button.styled = true
 
 	local blank = core.media.textures.blank
 	core.util.gen_backdrop(button, unpack(core.config.frame_background_transparent))
@@ -23,17 +25,21 @@ styles.actionbutton = function(button, bar_cfg)
 	-- ActionButtonTemplate (ActionButton, PetActionButtonTemplate, StanceButtonTemplate, PossessButtonTemplate)
 	--   Layers
 	--     BACKGROUND
-	local icon  = button.icon -- $parentIcon
+	local icon = button.icon -- $parentIcon
+	local mask = button.IconMask
+	local slotbg = button.SlotBackground
+	local slotart = button.SlotArt
+
 	--     ARTWORK 1
-	local flash  = button.Flash -- $parentFlash
+	local flash = button.Flash -- $parentFlash
 	local fobs = button.FlyoutBorderShadow -- $parentFlyoutBorderShadow
 	--     ARTWORK 2
 	--local foa  = button.FlyoutArrow -- $parentFlyoutArrow
-	local hotkey  = button.HotKey -- $parentHotKey
-	local count  = button.Count -- $parentCount
+	local hotkey = button.HotKey -- $parentHotKey
+	local count = button.Count -- $parentCount
 	--     OVERLAY
-	local macro  = button.Name -- $parentName
-	local border  = button.Border -- $parentBorder
+	local macro = button.Name -- $parentName
+	local border = button.Border -- $parentBorder
 	--     OVERLAY 1
 	local new = button.NewActionTexture
 	local spellhighlight = button.SpellHighlightTexture
@@ -94,6 +100,10 @@ styles.actionbutton = function(button, bar_cfg)
 	icon:SetTexCoord(0.1, 0.9, 0.5 - adjust, 0.5 + adjust)
 	icon:SetDrawLayer("ARTWORK", -7)
 	core.util.set_inside(icon, button)
+
+	mask:Hide()
+	slotbg:Hide()
+	slotart:Hide()
 
 	-- BACKGROUND 1
 

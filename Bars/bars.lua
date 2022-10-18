@@ -93,26 +93,26 @@ local setup_bar = function(name, bar, num, bar_cfg, style_func, buttons)
 			button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.height or bar_cfg.buttons.size)
 		end
 
-		button:ClearAllPoints()
+		-- button:ClearAllPoints()
 
-		if i == 1 then
-			button:SetPoint("TOPLEFT", bar)
-			button:SetAttribute("flyoutDirection", "LEFT");
-		else
-			if col == 1 then
-				button:SetPoint("TOPLEFT", buttons and buttons[i - cols] or _G[name.."Button"..(i - cols)], "BOTTOMLEFT", 0, -bar_cfg.buttons.margin)
-				button:SetAttribute("flyoutDirection", "LEFT");
-			else
-				button:SetPoint("TOPLEFT", buttons and buttons[i - 1] or _G[name.."Button"..(i - 1)], "TOPRIGHT", bar_cfg.buttons.margin, 0)
-				if col == cols then
-					button:SetAttribute("flyoutDirection", "RIGHT");
-				else
-					button:SetAttribute("flyoutDirection", "UP");
-				end
-			end
-		end
-		if col == cols then col = 0 end
-		col = col + 1
+		-- if i == 1 then
+		-- 	button:SetPoint("TOPLEFT", bar)
+		-- 	button:SetAttribute("flyoutDirection", "LEFT");
+		-- else
+		-- 	if col == 1 then
+		-- 		button:SetPoint("TOPLEFT", buttons and buttons[i - cols] or _G[name.."Button"..(i - cols)], "BOTTOMLEFT", 0, -bar_cfg.buttons.margin)
+		-- 		button:SetAttribute("flyoutDirection", "LEFT");
+		-- 	else
+		-- 		button:SetPoint("TOPLEFT", buttons and buttons[i - 1] or _G[name.."Button"..(i - 1)], "TOPRIGHT", bar_cfg.buttons.margin, 0)
+		-- 		if col == cols then
+		-- 			button:SetAttribute("flyoutDirection", "RIGHT");
+		-- 		else
+		-- 			button:SetAttribute("flyoutDirection", "UP");
+		-- 		end
+		-- 	end
+		-- end
+		-- if col == cols then col = 0 end
+		-- col = col + 1
 
 		style_func(button, bar_cfg)
 	end
@@ -130,9 +130,19 @@ local setup_actionbars = function()
 
 	for _, name in ipairs(bars) do
 		local bar_cfg = cfg.bars[name]
-
 		local bar = create_bar(name, NUM_ACTIONBAR_BUTTONS, bar_cfg)
+
+		local parent = _G[name.."Button1"]:GetParent()
+
+		hooksecurefunc(parent, "UpdateGridLayout", function()
+			setup_bar(name, bar, NUM_ACTIONBAR_BUTTONS, bar_cfg, styles.actionbutton)
+		end)
+
 		setup_bar(name, bar, NUM_ACTIONBAR_BUTTONS, bar_cfg, styles.actionbutton)
+		
+		parent:UpdateShownButtons()
+		parent:UpdateVisibility()
+		parent:UpdateGridLayout()
 
 		for i = 1, NUM_ACTIONBAR_BUTTONS do
 			hooksecurefunc(_G[name.."Button"..i], "SetTooltip", set_tooltip)
@@ -147,8 +157,11 @@ local setup_stancebar = function()
 	local name = "Stance"
 	local num = StanceBar.numButtons
 	local bar_cfg = cfg.bars[name]
-
 	local bar = create_bar(name, num, bar_cfg)
+	
+	hooksecurefunc(StanceBar, "UpdateGridLayout", function()
+		setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+	end)
 	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
 end
 
@@ -156,8 +169,11 @@ local setup_petbar = function()
 	local name = "PetAction"
 	local num = PetActionBar.numButtons
 	local bar_cfg = cfg.bars[name]
-
 	local bar = create_bar(name, num, bar_cfg)
+
+	hooksecurefunc(PetActionBar, "UpdateGridLayout", function()
+		setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+	end)
 	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
 end
 
@@ -166,8 +182,11 @@ local setup_possessbar = function()
 	local name = "Possess"
 	local num = NUM_POSSESS_SLOTS
 	local bar_cfg = cfg.bars[name]
-
 	local bar = create_bar(name, num, bar_cfg)
+
+	hooksecurefunc(PossessActionBar, "UpdateGridLayout", function()
+		setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+	end)
 	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
 end
 
@@ -210,11 +229,11 @@ loader:RegisterEvent("ADDON_LOADED")
 loader:SetScript("OnEvent", function(self, event, addon)
 	if event == "PLAYER_LOGIN" then
 		setup_actionbars()
-		setup_microbar()
+		--setup_microbar()
 		setup_stancebar()
 		setup_petbar()
 		setup_possessbar()
-		setup_bagbar()
+		--setup_bagbar()
 	else
 		if addon == "Blizzard_UIWidgets" then
 			place_widget()

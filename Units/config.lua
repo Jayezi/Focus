@@ -282,6 +282,8 @@ cfg.player_buff_whitelist = {
 	[272733] = true,		-- In The Rhythm
 	[193534] = true,		-- Steady Focus
 	[320224] = true,		-- Podtender
+	[257946] = true,		-- Thrill of the Hunt
+	[268877] = true,		-- Beast Cleave
 	
 	-- Monk
 	[137639] = true, 		-- Storm, Earth, and Fire
