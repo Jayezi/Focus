@@ -367,6 +367,7 @@ local setup_chat = function()
 	ChatFrame_AddMessageGroup(ChatFrame1, "TARGETICONS")
 	ChatFrame_RemoveChannel(ChatFrame1, "Trade")
 	ChatFrame_RemoveChannel(ChatFrame1, "LookingForGroup")
+	ChatFrame_RemoveChannel(ChatFrame1, "Services")
 
 	-- log tab
 	ChatFrame_RemoveAllMessageGroups(ChatFrame2)
@@ -379,6 +380,7 @@ local setup_chat = function()
 	ChatFrame_AddChannel(ChatFrame4, "Trade")
 	ChatFrame_AddChannel(ChatFrame4, "LocalDefense")
 	ChatFrame_AddChannel(ChatFrame4, "LookingForGroup")
+	ChatFrame_AddChannel(ChatFrame4, "Services")
 
 	-- loot tab
 	ChatFrame_AddMessageGroup(ChatFrame5, "COMBAT_XP_GAIN")

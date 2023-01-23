@@ -416,7 +416,7 @@ local create_boss_style = function(base)
 	hp_string:SetPoint("TOPLEFT", base, "TOPRIGHT", 1, -1)
 	base:Tag(hp_string, "[focus:color][focus:hp:curr-perc]")
 	
-	local power_string = core.util.gen_string(base, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "LEFT", "TOP")
+	local power_string = core.util.gen_string(base, core.config.font_size_big, nil, core.media.fonts.gotham_ultra, "LEFT", "TOP")
 	power_string:SetPoint("BOTTOMLEFT", base, "BOTTOMRIGHT", 1, 1)
 	base:Tag(power_string, "[focus:color][focus:pp:curr]")
 	
@@ -773,7 +773,7 @@ oUF:Factory(function(self)
 			if i == 1 then
 				boss[i]:SetPoint("TOPLEFT", mover)
 			else
-				boss[i]:SetPoint("TOPRIGHT", boss[i - 1], "BOTTOMRIGHT", 0, -(20 + cfg.frames.boss.cast.h + 2 * core.config.font_size_med))
+				boss[i]:SetPoint("TOPRIGHT", boss[i - 1], "BOTTOMRIGHT", 0, -(20 + cfg.frames.boss.cast.h + core.config.font_size_med))
 			end
 		end
 

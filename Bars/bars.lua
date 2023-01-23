@@ -14,6 +14,7 @@ local MainMenuBarBackpackButton = MainMenuBarBackpackButton
 local AUTOCAST_SHINE_TIMERS = AUTOCAST_SHINE_TIMERS
 local AUTOCAST_SHINE_SPEEDS = AUTOCAST_SHINE_SPEEDS
 local strfind = strfind
+local InCombatLockdown = InCombatLockdown
 
 local MICRO_BUTTONS = {
 	"CharacterMicroButton",
@@ -53,66 +54,46 @@ local set_tooltip = function(self)
 	local bind = GetBindingText(key, 1)
 
 	if (name and not (name == "") or bind and not (bind == "")) then
-		GameTooltip:AddLine(" ")
-		if (name and not (name == "")) then GameTooltip:AddLine(name, 1, 1, 1) end
-		if (bind and not (bind == "")) then GameTooltip:AddLine(bind, 1, 1, 1) end
+		if (name and not (name == "") and bind and not (bind == "")) then
+			GameTooltip:AddLine(" ")
+			GameTooltip:AddDoubleLine(name, bind, 1, 0.5, 1, 0.5, 1, 1)
+		else
+			if (name and not (name == "")) then
+				GameTooltip:AddLine(" ")
+				GameTooltip:AddLine(name, 1, 0.5, 1)
+			end
+			if (bind and not (bind == "")) then
+				GameTooltip:AddLine(" ")
+				GameTooltip:AddLine(bind, 1, 0.5, 1)
+			end
+		end
 		GameTooltip:Show()
 	end
 end
 
-local create_bar = function(name, num, bar_cfg)
-
-	local per_row = num / (bar_cfg.rows or 1)
-	local bar = CreateFrame("Frame", "FocusBars"..name.."Bar", UIParent)
-
-	if bar_cfg.buttons.size then
-		bar:SetWidth((bar_cfg.buttons.size + bar_cfg.buttons.margin) * per_row - bar_cfg.buttons.margin)
-		bar:SetHeight(((bar_cfg.buttons.height or bar_cfg.buttons.size) + bar_cfg.buttons.margin) * (bar_cfg.rows or 1) - bar_cfg.buttons.margin)
-	end
-
-	local point = bar_cfg.pos
-	if point[2] == "UIParent" then
-		point = {core.util.to_tl_anchor(bar, point)}
-	end
-	if type(point[2]) == "string" then
-		point[2] = _G[point[2]]
-	end
-	bar:SetPoint(unpack(point))
-
-	return bar
-end
-
-local setup_bar = function(name, bar, num, bar_cfg, style_func, buttons)
-	local cols = num / (bar_cfg.rows or 1)
-
-	local col = 1
+local setup_bar = function(name, num, bar_cfg, style_func, buttons)
+	
 	for i = 1, num do
 		local button = buttons and buttons[i] or _G[name.."Button"..i]
+		local parent = button:GetParent()
 
-		if bar_cfg.buttons.size then
-			button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.height or bar_cfg.buttons.size)
+		if not InCombatLockdown() then
+
+			if bar_cfg.buttons.size then
+				button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.height or bar_cfg.buttons.size)
+			end
+
+			if parent.numRows == 1 then
+				button:ClearAllPoints()
+
+				local padding = parent.buttonPadding
+				if i <= num / 2 then
+					button:SetPoint("BOTTOMLEFT", parent, "BOTTOM", -(bar_cfg.buttons.size + padding) * (num / 2 - i + 1) + padding / 2, 0)
+				else
+					button:SetPoint("BOTTOMRIGHT", parent, "BOTTOM", (bar_cfg.buttons.size + padding) * (i - num / 2) - padding / 2, 0)
+				end
+			end
 		end
-
-		-- button:ClearAllPoints()
-
-		-- if i == 1 then
-		-- 	button:SetPoint("TOPLEFT", bar)
-		-- 	button:SetAttribute("flyoutDirection", "LEFT");
-		-- else
-		-- 	if col == 1 then
-		-- 		button:SetPoint("TOPLEFT", buttons and buttons[i - cols] or _G[name.."Button"..(i - cols)], "BOTTOMLEFT", 0, -bar_cfg.buttons.margin)
-		-- 		button:SetAttribute("flyoutDirection", "LEFT");
-		-- 	else
-		-- 		button:SetPoint("TOPLEFT", buttons and buttons[i - 1] or _G[name.."Button"..(i - 1)], "TOPRIGHT", bar_cfg.buttons.margin, 0)
-		-- 		if col == cols then
-		-- 			button:SetAttribute("flyoutDirection", "RIGHT");
-		-- 		else
-		-- 			button:SetAttribute("flyoutDirection", "UP");
-		-- 		end
-		-- 	end
-		-- end
-		-- if col == cols then col = 0 end
-		-- col = col + 1
 
 		style_func(button, bar_cfg)
 	end
@@ -130,19 +111,10 @@ local setup_actionbars = function()
 
 	for _, name in ipairs(bars) do
 		local bar_cfg = cfg.bars[name]
-		local bar = create_bar(name, NUM_ACTIONBAR_BUTTONS, bar_cfg)
 
 		local parent = _G[name.."Button1"]:GetParent()
 
-		hooksecurefunc(parent, "UpdateGridLayout", function()
-			setup_bar(name, bar, NUM_ACTIONBAR_BUTTONS, bar_cfg, styles.actionbutton)
-		end)
-
-		setup_bar(name, bar, NUM_ACTIONBAR_BUTTONS, bar_cfg, styles.actionbutton)
-		
-		parent:UpdateShownButtons()
-		parent:UpdateVisibility()
-		parent:UpdateGridLayout()
+		setup_bar(name, NUM_ACTIONBAR_BUTTONS, bar_cfg, styles.actionbutton)
 
 		for i = 1, NUM_ACTIONBAR_BUTTONS do
 			hooksecurefunc(_G[name.."Button"..i], "SetTooltip", set_tooltip)
@@ -157,24 +129,22 @@ local setup_stancebar = function()
 	local name = "Stance"
 	local num = StanceBar.numButtons
 	local bar_cfg = cfg.bars[name]
-	local bar = create_bar(name, num, bar_cfg)
 	
 	hooksecurefunc(StanceBar, "UpdateGridLayout", function()
-		setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+		setup_bar(name, num, bar_cfg, styles.actionbutton)
 	end)
-	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+	setup_bar(name, num, bar_cfg, styles.actionbutton)
 end
 
 local setup_petbar = function()
 	local name = "PetAction"
 	local num = PetActionBar.numButtons
 	local bar_cfg = cfg.bars[name]
-	local bar = create_bar(name, num, bar_cfg)
 
 	hooksecurefunc(PetActionBar, "UpdateGridLayout", function()
-		setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+		setup_bar(name, num, bar_cfg, styles.actionbutton)
 	end)
-	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+	setup_bar(name, num, bar_cfg, styles.actionbutton)
 end
 
 local setup_possessbar = function()
@@ -182,12 +152,11 @@ local setup_possessbar = function()
 	local name = "Possess"
 	local num = NUM_POSSESS_SLOTS
 	local bar_cfg = cfg.bars[name]
-	local bar = create_bar(name, num, bar_cfg)
 
 	hooksecurefunc(PossessActionBar, "UpdateGridLayout", function()
-		setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+		setup_bar(name, num, bar_cfg, styles.actionbutton)
 	end)
-	setup_bar(name, bar, num, bar_cfg, styles.actionbutton)
+	setup_bar(name, num, bar_cfg, styles.actionbutton)
 end
 
 local setup_bagbar = function()
@@ -200,27 +169,30 @@ local setup_bagbar = function()
 		CharacterBag1Slot,
 		CharacterBag2Slot,
 		CharacterBag3Slot,
+		CharacterReagentBag0Slot
 	}
 
-	local bar = create_bar(name, #bags, bar_cfg)
-	setup_bar(name, bar, #bags, bar_cfg, styles.bagbutton, bags)
-end
+	MainMenuBarBackpackButton:ClearAllPoints()
+	MainMenuBarBackpackButton:SetPoint("BOTTOMRIGHT", MicroButtonAndBagsBar, "BOTTOMLEFT", 0, 5)
 
-local setup_microbar = function()
-	for _, name in ipairs(MICRO_BUTTONS) do
-		local button = _G[name]
-		-- styles.microbutton(button)
+	local prev
+	for _, bag in ipairs(bags) do
+		styles.bagbutton(bag)
+		bag:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.size)
+
+		if prev and bag ~= CharacterBag0Slot then
+			bag:SetPoint("RIGHT", prev, "LEFT", -2, 0)
+		end
+		prev = bag
 	end
 end
 
-local place_widget = function()
-	UIWidgetPowerBarContainerFrame.alt_SetPoint = UIWidgetPowerBarContainerFrame.SetPoint
-	hooksecurefunc(UIWidgetPowerBarContainerFrame, "SetPoint", function(self)
-		UIWidgetPowerBarContainerFrame:ClearAllPoints()
-		UIWidgetPowerBarContainerFrame:alt_SetPoint("TOP", UIParent, "TOP", 0, -5)
-	end)
-	UIWidgetPowerBarContainerFrame:ClearAllPoints()
-	UIWidgetPowerBarContainerFrame:SetPoint("TOP", UIParent, "TOP", 0, -5)
+local setup_microbar = function()
+	MicroButtonAndBagsBar:SetSize(290, 50)
+	for _, name in ipairs(MICRO_BUTTONS) do
+		local button = _G[name]
+		styles.microbutton(button)
+	end
 end
 
 local loader = CreateFrame("Frame")
@@ -229,28 +201,17 @@ loader:RegisterEvent("ADDON_LOADED")
 loader:SetScript("OnEvent", function(self, event, addon)
 	if event == "PLAYER_LOGIN" then
 		setup_actionbars()
-		--setup_microbar()
+		setup_microbar()
 		setup_stancebar()
 		setup_petbar()
 		setup_possessbar()
-		--setup_bagbar()
+		setup_bagbar()
 	else
 		if addon == "Blizzard_UIWidgets" then
 			place_widget()
 		end
 	end
 end)
-
-local extra_action_parent = core.util.get_mover_frame("ExtraAction")
-extra_action_parent:SetPoint("TOP", UIParent, "TOP", 0, -10)
-ExtraActionButton1:ClearAllPoints()
-ExtraActionButton1:SetPoint("TOP", extra_action_parent)
-
-local zone_ability_parent = core.util.get_mover_frame("ZoneAbility")
-zone_ability_parent:SetPoint("TOP", UIParent, "TOP", 0, -120)
-ZoneAbilityFrame.Style:SetPoint("CENTER", ZoneAbilityFrame.SpellButtonContainer)
-ZoneAbilityFrame.SpellButtonContainer:ClearAllPoints()
-ZoneAbilityFrame.SpellButtonContainer:SetPoint("TOP", zone_ability_parent)
 
 hooksecurefunc('CooldownFrame_Set', function(self)
 	if self:IsForbidden() then return end
@@ -271,22 +232,19 @@ hooksecurefunc('ActionButton_UpdateCooldown', function(self)
 	end
 end)
 
--- SpellFlyoutBackgroundEnd:SetTexture()
--- SpellFlyoutHorizontalBackground:SetTexture()
--- SpellFlyoutVerticalBackground:SetTexture()
--- SpellFlyout:HookScript("OnShow", function(self)
--- 	local flyout_buttons = {self:GetChildren()}
--- 	for _, button in ipairs(flyout_buttons) do
--- 		if button.styled ~= true then
--- 			styles.actionbutton(button)
--- 			button.styled = true
--- 		end
--- 	end
--- end)
+SpellFlyout.Background:Hide()
 
-MainMenuBarBackpackButtonCount.alt_SetText = MainMenuBarBackpackButtonCount.SetText
-hooksecurefunc(MainMenuBarBackpackButtonCount, "SetText", function(self)
-	self:alt_SetText(MainMenuBarBackpackButton.freeSlots)
+SpellFlyout:HookScript("OnShow", function(self)
+	local b = 1
+	local button = _G["SpellFlyoutButton"..b]
+	while button do
+		if not button.styled then
+			styles.actionbutton(button)
+			button.styled = true
+		end
+		b = b + 1
+		button = _G["SpellFlyoutButton"..b]
+	end
 end)
 
 -- adjust the vertical distance for squashed buttons
@@ -348,7 +306,3 @@ hooksecurefunc('AutoCastShine_OnUpdate', function()
 		end
 	end
 end)
-
-if IsAddOnLoaded("Blizzard_UIWidgets") then
-	place_widget()
-end

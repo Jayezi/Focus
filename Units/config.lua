@@ -188,6 +188,8 @@ cfg.nameplate_colors = {
 	[184140] = {0.75, 0.75, 0.25},	-- Xy Acolyte
 	[183033] = {0.75, 0.75, 0.25},	-- Grim Reflection
 	[179733] = {0.75, 0.25, 0.75},  -- Invigorating Fish Stick
+	[197671] = {0.75, 0.75, 0.25},	-- Volatile Infuser
+	[199549] = {0.75, 0.75, 0.25},	-- Flamesworn Herald
 }
 
 cfg.pet_buff_whitelist = {
@@ -284,6 +286,7 @@ cfg.player_buff_whitelist = {
 	[320224] = true,		-- Podtender
 	[257946] = true,		-- Thrill of the Hunt
 	[268877] = true,		-- Beast Cleave
+	[194594] = true,		-- Lock and Load
 	
 	-- Monk
 	[137639] = true, 		-- Storm, Earth, and Fire

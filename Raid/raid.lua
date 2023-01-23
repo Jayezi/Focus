@@ -4,10 +4,14 @@ local core = addon.core
 
 -- disable raid/party frames
 if true then
-
-    hooksecurefunc("CompactPartyFrame_Generate", function()
-        CompactPartyFrame.title:Hide()
-    end)
+	
+	if CompactPartyFrame then
+		CompactPartyFrame.title:Hide()
+	else
+		hooksecurefunc("CompactPartyFrame_Generate", function()
+			CompactPartyFrame.title:Hide()
+		end)
+	end
 
     hooksecurefunc("CompactRaidGroup_GenerateForGroup", function(index)
         _G["CompactRaidGroup"..index]:Hide()
@@ -21,6 +25,8 @@ if true then
         frame:UnregisterAllEvents()
         frame:SetScript("OnEvent", nil)
         frame:SetScript("OnUpdate", nil)
+
+		if InCombatLockdown() then return end
         frame:EnableMouse(false)
     end)
 
@@ -44,6 +50,8 @@ if true then
         frame:UnregisterAllEvents()
         frame:SetScript("OnEvent", nil)
         frame:SetScript("OnUpdate", nil)
+
+		if InCombatLockdown() then return end
         frame:EnableMouse(false)
     end)
 
@@ -56,6 +64,8 @@ if true then
         frame:SetScript("OnEvent", nil)
         frame:SetScript("OnUpdate", nil)
     	frame:RegisterForClicks()
+
+		if InCombatLockdown() then return end
         frame:EnableMouse(false)
     end)
 
@@ -268,7 +278,9 @@ end)
 
 hooksecurefunc("CompactUnitFrame_UpdateName", function(frame)
 	if frame:IsForbidden() then return end
-	frame.name:SetTextColor(frame.healthBar.r, frame.healthBar.g, frame.healthBar.b)
+	if frame.healthBar.r then
+		frame.name:SetTextColor(frame.healthBar.r, frame.healthBar.g, frame.healthBar.b)
+	end
 end)
 
 hooksecurefunc("CompactUnitFrame_UpdateHealthColor", function(frame)
@@ -277,3 +289,5 @@ hooksecurefunc("CompactUnitFrame_UpdateHealthColor", function(frame)
 	frame.healthBar.background:SetColorTexture(frame.healthBar.r, frame.healthBar.g, frame.healthBar.b)
     frame.name:SetTextColor(frame.healthBar.r, frame.healthBar.g, frame.healthBar.b)
 end)
+
+CompactPartyFrame.title:Hide()

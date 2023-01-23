@@ -27,76 +27,75 @@ end
 
 GetMinimapShape = function() return "SQUARE" end
 
-MinimapCluster:SetSize(250, 250)
-MinimapCluster:ClearAllPoints()
-MinimapCluster:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
---core.util.gen_border(MinimapCluster)
+core.util.gen_border(MinimapCluster)
+hooksecurefunc(MinimapCluster, "SetHeaderUnderneath", function()
+	core.util.set_inside(Minimap, MinimapCluster)
+end)
 core.util.set_inside(Minimap, MinimapCluster)
-Minimap:SetSize(249, 249)
-Minimap:SetArchBlobRingScalar(0);
-Minimap:SetQuestBlobRingScalar(0);
-Minimap:SetMaskTexture(core.media.textures.blank)
-MinimapBackdrop:SetAllPoints(Minimap)
 
-Minimap:EnableMouseWheel(true)
-Minimap:SetScript("OnMouseWheel", function(self, delta)
-	if delta > 0 then
-		MinimapZoomIn:Click()
-	elseif delta < 0 then
-		MinimapZoomOut:Click()
-	end
+Minimap:SetSize(MinimapCluster:GetWidth() - 2, MinimapCluster:GetHeight() - 2)
+Minimap:SetArchBlobRingScalar(0)
+Minimap:SetQuestBlobRingScalar(0)
+Minimap:SetMaskTexture(core.media.textures.blank)
+
+MinimapBackdrop:SetAllPoints(Minimap)
+MinimapCompassTexture:Hide()
+
+MinimapCluster.Tracking:SetSize(25, 25)
+MinimapCluster.Tracking:ClearAllPoints()
+MinimapCluster.Tracking:SetPoint("TOPLEFT", 5, -5)
+MinimapCluster.Tracking.Background:Hide()
+MinimapCluster.Tracking.Button:SetAllPoints(MinimapCluster.Tracking)
+MinimapCluster.Tracking.Button:GetPushedTexture():SetAtlas("ui-hud-minimap-tracking-up")
+
+hooksecurefunc("MiniMapMailFrame_UpdatePosition", function()
+	MinimapCluster.MailFrame:ClearAllPoints()
+	MinimapCluster.MailFrame:SetPoint("TOPRIGHT", -5, -5)
 end)
 
-MiniMapInstanceDifficulty:ClearAllPoints()
-MiniMapInstanceDifficulty:SetPoint("TOP", MinimapZoneText, "BOTTOM", 0, -5)
-GuildInstanceDifficulty:ClearAllPoints()
-GuildInstanceDifficulty:SetPoint("TOP", MinimapZoneText, "BOTTOM", 0, -5)
-MiniMapChallengeMode:ClearAllPoints()
-MiniMapChallengeMode:SetPoint("TOP", MinimapZoneText, "BOTTOM", 0, -5)
+hooksecurefunc(MinimapCluster, "SetHeaderUnderneath", function()
+	MinimapCluster.MailFrame:ClearAllPoints()
+	MinimapCluster.MailFrame:SetPoint("TOPRIGHT", -5, -5)
+end)
 
--- MinimapBorder:Hide()
--- MinimapBorderTop:Hide()
--- MinimapZoomIn:Hide()
--- MinimapZoomOut:Hide()
--- MinimapNorthTag:SetTexture()
--- MinimapCompassTexture:SetTexture()
--- MiniMapWorldMapButton:Hide()
+MinimapCluster.MailFrame:SetSize(25, 25)
+MinimapCluster.MailFrame:ClearAllPoints()
+MinimapCluster.MailFrame:SetPoint("TOPRIGHT", -5, -5)
+MiniMapMailIcon:SetAllPoints()
 
--- QueueStatusMinimapButton:ClearAllPoints()
--- QueueStatusMinimapButton:SetPoint("LEFT", Minimap)
--- QueueStatusMinimapButtonBorder:Hide()
+MinimapCluster.BorderTop:Hide()
+core.util.fix_string(MinimapZoneText, core.config.font_size_med)
+MinimapZoneText:ClearAllPoints()
+MinimapZoneText:SetPoint("TOP", Minimap, "TOP", 0, -5)
+MinimapZoneText:SetPoint("LEFT", MinimapCluster.Tracking, "RIGHT", 5, 0)
+MinimapZoneText:SetPoint("RIGHT", MinimapCluster.MailFrame, "LEFT", -5, 0)
+MinimapZoneText:SetJustifyH("CENTER")
+MinimapZoneText:SetJustifyV("TOP")
+MinimapCluster.ZoneTextButton:SetAllPoints(MinimapZoneText)
 
--- MiniMapMailFrame:SetSize(25, 25)
--- MiniMapMailFrame:ClearAllPoints()
--- MiniMapMailFrame:SetPoint("TOPRIGHT", -5, -5)
--- MiniMapMailIcon:SetAllPoints()
--- MiniMapMailIcon:SetTexture("Interface\\Minimap\\Tracking\\Mailbox")
--- MiniMapMailBorder:Hide()
+ExpansionLandingPageMinimapButton:ClearAllPoints()
+ExpansionLandingPageMinimapButton:SetPoint("BOTTOMLEFT")
 
--- MiniMapTracking:SetSize(25, 25)
--- MiniMapTracking:ClearAllPoints()
--- MiniMapTracking:SetPoint("TOPLEFT", 5, -5)
--- MiniMapTrackingButton:SetAllPoints(MiniMapTracking)
--- MiniMapTrackingIcon:SetAllPoints()
--- MiniMapTrackingBackground:Hide()
--- MiniMapTrackingIconOverlay:Hide()
--- MiniMapTrackingButtonBorder:Hide()
--- MiniMapTrackingButtonShine:SetTexture()
--- MiniMapTrackingButton:GetHighlightTexture():SetTexture()
+hooksecurefunc(ExpansionLandingPageMinimapButton, "UpdateIconForGarrison", function(self)
+	self:ClearAllPoints()
+	self:SetPoint("BOTTOMLEFT")
+end)
 
--- MiniMapTrackingButton:HookScript("OnMouseDown", function()
--- 	MiniMapTrackingIcon:SetAllPoints()
--- end);
--- MiniMapTrackingButton:HookScript("OnMouseUp", function()
--- 	MiniMapTrackingIcon:SetAllPoints()
--- end);
+MinimapCluster.InstanceDifficulty:ClearAllPoints()
+MinimapCluster.InstanceDifficulty:SetPoint("TOP", MinimapZoneText, "BOTTOM", 0, -5)
 
--- core.util.fix_string(MinimapZoneText, core.config.font_size_med)
--- MinimapZoneText:ClearAllPoints()
--- MinimapZoneText:SetPoint("TOP", Minimap, "TOP", 0, -5)
--- MinimapZoneText:SetPoint("LEFT", MiniMapTracking, "RIGHT", 5, 0)
--- MinimapZoneText:SetPoint("RIGHT", MiniMapMailFrame, "LEFT", -5, 0)
--- MinimapZoneTextButton:SetAllPoints(MinimapZoneText)
+hooksecurefunc(MinimapCluster, "SetHeaderUnderneath", function(self)
+	self.InstanceDifficulty:ClearAllPoints()
+	self.InstanceDifficulty:SetPoint("TOP", MinimapZoneText, "BOTTOM", 0, -5)
+end)
+
+
+Minimap.ZoomHitArea:ClearAllPoints()
+Minimap.ZoomHitArea:SetPoint("RIGHT")
+Minimap.ZoomIn:ClearAllPoints()
+Minimap.ZoomIn:SetPoint("BOTTOMRIGHT", MinimapCluster, "RIGHT", -2, 2)
+Minimap.ZoomOut:ClearAllPoints()
+Minimap.ZoomOut:SetPoint("TOPRIGHT", MinimapCluster, "RIGHT", -2, -2)
 
 -- clock
 
@@ -104,113 +103,109 @@ if not IsAddOnLoaded("Blizzard_TimeManager") then
 	LoadAddOn("Blizzard_TimeManager")
 end
 
--- local clock_bg, clock_ticker, alarm_fired = TimeManagerClockButton:GetRegions()
--- clock_bg:Hide()
--- alarm_fired:SetTexture()
--- core.util.fix_string(clock_ticker, core.config.font_size_med)
--- clock_ticker:SetTextColor(1, 1, 1, 1)
--- clock_ticker:SetJustifyH("RIGHT")
--- clock_ticker:SetJustifyV("BOTTOM")
--- clock_ticker:ClearAllPoints()
--- clock_ticker:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -5, 5)
--- clock_ticker:Show()
--- TimeManagerClockButton:SetHitRectInsets(0, 0, 0, 0)
--- TimeManagerClockButton:SetAllPoints(clock_ticker)
+core.util.fix_string(TimeManagerClockTicker, core.config.font_size_med)
+TimeManagerClockTicker:SetJustifyH("RIGHT")
+TimeManagerClockTicker:SetJustifyV("BOTTOM")
+TimeManagerClockTicker:ClearAllPoints()
+TimeManagerClockTicker:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", -3, 3)
+TimeManagerClockButton:SetHitRectInsets(0, 0, 0, 0)
+TimeManagerClockButton:SetAllPoints(TimeManagerClockTicker)
+TimeManagerAlarmFiredTexture:SetTexture()
 
 -- calendar
 
--- local game_time_string = GameTimeFrame:GetFontString()
--- core.util.fix_string(game_time_string)
--- game_time_string:SetTextColor(1, 1, 1, 1)
--- game_time_string:ClearAllPoints()
--- game_time_string:SetPoint("TOPRIGHT", clock_ticker, "TOPLEFT", -5, 0)
--- game_time_string:SetPoint("BOTTOMRIGHT", clock_ticker, "BOTTOMLEFT", -5, 0)
--- game_time_string:SetJustifyH("CENTER")
--- game_time_string:SetJustifyV("MIDDLE")
--- GameTimeCalendarInvitesTexture:SetTexture()
--- GameTimeCalendarInvitesGlow:SetTexture()
--- GameTimeCalendarEventAlarmTexture:SetTexture()
--- GameTimeFrame:SetAllPoints(game_time_string)
--- GameTimeFrame:SetNormalTexture(nil)
--- GameTimeFrame:SetPushedTexture(nil)
--- GameTimeFrame:SetHighlightTexture(nil)
--- GameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
+GameTimeFrame:SetHitRectInsets(0, 0, 0, 0)
+GameTimeFrame.date = core.util.gen_string(GameTimeFrame)
+GameTimeFrame.date:SetText(C_DateAndTime.GetCurrentCalendarTime().monthDay)
+GameTimeFrame.date:SetPoint("TOPRIGHT", TimeManagerClockTicker, "TOPLEFT", -5, 0)
+GameTimeFrame.date:SetPoint("BOTTOMRIGHT", TimeManagerClockTicker, "BOTTOMLEFT", -5, 0)
+GameTimeFrame:SetAllPoints(GameTimeFrame.date)
+
+GameTimeFrame:SetNormalTexture("")
+GameTimeFrame:SetPushedTexture("")
+GameTimeFrame:SetHighlightTexture("")
+
+hooksecurefunc("GameTimeFrame_SetDate", function()
+	GameTimeFrame.date:SetText(C_DateAndTime.GetCurrentCalendarTime().monthDay)
+	GameTimeFrame:GetNormalTexture():SetTexture()
+	GameTimeFrame:GetPushedTexture():SetTexture()
+	GameTimeFrame:GetHighlightTexture():SetTexture()
+end)
+
+GameTimeCalendarInvitesTexture:SetTexture()
+GameTimeCalendarInvitesGlow:SetTexture()
+GameTimeCalendarEventAlarmTexture:SetTexture()
 
 -- objectives
 
-if not IsAddOnLoaded("Blizzard_ObjectiveTracker") then
-	LoadAddOn("Blizzard_ObjectiveTracker")
-end
+-- if not IsAddOnLoaded("Blizzard_ObjectiveTracker") then
+-- 	LoadAddOn("Blizzard_ObjectiveTracker")
+-- end
 
-hooksecurefunc("ObjectiveTrackerProgressBar_SetValue", function(self)
-	self.Bar.BorderLeft:Hide()
-	self.Bar.BorderRight:Hide()
-	self.Bar.BorderMid:Hide()
+-- hooksecurefunc("ObjectiveTrackerProgressBar_SetValue", function(self)
+-- 	self.Bar.BorderLeft:Hide()
+-- 	self.Bar.BorderRight:Hide()
+-- 	self.Bar.BorderMid:Hide()
 	
-	if not self.Bar.styled then
-		self.Bar:GetStatusBarTexture():SetDrawLayer("BORDER", -1);
-		self.Bar:SetStatusBarTexture(core.media.textures.blank);
-		core.util.gen_backdrop(self.Bar)
-		self.Bar.styled = true
-	end
-end)
+-- 	if not self.Bar.styled then
+-- 		self.Bar:GetStatusBarTexture():SetDrawLayer("BORDER", -1);
+-- 		self.Bar:SetStatusBarTexture(core.media.textures.blank);
+-- 		core.util.gen_backdrop(self.Bar)
+-- 		self.Bar.styled = true
+-- 	end
+-- end)
 
-hooksecurefunc("BonusObjectiveTrackerProgressBar_UpdateReward", function(self)
-	self.Bar.IconBG:Hide()
-end)
+-- hooksecurefunc("BonusObjectiveTrackerProgressBar_UpdateReward", function(self)
+-- 	self.Bar.IconBG:Hide()
+-- end)
 
-hooksecurefunc("BonusObjectiveTrackerProgressBar_SetValue", function(self)
-	self.Bar.BarFrame:Hide()
-	self.Bar.IconBG:Hide()
-	self.Bar.BarFrame2:Hide()
-	self.Bar.BarFrame3:Hide()
-	self.Bar.BarBG:Hide()	
-	self.Bar.BarGlow:Hide()
-	self.Bar.Sheen:Hide()
-	self.Bar.Starburst:Hide()
+-- hooksecurefunc("BonusObjectiveTrackerProgressBar_SetValue", function(self)
+-- 	self.Bar.BarFrame:Hide()
+-- 	self.Bar.IconBG:Hide()
+-- 	self.Bar.BarFrame2:Hide()
+-- 	self.Bar.BarFrame3:Hide()
+-- 	self.Bar.BarBG:Hide()	
+-- 	self.Bar.BarGlow:Hide()
+-- 	self.Bar.Sheen:Hide()
+-- 	self.Bar.Starburst:Hide()
 
-	self.Bar.Icon:SetMask(nil)
-	self.Bar.Icon:SetTexCoord(.1, .9, .1, .9);
+-- 	self.Bar.Icon:SetMask(nil)
+-- 	self.Bar.Icon:SetTexCoord(.1, .9, .1, .9);
 
-	if not self.Bar.styled then
-		self.Bar:SetHeight(18)
-		self.Bar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
-		self.Bar:SetStatusBarTexture(core.media.textures.blank)
-		core.util.gen_backdrop(self.Bar)
+-- 	if not self.Bar.styled then
+-- 		self.Bar:SetHeight(18)
+-- 		self.Bar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
+-- 		self.Bar:SetStatusBarTexture(core.media.textures.blank)
+-- 		core.util.gen_backdrop(self.Bar)
 		
-		self.Bar.Icon.border = self.Bar:CreateTexture()
-		self.Bar.Icon.border:SetDrawLayer("BACKGROUND", -2)
-		core.util.set_outside(self.Bar.Icon.border, self.Bar.Icon)
-		self.Bar.Icon.border:SetTexture(core.media.textures.blank)
-		self.Bar.Icon.border:SetVertexColor(unpack(core.config.frame_border))
-		self.Bar.Icon:SetPoint("RIGHT", 32, 0)
+-- 		self.Bar.Icon.border = self.Bar:CreateTexture()
+-- 		self.Bar.Icon.border:SetDrawLayer("BACKGROUND", -2)
+-- 		core.util.set_outside(self.Bar.Icon.border, self.Bar.Icon)
+-- 		self.Bar.Icon.border:SetTexture(core.media.textures.blank)
+-- 		self.Bar.Icon.border:SetVertexColor(unpack(core.config.frame_border))
+-- 		self.Bar.Icon:SetPoint("RIGHT", 32, 0)
 		
-		self.Bar.styled = true
-	end
-end)
+-- 		self.Bar.styled = true
+-- 	end
+-- end)
 
 hooksecurefunc("ObjectiveTracker_AddHeader", function(header)
 	header.Background:Hide()
 end)
 
-ObjectiveTrackerFrame.alt_SetPoint = ObjectiveTrackerFrame.SetPoint
-hooksecurefunc(ObjectiveTrackerFrame, "SetPoint", function(self)
-	self:alt_SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -10)
-end)
+-- ObjectiveTrackerFrame.alt_SetPoint = ObjectiveTrackerFrame.SetPoint
+-- hooksecurefunc(ObjectiveTrackerFrame, "SetPoint", function(self)
+-- 	self:alt_SetPoint("TOPRIGHT", Minimap, "BOTTOMRIGHT", 0, -10)
+-- end)
 
-DurabilityFrame.alt_SetPoint = DurabilityFrame.SetPoint
-hooksecurefunc(DurabilityFrame, "SetPoint", function(self)
-	self:ClearAllPoints()
-	self:alt_SetPoint("BOTTOMRIGHT", MinimapCluster, "BOTTOMLEFT", -20, 5)
-end)
-
-VehicleSeatIndicator.alt_SetPoint = VehicleSeatIndicator.SetPoint
-hooksecurefunc(VehicleSeatIndicator, "SetPoint", function(self)
-	self:ClearAllPoints()
-	self:alt_SetPoint("TOPRIGHT", MinimapCluster, "BOTTOMLEFT", -20, -5)
-end)
-
--- hooksecurefunc("GarrisonLandingPageMinimapButton_UpdateIcon", function(self)
+-- DurabilityFrame.alt_SetPoint = DurabilityFrame.SetPoint
+-- hooksecurefunc(DurabilityFrame, "SetPoint", function(self)
 -- 	self:ClearAllPoints()
--- 	self:SetPoint("BOTTOMLEFT")
+-- 	self:alt_SetPoint("BOTTOMRIGHT", MinimapCluster, "BOTTOMLEFT", -20, 5)
+-- end)
+
+-- VehicleSeatIndicator.alt_SetPoint = VehicleSeatIndicator.SetPoint
+-- hooksecurefunc(VehicleSeatIndicator, "SetPoint", function(self)
+-- 	self:ClearAllPoints()
+-- 	self:alt_SetPoint("TOPRIGHT", MinimapCluster, "BOTTOMLEFT", -20, -5)
 -- end)

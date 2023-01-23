@@ -50,9 +50,9 @@ lib.skin_button = function(button, font_size)
 	button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
     core.util.set_inside(button:GetHighlightTexture(), button)
 
-	button:SetNormalTexture(nil)
-	button:SetPushedTexture(nil)
-	button:SetDisabledTexture(nil)
+	if button:GetNormalTexture() then button:GetNormalTexture():SetTexture() end
+	if button:GetPushedTexture() then button:GetPushedTexture():SetTexture() end
+	if button:GetDisabledTexture() then button:GetDisabledTexture():SetTexture() end
 end
 
 lib.skin_icon_button = function(button, texture, ...)
@@ -138,7 +138,7 @@ lib.skin_itembutton = function(item, templates, w, h)
 	
 	item:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
 	item:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
-	item:SetNormalTexture(nil)
+	item:GetNormalTexture():SetTexture()
 
 	core.util.crop_icon(icon)
 	icon:SetDrawLayer("ARTWORK")

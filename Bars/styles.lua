@@ -112,7 +112,7 @@ styles.actionbutton = function(button, bar_cfg)
 	-- ARTWORK 1
 
 	flash:SetTexture(blank)
-	flash:SetVertexColor(unpack(cfg.color.flash))
+	flash:SetVertexColor(unpack(core.config.color.flash))
 	flash:SetAllPoints(icon)
 
 	fobs:SetTexture()
@@ -122,8 +122,8 @@ styles.actionbutton = function(button, bar_cfg)
 	core.util.fix_string(hotkey, core.config.font_size_med)
 	hotkey:SetParent(text_overlay)
 	hotkey:ClearAllPoints()
-	hotkey:SetPoint("BOTTOMLEFT", 3, -1)
-	hotkey:SetPoint("BOTTOMRIGHT", 4, -1)
+	hotkey:SetPoint("BOTTOMLEFT")
+	hotkey:SetPoint("BOTTOMRIGHT")
 	hotkey:SetJustifyH("RIGHT")
 	hotkey:SetJustifyV("BOTTOM")
 
@@ -153,11 +153,11 @@ styles.actionbutton = function(button, bar_cfg)
 
 	new:SetAllPoints(icon)
 	new:SetTexture(blank)
-	new:SetVertexColor(unpack(cfg.color.new))
+	new:SetVertexColor(unpack(core.config.color.new))
 
 	spellhighlight:SetAllPoints(icon)
 	spellhighlight:SetTexture(blank)
-	spellhighlight:SetVertexColor(unpack(cfg.color.highlight))
+	spellhighlight:SetVertexColor(unpack(core.config.color.highlight))
 
 	auto:SetParent(text_overlay)
 	auto:SetDrawLayer("BACKGROUND")
@@ -178,22 +178,45 @@ styles.actionbutton = function(button, bar_cfg)
 	local pushed = button:GetPushedTexture()
 	pushed:SetAllPoints(icon)
 	pushed:SetTexture(blank)
-	pushed:SetVertexColor(unpack(cfg.color.pressed))
+	pushed:SetVertexColor(unpack(core.config.color.pushed))
 	pushed:SetDrawLayer("ARTWORK", -6)
 
 	local highlight = button:GetHighlightTexture()
 	highlight:SetAllPoints(icon)
 	highlight:SetTexture(blank)
-	highlight:SetVertexColor(unpack(cfg.color.highlight))
+	highlight:SetVertexColor(unpack(core.config.color.highlight))
 
 	local checked = button:GetCheckedTexture()
 	checked:SetAllPoints(icon)
 	checked:SetTexture(blank)
-	checked:SetVertexColor(unpack(cfg.color.checked))
+	checked:SetVertexColor(unpack(core.config.color.checked))
 	checked.alt_SetAlpha = checked.SetAlpha
 	hooksecurefunc(checked, "SetAlpha", function(self)
-		self:alt_SetAlpha(cfg.color.checked[4])
+		self:alt_SetAlpha(core.config.color.checked[4])
 	end)
+
+	hooksecurefunc(button, "UpdateButtonArt", function()
+		slotbg:Hide()
+		slotart:Hide()
+
+		local normal = button:GetNormalTexture()
+		normal:SetAllPoints(icon)
+		normal:SetTexture()
+
+		local pushed = button:GetPushedTexture()
+		pushed:SetAllPoints(icon)
+		pushed:SetTexture(blank)
+		pushed:SetVertexColor(unpack(core.config.color.pushed))
+		pushed:SetDrawLayer("ARTWORK", -6)
+	end)
+
+	if button.UpdateHotkeys then
+		hooksecurefunc(button, "UpdateHotkeys", function(self)
+			self.HotKey:ClearAllPoints()
+			self.HotKey:SetPoint("BOTTOMLEFT")
+			self.HotKey:SetPoint("BOTTOMRIGHT")
+		end)
+	end
 end
 
 styles.vehiclebutton = function(button)
@@ -213,51 +236,41 @@ styles.vehiclebutton = function(button)
 	local highlight = button:GetHighlightTexture()
 	core.util.set_inside(highlight, button)
 	highlight:SetTexture(blank)
-	highlight:SetVertexColor(unpack(cfg.color.highlight))
+	highlight:SetVertexColor(unpack(core.config.color.highlight))
 end
 
 styles.bagbutton = function(button)
-
 	core.util.gen_backdrop(button, unpack(core.config.frame_background_transparent))
-	local blank = core.media.textures.blank
-	--local name = button:GetName()
 
-	-- ItemButton (MainMenuBarBackpackButton, BagSlotButtonTemplate)
-	--   Layers
-	--     BORDER
+	-- ItemButton
+	--	BORDER
 	local icon = button.icon -- $parentIconTexture
-	--     ARTWORK 2
+	--	ARTWORK 2
 	local count = button.Count -- $parentCount
-	--local stock = _G[name.."Stock"]
-	--     OVERLAY
+	-- local stock = button.Stock
+	--	OVERLAY
 	local border = button.IconBorder
-	--     OVERLAY 1
-	--local overlay = button.IconOverlay -- Azerite/Corruption
-	--     OVERLAY 2
-	--local levellock = button.LevelLinkLockTexture
-	--     OVERLAY 4
-	--local search = button.searchOverlay -- $parentSearchOverlay
-	--     OVERLAY 5
-	--local context = button.ItemContextOverlay
+	--	OVERLAY 1
+	-- local overlay = button.IconOverlay -- Azerite/Corruption
+	--	OVERLAY 2
+	-- local overlay = button.IconOverlay2
+	--	OVERLAY 4
+	-- local search = button.searchOverlay -- $parentSearchOverlay
+	--	OVERLAY 5
+	-- local context = button.ItemContextOverla
 
-	-- ItemAnimTemplate (MainMenuBarBackpackButton, BagSlotButtonTemplate)
-	--   Layers
-	--     OVERLAY
-	--local anim = button.animIcon
+	local normal = button.NormalTexture -- $parentNormalTexture
+	local pushed = button:GetPushedTexture()
+	local highlight = button:GetHighlightTexture()
 
-	-- MainMenuBarBackpackButton
-	--   Layers
-	--     OVERLAY
-	local slothighlight = button.SlotHighlightTexture
+	-- CircularItemButtonTemplate
+	--	BORDER
+	local mask = button.CircleMask
 
-	-- BagSlotButtonTemplate (CharacterBag)
-	--   Layers
-	--     OVERLAY
-	--local slothighlight = button.SlotHighlightTexture
-
-	-- Normal
-	-- Pushed
-	-- Highlight
+	-- BaseBagSlotButtonTemplate
+	--	OVERLAY
+	-- local anim = button.AnimIcon
+	local slotHighlight = button.SlotHighlightTexture
 
 	-------------------------------
 
@@ -266,125 +279,119 @@ styles.bagbutton = function(button)
 	-- BORDER
 
 	icon:SetDrawLayer("ARTWORK", -7)
+	icon:SetTexture("Interface/Icons/Inv_misc_bag_08")
 	icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 	core.util.set_inside(icon, button)
+
+	mask:Hide()
 
 	-- ARTWORK 2
 
 	count:ClearAllPoints()
-	count:SetPoint("BOTTOMRIGHT")
+	count:SetPoint("BOTTOM", 0, -3)
 	core.util.fix_string(count)
 
 	-- OVERLAY
 
-	border:SetTexture(blank)
-	border:SetAllPoints(button)
-	border:SetDrawLayer("BORDER")
-	border:SetBlendMode("ADD")
+	slotHighlight:SetAllPoints(icon)
+	slotHighlight:SetColorTexture(unpack(core.config.color.checked))
 
-	border.alt_SetTexture = border.SetTexture
-	hooksecurefunc(border, "SetTexture", function(self)
-		self:alt_SetTexture(blank)
-	end)
-
-	slothighlight:SetAllPoints()
-	slothighlight:SetTexture(blank)
-	slothighlight:SetVertexColor(unpack(cfg.color.checked))
-
-	------------------------------
-
-	local normal = button:GetNormalTexture()
-	normal:SetAllPoints(icon)
 	normal:SetTexture()
 
-	local pushed = button:GetPushedTexture()
 	pushed:SetAllPoints(icon)
-	pushed:SetTexture(blank)
-	pushed:SetVertexColor(unpack(cfg.color.pressed))
+	pushed:SetColorTexture(unpack(core.config.color.pushed))
 	pushed:SetDrawLayer("ARTWORK", -6)
 
-	local highlight = button:GetHighlightTexture()
 	highlight:SetAllPoints(icon)
-	highlight:SetTexture(blank)
-	highlight:SetVertexColor(unpack(cfg.color.highlight))
+	highlight:SetColorTexture(unpack(core.config.color.highlight))
+
+	hooksecurefunc(button, "UpdateTextures", function(self)
+		local normal = self.NormalTexture
+		normal:SetTexture()
+
+		local pushed = self:GetPushedTexture()
+		pushed:SetAllPoints(self.icon)
+		pushed:SetColorTexture(unpack(core.config.color.pushed))
+
+		local highlight = self:GetHighlightTexture()
+		highlight:SetColorTexture(unpack(core.config.color.highlight))
+
+		self.SlotHighlightTexture:SetColorTexture(unpack(core.config.color.checked))
+	end)
 end
 
 styles.microbutton = function(button)
 
-	-- CharacterMicroButton
-	--   Layers
-	--     OVERLAY
-	--local portrait = MicroButtonPortrait
-	-- SpellbookMicroButton
-	-- TalentMicroButton
-	-- AchievementMicroButton
-	-- QuestLogMicroButton
-	-- GuildMicroButton
-	--   Frames
-	--local tabard = _G[name.."Tabard"]
-	--     Layers
-	--       ARTWORK
-	--local bg = tabard.background -- $parentBackground
-	--       OVERLAY 1
-	--local emblem = tabard.emblem -- $parentEmblem
-	--   100
-	--local notification = button.NotificationOverlay
-	--     Layers
-	--       OVERLAY
-	--local unread = notification.UnreadNotificationIcon
-	-- LFDMicroButton
-	-- CollectionsMicroButton
-	-- EJMicroButton
-	--   Frames
-	--local adventure = button.NewAdventureNotice
-	-- StoreMicroButton
-	-- MainMenuMicroButton
-	--   Layers
-	--     OVERLAY
-	--local performance = MainMenuBarPerformanceBar
-	--local download = MainMenuBarDownload
-	-- HelpMicroButton
-
-	-------------------------------
-
-	-- 28x36
+	-- 19 x 26
 	-- MainMenuBarMicroButton
 	--   Layers
 	--     OVERLAY
-	local flash = button.Flash -- $parentFlash
+	local flash = button.FlashBorder
 	--   NormalTexture
 	--   HighlightTexture
 	--   PushedTexture
 	--   DisabledTexture
+	
+	local flashContent = button.FlashContent
 
 	local inset = 3
 
-	flash:SetTexture(core.media.textures.blank)
-	flash:SetVertexColor(unpack(cfg.color.flash))
+	flash:SetColorTexture(unpack(core.config.color.flash))
 	core.util.set_inside(flash, button, inset)
 
-	if button == CharacterMicroButton then
-		MicroButtonPortrait:SetAllPoints(flash)
-	end
+	flashContent:SetTexCoord(.1, .85, .1, .9)
+	flashContent:ClearAllPoints()
+	flashContent:SetPoint("TOPLEFT", flash, "TOPLEFT", 0, -4)
+	flashContent:SetPoint("BOTTOMRIGHT", flash, "BOTTOMRIGHT")
 
 	local normal = button:GetNormalTexture()
-	normal:SetTexCoord(.22, .80, .22, .81)
-	normal:SetAllPoints(flash)
+	normal:SetTexCoord(.1, .85, .1, .9)
+	normal:ClearAllPoints()
+	normal:SetPoint("TOPLEFT", flash, "TOPLEFT", 0, -4)
+	normal:SetPoint("BOTTOMRIGHT", flash, "BOTTOMRIGHT")
 
 	local pushed = button:GetPushedTexture()
-	-- make it not move when pressed
-	pushed:SetTexCoord(.19, .77, .28, .86)
-	pushed:SetAllPoints(flash)
+	pushed:SetTexCoord(.1, .85, .1, .9)
+	pushed:ClearAllPoints()
+	pushed:SetPoint("TOPLEFT", flash, "TOPLEFT", 0, -4)
+	pushed:SetPoint("BOTTOMRIGHT", flash, "BOTTOMRIGHT")
 
 	local highlight = button:GetHighlightTexture()
-	highlight:SetTexture(core.media.textures.blank)
-	highlight:SetVertexColor(unpack(cfg.color.highlight))
+	highlight:SetColorTexture(unpack(core.config.color.highlight))
 	highlight:SetAllPoints(flash)
 
 	local disabled = button:GetDisabledTexture()
-	if disabled then
-		disabled:SetTexCoord(.22, .80, .22, .81)
-		disabled:SetAllPoints(flash)
+	disabled:SetTexCoord(.1, .85, .1, .9)
+	disabled:ClearAllPoints()
+	disabled:SetPoint("TOPLEFT", flash, "TOPLEFT", 0, -4)
+	disabled:SetPoint("BOTTOMRIGHT", flash, "BOTTOMRIGHT")
+
+	if button:GetName() == "MainMenuMicroButton" then
+		hooksecurefunc(button, "SetNormalAtlas", function(self)
+			local normal = self:GetNormalTexture()
+			normal:SetTexCoord(.1, .85, .1, .9)
+		end)
+
+		hooksecurefunc(button, "SetPushedAtlas", function(self)
+			local pushed = self:GetPushedTexture()
+			pushed:SetTexCoord(.1, .85, .1, .9)
+		end)
+
+		hooksecurefunc(button, "SetDisabledAtlas", function(self)
+			local disabled = self:GetDisabledTexture()
+			disabled:SetTexCoord(.1, .85, .1, .9)
+		end)
+
+		hooksecurefunc(button, "SetHighlightAtlas", function(self)
+			local highlight = self:GetHighlightTexture()
+			highlight:SetColorTexture(unpack(core.config.color.highlight))
+		end)
+
+		button.MainMenuBarPerformanceBar:ClearAllPoints()
+		button.MainMenuBarPerformanceBar:SetPoint("TOPLEFT", flash, "BOTTOMLEFT", -1, -1)
+		button.MainMenuBarPerformanceBar:SetPoint("TOPRIGHT", flash, "BOTTOMRIGHT", 1, -1)
+		button.MainMenuBarPerformanceBar:SetHeight(3)
+		button.MainMenuBarPerformanceBar:SetTexture(core.media.textures.blank)
 	end
 
 	local backdrop = {
@@ -404,4 +411,6 @@ styles.microbutton = function(button)
 	end
 	button:SetBackdrop(backdrop)
 	button:SetBackdropColor(unpack(core.config.frame_border))
+
+	button:SetSize(24, 33)
 end

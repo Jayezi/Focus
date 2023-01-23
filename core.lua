@@ -31,12 +31,12 @@ local SetCVar = SetCVar
 addon.units = { enabled = true }
 addon.bars = { enabled = true }
 addon.buffs = { enabled = true }
-addon.raid = { enabled = false }
+addon.raid = { enabled = true }
 addon.chat = { enabled = true }
-addon.map = { enabled = false }
+addon.map = { enabled = true }
 addon.stats = { enabled = true }
-addon.bag = { enabled = false }
 addon.binds = { enabled = true }
+addon.bag = { enabled = false }
 addon.skin = { enabled = false }
 
 local _, player_class = UnitClass("player")
@@ -97,8 +97,11 @@ core.config = {
 		pushed = {0.33, 0.33, 0.33, 0.25},
 		disabled = {0, 0, 0, 0.5},
 		border = {0, 0, 0, 1},
-		light_border = {0.75, 0.75, 0.75, 1},
-		background = {0.15, 0.15, 0.15, 1},
+		light_border = {0.66, 0.66, 0.66, 1},
+		background = {0.16, 0.16, 0.16, 1},
+		flash = {0.5, 0.5, 0.5, 0.5},
+		new = {0.66, 0.66, 0, 0.75},
+		checked = {0.5, 0.5, 0, 0.5},
 	},
 
 	ui_scale = PixelUtil.GetPixelToUIUnitFactor(),
@@ -175,11 +178,11 @@ core.util = {
 			Mixin(frame, BackdropTemplateMixin)
 		end
 		frame:SetBackdrop(core.config.frame_backdrop)
-		frame:SetBackdropColor({0, 0, 0, 0})
+		frame:SetBackdropColor(0, 0, 0, 0)
 		if (...) then
 			frame:SetBackdropBorderColor(...)
 		else
-			frame:SetBackdropBorderColor(core.config.frame_border)
+			frame:SetBackdropBorderColor(unpack(core.config.frame_border))
 		end
 	end,
 
@@ -226,6 +229,151 @@ core.util = {
 	end,
 
 	fix_scrollbar = function(scrollbar)
+		-- WowTrimScrollBar
+		--	BACKGROUND
+		local bp = scrollbar.Backplate
+
+		local bg = scrollbar.Background
+		--	ARTWORK
+		-- .Begin .End .Middle
+
+		local track = scrollbar.Track
+		local thumb
+		if track then thumb = track.Thumb end
+		--	BACKGROUND 1
+		-- .Middle
+		--	BACKGROUND 2
+		-- .Begin .End
+
+		local back = scrollbar.Back
+		--	BACKGROUND
+		-- .Texture
+		--	OVERLAY
+		-- .Overlay
+
+		local forward = scrollbar.Forward
+		--	BACKGROUND
+		-- .Texture
+		--	OVERLAY
+		-- .Overlay
+
+		if bp then bp:Hide() end
+		if bg then bg:Hide() end
+
+		if thumb then
+			thumb.Begin:Hide()
+			thumb.End:Hide()
+			thumb.Middle:SetAllPoints()
+			thumb.Middle:SetColorTexture(0.5, 0.5, 0.5, 1)
+			hooksecurefunc(thumb, "UpdateAtlas", function(self)
+				if self.over then
+					thumb.Middle:SetColorTexture(0.66, 0.66, 0.66, 1)
+				else
+					thumb.Middle:SetColorTexture(0.5, 0.5, 0.5, 1)
+				end
+			end)
+		end
+
+		if back then
+			core.util.gen_backdrop(back)
+
+			core.util.set_inside(back.Texture, back)
+			core.util.set_inside(back.Overlay, back)
+
+			if back:IsEnabled() then
+				if back.down then
+					back.Texture:SetTexture([[interface/buttons/arrow-up-down]])
+					back.Texture:SetTexCoord(0, 1.1, 0.35, 1.05)
+				else
+					back.Texture:SetTexture([[interface/buttons/arrow-up-up]])
+					back.Texture:SetTexCoord(-0.1, 1, 0.25, 1)
+				end
+			else
+				back.Texture:SetTexture([[interface/buttons/arrow-up-disabled]])
+				back.Texture:SetTexCoord(-0.1, 1, 0.25, 1)
+			end
+			back.Texture:ClearPointsOffset()
+
+			hooksecurefunc(back, "UpdateAtlas", function(self)
+				if self:IsEnabled() then
+					if self.down then
+						self.Texture:SetTexture([[interface/buttons/arrow-up-down]])
+						self.Texture:SetTexCoord(0, 1.1, 0.35, 1.05)
+					else
+						self.Texture:SetTexture([[interface/buttons/arrow-up-up]])
+						self.Texture:SetTexCoord(-0.1, 1, 0.25, 1)
+					end
+				else
+					self.Texture:SetTexture([[interface/buttons/arrow-up-disabled]])
+					self.Texture:SetTexCoord(-0.1, 1, 0.25, 1)
+				end
+				self.Texture:ClearPointsOffset()
+			end)
+
+			back:HookScript("OnMouseDown", function(self)
+				self.Texture:ClearPointsOffset()
+				self.Overlay:ClearPointsOffset()
+			end)
+
+			back:HookScript("OnMouseUp", function(self)
+				self.Texture:ClearPointsOffset()
+				self.Overlay:ClearPointsOffset()
+			end)
+
+			back.Overlay:SetColorTexture(unpack(core.config.color.highlight))
+			core.util.set_inside(back.Overlay, back)
+		end
+
+		if forward then
+			core.util.gen_backdrop(forward)
+
+			core.util.set_inside(forward.Texture, forward)
+			core.util.set_inside(forward.Overlay, forward)
+
+			if forward:IsEnabled() then
+				if forward.down then
+					forward.Texture:SetTexture([[interface/buttons/arrow-down-down]])
+					forward.Texture:SetTexCoord(0, 1.1, -0.05, 0.75)
+				else
+					forward.Texture:SetTexture([[interface/buttons/arrow-down-up]])
+					forward.Texture:SetTexCoord(-0.1, 1, -0.1, 0.65)
+				end
+			else
+				forward.Texture:SetTexture([[interface/buttons/arrow-down-disabled]])
+				forward.Texture:SetTexCoord(-0.1, 1, -0.1, 0.65)
+			end
+			forward.Texture:ClearPointsOffset()
+
+			hooksecurefunc(forward, "UpdateAtlas", function(self)
+				if self:IsEnabled() then
+					if self.down then
+						self.Texture:SetTexture([[interface/buttons/arrow-down-down]])
+						self.Texture:SetTexCoord(0, 1.1, -0.05, 0.75)
+					else
+						self.Texture:SetTexture([[interface/buttons/arrow-down-up]])
+						self.Texture:SetTexCoord(-0.1, 1, -0.1, 0.65)
+					end
+				else
+					self.Texture:SetTexture([[interface/buttons/arrow-down-disabled]])
+					self.Texture:SetTexCoord(-0.1, 1, -0.1, 0.65)
+				end
+				self.Texture:ClearPointsOffset()
+			end)
+
+			forward:HookScript("OnMouseDown", function(self)
+				self.Texture:ClearPointsOffset()
+				self.Overlay:ClearPointsOffset()
+			end)
+
+			forward:HookScript("OnMouseUp", function(self)
+				self.Texture:ClearPointsOffset()
+				self.Overlay:ClearPointsOffset()
+			end)
+
+			forward.Overlay:SetColorTexture(unpack(core.config.color.highlight))
+			core.util.set_inside(forward.Overlay, forward)
+		end
+
 		-- HybridScrollFrameTemplate
 		--		.ScrollChild
 		--		.scrollBar
@@ -256,76 +404,76 @@ core.util = {
 		
 		-- 		.thumbTexture
 
-		if scrollbar.trackBG then scrollbar.trackBG:Hide() end
-		if scrollbar.ScrollBarTop then scrollbar.ScrollBarTop:Hide() end
-		if scrollbar.Top then scrollbar.Top:Hide() end
-		if scrollbar.ScrollBarBottom then scrollbar.ScrollBarBottom:Hide() end
-		if scrollbar.Bottom then scrollbar.Bottom:Hide() end
-		if scrollbar.ScrollBarMiddle then scrollbar.ScrollBarMiddle:Hide() end
-		if scrollbar.Middle then scrollbar.Middle:Hide() end
+		-- if scrollbar.trackBG then scrollbar.trackBG:Hide() end
+		-- if scrollbar.ScrollBarTop then scrollbar.ScrollBarTop:Hide() end
+		-- if scrollbar.Top then scrollbar.Top:Hide() end
+		-- if scrollbar.ScrollBarBottom then scrollbar.ScrollBarBottom:Hide() end
+		-- if scrollbar.Bottom then scrollbar.Bottom:Hide() end
+		-- if scrollbar.ScrollBarMiddle then scrollbar.ScrollBarMiddle:Hide() end
+		-- if scrollbar.Middle then scrollbar.Middle:Hide() end
 
-		core.util.gen_backdrop(scrollbar)
-		scrollbar:SetWidth(20)
+		-- core.util.gen_backdrop(scrollbar)
+		-- scrollbar:SetWidth(20)
 
-		local scrollUpButton = scrollbar.ScrollUpButton or scrollbar.ScrollUp or scrollbar.UpButton
-		local scrollDownButton = scrollbar.ScrollDownButton or scrollbar.ScrollDown or scrollbar.DownButton
-		local thumbTexture = scrollbar.ThumbTexture or scrollbar.thumbTexture
+		-- local scrollUpButton = scrollbar.ScrollUpButton or scrollbar.ScrollUp or scrollbar.UpButton
+		-- local scrollDownButton = scrollbar.ScrollDownButton or scrollbar.ScrollDown or scrollbar.DownButton
+		-- local thumbTexture = scrollbar.ThumbTexture or scrollbar.thumbTexture
 		
-		thumbTexture:SetTexture(core.media.textures.blank)
-		thumbTexture:SetWidth(18)
-		thumbTexture:SetVertexColor(0.5, 0.5, 0.5)
+		-- thumbTexture:SetTexture(core.media.textures.blank)
+		-- thumbTexture:SetWidth(18)
+		-- thumbTexture:SetVertexColor(0.5, 0.5, 0.5)
 
-		if scrollUpButton then
-			core.util.gen_backdrop(scrollUpButton)
-			scrollUpButton:SetSize(20, 15)
-			scrollUpButton:SetPoint("BOTTOM", scrollbar, "TOP", 0, 1)
+		-- if scrollUpButton then
+		-- 	core.util.gen_backdrop(scrollUpButton)
+		-- 	scrollUpButton:SetSize(20, 15)
+		-- 	scrollUpButton:SetPoint("BOTTOM", scrollbar, "TOP", 0, 1)
 
-			local highlight = scrollUpButton:GetHighlightTexture()
-			highlight:SetTexture(core.media.textures.blank)
-			highlight:SetVertexColor(.6, .6, .6, .3)
-			core.util.set_inside(highlight, scrollUpButton)
+		-- 	local highlight = scrollUpButton:GetHighlightTexture()
+		-- 	highlight:SetTexture(core.media.textures.blank)
+		-- 	highlight:SetVertexColor(.6, .6, .6, .3)
+		-- 	core.util.set_inside(highlight, scrollUpButton)
 
-			local normal = scrollUpButton:GetNormalTexture()
-			normal:SetTexture([[interface/buttons/arrow-up-up]])
-			normal:SetTexCoord(-0.1, 1, 0.25, 1)
-			normal:SetAllPoints(highlight)
+		-- 	local normal = scrollUpButton:GetNormalTexture()
+		-- 	normal:SetTexture([[interface/buttons/arrow-up-up]])
+		-- 	normal:SetTexCoord(-0.1, 1, 0.25, 1)
+		-- 	normal:SetAllPoints(highlight)
 
-			local pushed = scrollUpButton:GetPushedTexture()
-			pushed:SetTexture([[interface/buttons/arrow-up-down]])
-			pushed:SetTexCoord(0, 1.1, 0.35, 1.05)
-			pushed:SetAllPoints(highlight)
+		-- 	local pushed = scrollUpButton:GetPushedTexture()
+		-- 	pushed:SetTexture([[interface/buttons/arrow-up-down]])
+		-- 	pushed:SetTexCoord(0, 1.1, 0.35, 1.05)
+		-- 	pushed:SetAllPoints(highlight)
 
-			local disabled = scrollUpButton:GetDisabledTexture()
-			disabled:SetTexture([[interface/buttons/arrow-up-disabled]])
-			disabled:SetTexCoord(-0.1, 1, 0.25, 1)
-			disabled:SetAllPoints(highlight)
-		end
+		-- 	local disabled = scrollUpButton:GetDisabledTexture()
+		-- 	disabled:SetTexture([[interface/buttons/arrow-up-disabled]])
+		-- 	disabled:SetTexCoord(-0.1, 1, 0.25, 1)
+		-- 	disabled:SetAllPoints(highlight)
+		-- end
 
-		if scrollDownButton then
-			core.util.gen_backdrop(scrollDownButton)
-			scrollDownButton:SetSize(20, 15)
-			scrollDownButton:SetPoint("TOP", scrollbar, "BOTTOM", 0, -1)
+		-- if scrollDownButton then
+		-- 	core.util.gen_backdrop(scrollDownButton)
+		-- 	scrollDownButton:SetSize(20, 15)
+		-- 	scrollDownButton:SetPoint("TOP", scrollbar, "BOTTOM", 0, -1)
 
-			local highlight = scrollDownButton:GetHighlightTexture()
-			highlight:SetTexture(core.media.textures.blank)
-			highlight:SetVertexColor(.6, .6, .6, .3)
-			core.util.set_inside(highlight, scrollDownButton)
+		-- 	local highlight = scrollDownButton:GetHighlightTexture()
+		-- 	highlight:SetTexture(core.media.textures.blank)
+		-- 	highlight:SetVertexColor(.6, .6, .6, .3)
+		-- 	core.util.set_inside(highlight, scrollDownButton)
 
-			local normal = scrollDownButton:GetNormalTexture()
-			normal:SetTexture([[interface/buttons/arrow-down-up]])
-			normal:SetTexCoord(-0.1, 1, -0.1, 0.65)
-			normal:SetAllPoints(highlight)
+		-- 	local normal = scrollDownButton:GetNormalTexture()
+		-- 	normal:SetTexture([[interface/buttons/arrow-down-up]])
+		-- 	normal:SetTexCoord(-0.1, 1, -0.1, 0.65)
+		-- 	normal:SetAllPoints(highlight)
 
-			local pushed = scrollDownButton:GetPushedTexture()
-			pushed:SetTexture([[interface/buttons/arrow-down-down]])
-			pushed:SetTexCoord(0, 1.1, -0.05, 0.75)
-			pushed:SetAllPoints(highlight)
+		-- 	local pushed = scrollDownButton:GetPushedTexture()
+		-- 	pushed:SetTexture([[interface/buttons/arrow-down-down]])
+		-- 	pushed:SetTexCoord(0, 1.1, -0.05, 0.75)
+		-- 	pushed:SetAllPoints(highlight)
 
-			local disabled = scrollDownButton:GetDisabledTexture()
-			disabled:SetTexture([[interface/buttons/arrow-down-disabled]])
-			disabled:SetTexCoord(-0.1, 1, -0.1, 0.65)
-			disabled:SetAllPoints(highlight)
-		end
+		-- 	local disabled = scrollDownButton:GetDisabledTexture()
+		-- 	disabled:SetTexture([[interface/buttons/arrow-down-disabled]])
+		-- 	disabled:SetTexCoord(-0.1, 1, -0.1, 0.65)
+		-- 	disabled:SetAllPoints(highlight)
+		-- end
 	end,
 
 	fix_editbox = function(frame, width, height, max)
@@ -367,7 +515,9 @@ core.util = {
 		
 		frame:SetWidth(width or frame:GetWidth())
 		frame:SetHeight(22)
-		frame:SetMaxLetters(max)
+		if max then
+			frame:SetMaxLetters(max)
+		end
 		frame:SetTextInsets(5, 15, 0, 0)
 		if instructions then core.util.fix_string(instructions, core.config.font_size_med) end
 		core.util.fix_string(frame, core.config.font_size_med)

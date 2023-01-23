@@ -9,13 +9,13 @@ local panels = {
 	ScriptErrorsFrame,
 	CharacterFrame,
 	SpellBookFrame,
-	PVEFrame,
-	GossipFrame,
-	FriendsFrame,
-	QuestFrame,
-	GameMenuFrame,
-	MerchantFrame,
-	MailFrame
+	-- PVEFrame,
+	-- GossipFrame,
+	-- FriendsFrame,
+	-- QuestFrame,
+	-- GameMenuFrame,
+	-- MerchantFrame,
+	-- MailFrame
 }
 
 local role_texts = {}
@@ -48,34 +48,15 @@ skin_panel = function(panel, nested)
 		panel.NineSlice:Hide()
 		core.util.gen_backdrop(panel, unpack(core.config.frame_background_transparent))
 	elseif type == "PortraitFrameTemplate" or type == "PortraitFrameTemplateMinimizable" then
-		local close = panel.CloseButton
-		if close then
-			close:SetNormalTexture(nil)
-			close:SetDisabledTexture(nil)
-			close:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
-			close:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
-			close:SetSize(22, 22)
-			close:SetPoint("TOPRIGHT", -1, -1)
-
-			local x = core.util.gen_string(close, 20, nil, nil, "CENTER", "MIDDLE")
-			x:SetPoint("CENTER", 1, 0)
-			x:SetText("x")
-		end
-		
-		panel.Bg:Hide()
-		panel.Bg:SetTexture(nil)
-		panel.TitleBg:Hide()
-		panel.TitleBg:SetTexture(nil)
-		panel.TopTileStreaks:Hide()
-		panel.TopTileStreaks:SetTexture(nil)
+		-- PortraitFrameBaseTemplate
 		panel.NineSlice:Hide()
-		core.util.fix_string(panel.TitleText, core.config.font_size_med)
 
 		panel.portrait_bg = panel:CreateTexture(nil, "OVERLAY", nil, -3)
 		panel.portrait_bg:SetColorTexture(unpack(core.config.color.light_border))
-		core.util.set_outside(panel.portrait_bg, panel.portrait)
-		core.util.circle_mask(panel, panel.portrait_bg)
-
+		core.util.set_outside(panel.portrait_bg, panel.PortraitContainer.portrait)
+		-- core.util.circle_mask(panel, panel.portrait_bg)
+		core.util.circle_mask(panel, panel.portrait_bg, 3)
+		core.util.circle_mask(panel, panel.PortraitContainer.portrait, 3)
 		hooksecurefunc(panel, "SetPortraitShown", function(self, shown)
 			if shown then
 				panel.portrait_bg:Show()
@@ -84,10 +65,38 @@ skin_panel = function(panel, nested)
 			end
 		end)
 		
-		if name == "CharacterFrame" then
-			core.util.circle_mask(panel, panel.portrait_bg, 3)
-			core.util.circle_mask(panel, panel.portrait, 3)
+		core.util.fix_string(panel.TitleContainer.TitleText, core.config.font_size_med)
 
+		-- ButtonFrameTemplate
+		if panel.Bg then
+			panel.Bg:Hide()
+			panel.Bg:SetTexture(nil)
+		end
+
+		if panel.TopTileStreaks then
+			panel.TopTileStreaks:Hide()
+			panel.TopTileStreaks:SetTexture(nil)
+		end
+
+		if panel.CloseButton then
+			panel.CloseButton:GetNormalTexture():SetTexture()
+			panel.CloseButton:GetDisabledTexture():SetTexture()
+			panel.CloseButton:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
+			panel.CloseButton:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+			panel.CloseButton:SetSize(22, 22)
+			panel.CloseButton:SetPoint("TOPRIGHT", -1, -1)
+
+			local x = core.util.gen_string(panel.CloseButton, 20, nil, nil, "CENTER", "MIDDLE")
+			x:SetPoint("CENTER", 1, 0)
+			x:SetText("x")
+		end
+		
+		if name == "CharacterFrame" then
+
+			-- core.util.circle_mask(panel, panel.portrait_bg, 3)
+			-- core.util.circle_mask(panel, panel.PortraitContainer.portrait, 3)
+
+			-- skinned by PanelTemplates_SelectTab/PanelTemplates_DeselectTab
 			for t = 1, 3 do
 				local tab = _G["CharacterFrameTab"..t]
 				tab:ClearAllPoints()
@@ -97,56 +106,79 @@ skin_panel = function(panel, nested)
 					tab:SetPoint("TOPLEFT", _G["CharacterFrameTab"..(t - 1)], "TOPRIGHT", -1, 0)
 				end
 			end
+			
 			core.util.gen_backdrop(panel.InsetRight, unpack(core.config.frame_background_transparent))
 
 			-- CharacterStatsPane
 			CharacterStatsPane.ClassBackground:Hide()
+
 			CharacterStatsPane.ItemLevelCategory.Background:Hide()
-			--core.util.fix_string(CharacterStatsPane.ItemLevelCategory.Title, core.config.font_size_med)
+			core.util.fix_string(CharacterStatsPane.ItemLevelCategory.Title, core.config.font_size_med)
+
 			CharacterStatsPane.ItemLevelFrame.Background:Hide()
+			core.util.fix_string(CharacterStatsPane.ItemLevelFrame.Value, core.config.font_size_lrg)
 
 			CharacterStatsPane.AttributesCategory.Background:Hide()
-			--core.util.fix_string(CharacterStatsPane.AttributesCategory.Title, core.config.font_size_med)
+			core.util.fix_string(CharacterStatsPane.AttributesCategory.Title, core.config.font_size_med)
 
 			CharacterStatsPane.EnhancementsCategory.Background:Hide()
-			--core.util.fix_string(CharacterStatsPane.EnhancementsCategory.Title, core.config.font_size_med)
+			core.util.fix_string(CharacterStatsPane.EnhancementsCategory.Title, core.config.font_size_med)
+
+			-- PaperDollFrame
+
+			core.util.fix_string(CharacterLevelText, core.config.font_size_med)
+			CharacterLevelText:SetWidth(300)
+			core.util.fix_string(CharacterTrialLevelErrorText, core.config.font_size_med)
+			hooksecurefunc("PaperDollFrame_SetLevel", function()
+				if CharacterTrialLevelErrorText:IsShown() then
+					CharacterLevelText:SetPoint("CENTER", PaperDollFrame, "TOP", -46, -32)
+				else
+					CharacterLevelText:SetPoint("CENTER", PaperDollFrame, "TOP", -46, -40)
+				end
+			end)
 
 			-- PaperDollSidebarTabs
 			PaperDollSidebarTabs.DecorLeft:Hide()
 			PaperDollSidebarTabs.DecorRight:Hide()
+			-- PaperDollSidebarTabTemplate
 			for i = 1, 3 do
 				local tab = _G["PaperDollSidebarTab"..i]
-				core.util.set_inside(tab.Icon, tab)
 				tab.TabBg:SetAllPoints()
-				tab.TabBg:SetTexture(core.media.textures.blank)
-				tab.TabBg:SetVertexColor(unpack(core.config.frame_border))
-				tab.Hider:SetTexture(nil)
+				tab.TabBg:SetColorTexture(unpack(core.config.frame_border))
+				core.util.set_inside(tab.Icon, tab)
+				tab.Hider:SetTexture()
 				tab.Highlight:SetAllPoints(tab.Icon)
-				tab.Highlight:SetTexture(core.media.textures.blank)
-				tab.Highlight:SetVertexColor(unpack(core.config.color.highlight))
+				tab.Highlight:SetColorTexture(unpack(core.config.color.highlight))
 			end
 
-			-- PaperDollTitlesPane
-			core.util.fix_scrollbar(PaperDollTitlesPane.scrollBar)
-			PaperDollTitlesPane.scrollBar:ClearAllPoints()
-			PaperDollTitlesPane.scrollBar:SetPoint("TOPRIGHT", CharacterFrameInsetRight, "TOPRIGHT", -2, -18)
-			PaperDollTitlesPane.scrollBar:SetPoint("BOTTOMRIGHT", CharacterFrameInsetRight, "BOTTOMRIGHT", -2, 18)
+			-- TitleManagerPane
 
-			-- PaperDollEquipmentManagerPane
-			lib.skin_button(PaperDollEquipmentManagerPane.EquipSet)
-			lib.skin_button(PaperDollEquipmentManagerPane.SaveSet)
-			PaperDollEquipmentManagerPane.SaveSet:SetPoint("LEFT", PaperDollEquipmentManagerPane.EquipSet, "RIGHT", 1, 0)
-			core.util.fix_scrollbar(PaperDollEquipmentManagerPane.scrollBar)
-			PaperDollEquipmentManagerPane.scrollBar:ClearAllPoints()
-			PaperDollEquipmentManagerPane.scrollBar:SetPoint("TOPRIGHT", CharacterFrameInsetRight, "TOPRIGHT", -2, -18)
-			PaperDollEquipmentManagerPane.scrollBar:SetPoint("BOTTOMRIGHT", CharacterFrameInsetRight, "BOTTOMRIGHT", -2, 18)
+			-- ScrollBox in PaperDollTitlesPane_InitButton
+			core.util.fix_scrollbar(PaperDollFrame.TitleManagerPane.ScrollBar)
+			PaperDollFrame.TitleManagerPane.ScrollBar:ClearAllPoints()
+			PaperDollFrame.TitleManagerPane.ScrollBar:SetPoint("TOPLEFT", PaperDollFrame.TitleManagerPane.ScrollBox, "TOPRIGHT")
+			PaperDollFrame.TitleManagerPane.ScrollBar:SetPoint("BOTTOMLEFT", PaperDollFrame.TitleManagerPane.ScrollBox, "BOTTOMRIGHT")
 
-			-- CharacterModelFrame
-			for _, region in ipairs({CharacterModelFrame:GetRegions()}) do
+			-- EquipmentManagerPane
+
+			-- ScrollBox in PaperDollEquipmentManagerPane_InitButton
+			lib.skin_button(PaperDollFrame.EquipmentManagerPane.EquipSet)
+			lib.skin_button(PaperDollFrame.EquipmentManagerPane.SaveSet)
+			PaperDollFrame.EquipmentManagerPane.SaveSet:SetPoint("LEFT", PaperDollFrame.EquipmentManagerPane.EquipSet, "RIGHT", 1, 0)
+			core.util.fix_scrollbar(PaperDollFrame.EquipmentManagerPane.ScrollBar)
+
+			PaperDollFrame.EquipmentManagerPane.ScrollBar:ClearAllPoints()
+			PaperDollFrame.EquipmentManagerPane.ScrollBar:SetPoint("TOPLEFT", PaperDollFrame.EquipmentManagerPane.ScrollBox, "TOPRIGHT")
+			PaperDollFrame.EquipmentManagerPane.ScrollBar:SetPoint("BOTTOMLEFT", PaperDollFrame.EquipmentManagerPane.ScrollBox, "BOTTOMRIGHT")
+
+			-- CharacterModelScene
+
+			for _, region in ipairs({CharacterModelScene:GetRegions()}) do
 				region:Hide()
 			end
 
 			-- PaperDollItemsFrame
+			
 			for _, item in ipairs(PaperDollItemsFrame.EquipmentSlots) do
 				lib.skin_item_slot(item)
 			end
@@ -155,19 +187,20 @@ skin_panel = function(panel, nested)
 			end
 
 			-- ReputationFrame
-			ReputationListScrollFrame:SetPoint("TOPLEFT", CharacterFrame.Inset, "TOPLEFT", 4, -4)
-			ReputationListScrollFrame:SetPoint("BOTTOMRIGHT", CharacterFrame.Inset, "BOTTOMRIGHT", -23, 4)
-			ReputationDetailFrame:SetHeight(250)
-			ReputationDetailAtWarCheckBox:SetPoint("TOPLEFT", 10, -195)
-			core.util.strip_textures(ReputationListScrollFrame, true)
-			core.util.gen_backdrop(ReputationListScrollFrame, unpack(core.config.frame_background_transparent))
-			core.util.fix_scrollbar(ReputationListScrollFrameScrollBar)
-			ReputationListScrollFrameScrollBar:SetPoint("TOPLEFT", ReputationListScrollFrame, "TOPRIGHT", 2, -16)
-			ReputationListScrollFrameScrollBar:SetPoint("BOTTOMLEFT", ReputationListScrollFrame, "BOTTOMRIGHT", 2, 16)
+			
+			-- ScrollBox in ReputationFrame_InitReputationRow
+			core.util.gen_backdrop(ReputationFrame.ScrollBox, unpack(core.config.frame_background_transparent))
+			core.util.fix_scrollbar(ReputationFrame.ScrollBar)
+			ReputationFrame.ScrollBar:SetPoint("TOPLEFT", ReputationFrame.ScrollBox, "TOPRIGHT")
+			ReputationFrame.ScrollBar:SetPoint("BOTTOMLEFT", ReputationFrame.ScrollBox, "BOTTOMRIGHT")
 
+			-- ReputationDetailFrame
+			hooksecurefunc(ReputationDetailFrame, "SetHeight", function()
+				ReputationDetailFrame:SetHeight(250)
+			end)
+			ReputationDetailAtWarCheckBox:SetPoint("TOPLEFT", 5, -195)
 			core.util.strip_textures(ReputationDetailFrame, true)
 			core.util.gen_backdrop(ReputationDetailFrame, unpack(core.config.frame_background_transparent))
-			
 			core.util.fix_string(ReputationDetailFactionName, core.config.font_size_sml)
 			core.util.fix_string(ReputationDetailFactionDescription, core.config.font_size_sml)
 		
@@ -186,11 +219,16 @@ skin_panel = function(panel, nested)
 			InspectFrameTab4:SetPoint("TOPLEFT", InspectFrameTab3, "TOPRIGHT", -1, 0)
 
 		elseif name == "SpellBookFrame" then
-			
-			lib.skin_help(SpellBookFrame.MainHelpButton)
 
+			-- core.util.circle_mask(panel, panel.portrait_bg, 3)
+			-- core.util.circle_mask(panel, panel.PortraitContainer.portrait, 3)
+			
 			SpellBookPage1:Hide()
 			SpellBookPage2:Hide()
+
+			lib.skin_help(SpellBookFrame.MainHelpButton)
+
+			-- skinned by PanelTemplates_SelectTab/PanelTemplates_DeselectTab
 			for t = 1, 5 do
 				local tab = _G["SpellBookFrameTabButton"..t]
 				tab:ClearAllPoints()
@@ -203,30 +241,40 @@ skin_panel = function(panel, nested)
 
 			-- SpellBookPageNavigationFrame
 			SpellBookPageText:SetTextColor(1, 1, 1)
-			
+			-- SpellBookPrevPageButton
+			-- SpellBookNextPageButton
+
+			-- SpellBookSpellIconsFrame
+
 			-- SpellBookSideTabsFrame
 			for t = 1, MAX_SKILLLINE_TABS do
-				local tab = _G["SpellBookSkillLineTab"..t]
+				-- SpellBookSkillLineTabTemplate
 
+				local tab = _G["SpellBookSkillLineTab"..t]
 				local regions = {tab:GetRegions()}
 				for _, region in ipairs(regions) do
 					if region:GetDrawLayer() == "BACKGROUND" then
 						core.util.set_outside(region, tab)
-						region:SetTexture(core.media.textures.blank)
-						region:SetVertexColor(core.config.color.border)
+						region:SetColorTexture(unpack(core.config.color.border))
 					end
 				end
-				tab:GetNormalTexture():SetTexCoord(0.08, 0.92, 0.08, 0.92)
-				tab:SetHighlightTexture(core.media.textures.blank)
-				tab:GetHighlightTexture():SetVertexColor(unpack(core.config.color.highlight))
-				
-				tab:SetCheckedTexture(core.media.textures.blank)
-				tab:GetCheckedTexture():SetVertexColor(unpack(core.config.color.selected))
+				core.util.crop_icon(tab:GetNormalTexture())
+				tab:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+				tab:GetCheckedTexture():SetColorTexture(unpack(core.config.color.selected))
 			end
 
+			-- SpellBookProfessionFrame
 			for p = 1, 2 do
+				-- PrimaryProfessionTemplate
+
 				local prof = _G["PrimaryProfession"..p]
-				prof.missingText:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
+				core.util.fix_string(prof.professionName, core.config.font_size_lrg)
+				core.util.fix_string(prof.specialization, core.config.font_size_sml)
+				core.util.fix_string(prof.missingHeader, core.config.font_size_med)
+				core.util.fix_string(prof.missingText, core.config.font_size_sml)
+				-- prof.missingHeader:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
+				core.util.fix_string(prof.rank, core.config.font_size_sml)
+
 				local border = _G["PrimaryProfession"..p.."IconBorder"]
 				border:SetColorTexture(unpack(core.config.color.border))
 				border:SetDrawLayer("BACKGROUND")
@@ -234,20 +282,20 @@ skin_panel = function(panel, nested)
 				core.util.circle_mask(prof, prof.icon, 3)
 				prof.icon:SetAlpha(1)
 
-				prof.unlearn:ClearAllPoints()
-				prof.unlearn:SetPoint("RIGHT", prof.statusBar, "LEFT", -2, 0)
-				
 				for b = 1, 2 do
-					local button = prof["button"..b]
-					_G[button:GetDebugName().."NameFrame"]:SetTexture(core.media.textures.blank)
-					_G[button:GetDebugName().."NameFrame"]:SetVertexColor(unpack(core.config.color.border))
-					core.util.set_outside(_G[button:GetDebugName().."NameFrame"], button)
-					button.subSpellString:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
-					button:GetPushedTexture():SetBlendMode("ADD")
-				end
-				prof.button2:SetPoint("TOPRIGHT", -109, 0)
-				prof.button1:SetPoint("TOPLEFT", prof.button2, "BOTTOMLEFT", 0, -3)
+					-- ProfessionButtonTemplate
 
+					local button = prof["SpellButton"..b]
+					-- button.subSpellString:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
+
+					_G[button:GetName().."NameFrame"]:SetColorTexture(unpack(core.config.color.border))
+					core.util.set_outside(_G[button:GetName().."NameFrame"], button)
+					
+					-- button:GetPushedTexture():SetBlendMode("ADD")
+				end
+				prof.SpellButton2:SetPoint("TOPRIGHT", -109, 0)
+				prof.SpellButton1:SetPoint("TOPLEFT", prof.SpellButton2, "BOTTOMLEFT", 0, -3)
+				
 				prof.statusBar:SetPoint("TOPLEFT", prof.rank, "BOTTOMLEFT", 0, -5)
 				prof.statusBar.rankText:SetPoint("CENTER")
 				core.util.strip_textures(prof.statusBar, true)
@@ -255,30 +303,39 @@ skin_panel = function(panel, nested)
 				prof.statusBar:SetStatusBarColor(0.25, 0.75, 0.25)
 				prof.statusBar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
 				core.util.gen_backdrop(prof.statusBar)
+				
+				prof.UnlearnButton:ClearAllPoints()
+				prof.UnlearnButton:SetPoint("RIGHT", prof.statusBar, "LEFT", -2, 0)
 			end
 
 			for p = 1, 3 do
+				-- SecondaryProfessionTemplate
+
 				local prof = _G["SecondaryProfession"..p]
 
 				for b = 1, 2 do
-					local button = prof["button"..b]
-					_G[button:GetDebugName().."NameFrame"]:SetTexture(core.media.textures.blank)
-					_G[button:GetDebugName().."NameFrame"]:SetVertexColor(unpack(core.config.color.border))
-					core.util.set_outside(_G[button:GetDebugName().."NameFrame"], button)
-					button.subSpellString:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
-					button:GetPushedTexture():SetBlendMode("ADD")
-				end
+					-- ProfessionButtonTemplate
+					
+					local button = prof["SpellButton"..b]
+					-- button.subSpellString:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
 
-				prof.rank:SetPoint("BOTTOMLEFT", prof.statusBar, "TOPLEFT", 0, 4)
+					_G[button:GetName().."NameFrame"]:SetColorTexture(unpack(core.config.color.border))
+					core.util.set_outside(_G[button:GetName().."NameFrame"], button)
+					
+					-- button:GetPushedTexture():SetBlendMode("ADD")
+				end
+				
 				prof.statusBar:SetPoint("BOTTOMLEFT", -14, 0)
 				prof.statusBar.rankText:SetPoint("CENTER")
 				core.util.strip_textures(prof.statusBar, true)
+
+				prof.rank:SetPoint("BOTTOMLEFT", prof.statusBar, "TOPLEFT", 0, 4)
 				prof.statusBar:SetStatusBarTexture(core.media.textures.blank)
 				prof.statusBar:SetStatusBarColor(0.25, 0.75, 0.25)
 				prof.statusBar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
 				core.util.gen_backdrop(prof.statusBar)
 
-				prof.missingText:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
+				-- prof.missingText:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
 			end
 		
 		elseif name == "PlayerTalentFrame" then
@@ -1440,82 +1497,82 @@ hooksecurefunc("TalentFrame_Update", function(frame)
 	end
 end)
 
-hooksecurefunc("SpellButton_OnShow", function(button)
-	if button.skinned then return end
+-- hooksecurefunc("SpellButton_OnShow", function(button)
+-- 	if button.skinned then return end
 
-	if button.EmptySlot then
-		button.EmptySlot:SetTexture(core.media.textures.blank)
-		button.EmptySlot:SetVertexColor(unpack(core.config.color.border))
-		core.util.set_outside(button.EmptySlot, button)
-		button.TextBackground:Hide()
-		button.TextBackground2:Hide()
-		button.IconTextureBg:SetTexture(core.media.textures.blank)
-		button.IconTextureBg:SetVertexColor(unpack(core.config.color.background))
-		_G[button:GetDebugName().."SlotFrame"]:SetTexture(nil)
-		core.util.set_outside(_G[button:GetDebugName().."AutoCastable"], button)
-		_G[button:GetDebugName().."AutoCastable"]:SetTexCoord(0.22, 0.76, 0.22, 0.77)
+-- 	if button.EmptySlot then
+-- 		button.EmptySlot:SetTexture(core.media.textures.blank)
+-- 		button.EmptySlot:SetVertexColor(unpack(core.config.color.border))
+-- 		core.util.set_outside(button.EmptySlot, button)
+-- 		button.TextBackground:Hide()
+-- 		button.TextBackground2:Hide()
+-- 		button.IconTextureBg:SetTexture(core.media.textures.blank)
+-- 		button.IconTextureBg:SetVertexColor(unpack(core.config.color.background))
+-- 		_G[button:GetDebugName().."SlotFrame"]:SetTexture(nil)
+-- 		core.util.set_outside(_G[button:GetDebugName().."AutoCastable"], button)
+-- 		_G[button:GetDebugName().."AutoCastable"]:SetTexCoord(0.22, 0.76, 0.22, 0.77)
 
-		core.util.set_outside(button.SpellHighlightTexture, button)
-		button.SpellHighlightTexture:SetDrawLayer("BACKGROUND", 1)
-		button.SpellHighlightTexture:SetTexture(core.media.textures.blank)
-	end
-	button:SetPushedTexture(core.media.textures.blank)
-	button:GetPushedTexture():SetVertexColor(unpack(core.config.color.pushed))
-	button:GetPushedTexture():SetBlendMode("ADD")
+-- 		core.util.set_outside(button.SpellHighlightTexture, button)
+-- 		button.SpellHighlightTexture:SetDrawLayer("BACKGROUND", 1)
+-- 		button.SpellHighlightTexture:SetTexture(core.media.textures.blank)
+-- 	end
+-- 	button:SetPushedTexture(core.media.textures.blank)
+-- 	button:GetPushedTexture():SetVertexColor(unpack(core.config.color.pushed))
+-- 	button:GetPushedTexture():SetBlendMode("ADD")
 
-	button:SetCheckedTexture(core.media.textures.blank)
-	button:GetCheckedTexture():SetVertexColor(unpack(core.config.color.selected))
+-- 	button:SetCheckedTexture(core.media.textures.blank)
+-- 	button:GetCheckedTexture():SetVertexColor(unpack(core.config.color.selected))
 
-	_G[button:GetDebugName().."IconTexture"]:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+-- 	_G[button:GetDebugName().."IconTexture"]:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
-	button.skinned = true
-end)
+-- 	button.skinned = true
+-- end)
 
 hooksecurefunc("UpdateProfessionButton", function(button)
 	button:GetHighlightTexture():SetTexture(core.media.textures.blank)
 	button:GetHighlightTexture():SetVertexColor(unpack(core.config.color.highlight))
 end)
 
-hooksecurefunc("SpellButton_UpdateButton", function(button)
-	if button.IconTextureBg then
-		button.IconTextureBg:Show()
-	end
+-- hooksecurefunc("SpellButton_UpdateButton", function(button)
+-- 	if button.IconTextureBg then
+-- 		button.IconTextureBg:Show()
+-- 	end
 	
-	if button.SpellName then
-		button.SpellName:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
-		button.SpellSubName:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
-		button.RequiredLevelString:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
-	end
+-- 	if button.SpellName then
+-- 		button.SpellName:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+-- 		button.SpellSubName:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
+-- 		button.RequiredLevelString:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
+-- 	end
 	
-	button:GetHighlightTexture():SetTexture(core.media.textures.blank)
-	button:GetHighlightTexture():SetVertexColor(unpack(core.config.color.highlight))
+-- 	button:GetHighlightTexture():SetTexture(core.media.textures.blank)
+-- 	button:GetHighlightTexture():SetVertexColor(unpack(core.config.color.highlight))
 	
-	if button.shine then
-		button.shine:SetAllPoints()
-	end
-end)
+-- 	if button.shine then
+-- 		button.shine:SetAllPoints()
+-- 	end
+-- end)
 
-hooksecurefunc("ReputationFrame_SetRowType", function(factionRow, isChild, isHeader, hasRep)
-	local factionRowName = factionRow:GetName()
-	_G[factionRowName.."Background"]:Hide()
-	_G[factionRowName.."ReputationBarLeftTexture"]:Hide()
-	_G[factionRowName.."ReputationBarRightTexture"]:Hide()
+-- hooksecurefunc("ReputationFrame_SetRowType", function(factionRow, isChild, isHeader, hasRep)
+-- 	local factionRowName = factionRow:GetName()
+-- 	_G[factionRowName.."Background"]:Hide()
+-- 	_G[factionRowName.."ReputationBarLeftTexture"]:Hide()
+-- 	_G[factionRowName.."ReputationBarRightTexture"]:Hide()
 	
-	local factionBar = _G[factionRowName.."ReputationBar"]
-	factionBar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
-	factionBar:SetStatusBarTexture(core.media.textures.blank)
-	core.util.gen_backdrop(factionBar)
-	factionBar:SetHeight(16)
+-- 	local factionBar = _G[factionRowName.."ReputationBar"]
+-- 	factionBar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
+-- 	factionBar:SetStatusBarTexture(core.media.textures.blank)
+-- 	core.util.gen_backdrop(factionBar)
+-- 	factionBar:SetHeight(16)
 
-	_G[factionRowName.."ReputationBarAtWarHighlight1"]:SetTexture(core.media.textures.blank)
-	_G[factionRowName.."ReputationBarAtWarHighlight1"]:SetVertexColor(1, 0.25, 0.25, 0.25)
-	_G[factionRowName.."ReputationBarAtWarHighlight2"]:SetTexture(nil)
+-- 	_G[factionRowName.."ReputationBarAtWarHighlight1"]:SetTexture(core.media.textures.blank)
+-- 	_G[factionRowName.."ReputationBarAtWarHighlight1"]:SetVertexColor(1, 0.25, 0.25, 0.25)
+-- 	_G[factionRowName.."ReputationBarAtWarHighlight2"]:SetTexture(nil)
 
-	_G[factionRowName.."ReputationBarHighlight1"]:SetTexture(core.media.textures.blank)
-	_G[factionRowName.."ReputationBarHighlight1"]:SetVertexColor(unpack(core.config.color.highlight))
-	_G[factionRowName.."ReputationBarHighlight1"]:SetAllPoints(factionRow)
-	_G[factionRowName.."ReputationBarHighlight2"]:SetTexture(nil)
-end)
+-- 	_G[factionRowName.."ReputationBarHighlight1"]:SetTexture(core.media.textures.blank)
+-- 	_G[factionRowName.."ReputationBarHighlight1"]:SetVertexColor(unpack(core.config.color.highlight))
+-- 	_G[factionRowName.."ReputationBarHighlight1"]:SetAllPoints(factionRow)
+-- 	_G[factionRowName.."ReputationBarHighlight2"]:SetTexture(nil)
+-- end)
 
 hooksecurefunc("PaperDollFrame_UpdateStats", function()
 	for frame in CharacterStatsPane.statsFramePool:EnumerateActive() do
@@ -1565,68 +1622,77 @@ hooksecurefunc("PanelTemplates_DeselectTab", function(tab)
 	tab.selected_texture:Hide()
 end)
 
-hooksecurefunc("PaperDollTitlesPane_Update", function()
-	local buttons = PaperDollTitlesPane.buttons
-	for i = 1, #buttons do
-		button = buttons[i]
-		if not button.skinned then
-			button.BgTop:SetTexture(nil)
-			button.BgBottom:SetTexture(nil)
-			button.BgMiddle:Hide()
-			button.SelectedBar:SetTexture(core.media.textures.blank)
-			button.SelectedBar:SetVertexColor(unpack(core.config.color.selected))
-			button:GetHighlightTexture():SetTexture(core.media.textures.blank)
-			button:GetHighlightTexture():SetVertexColor(unpack(core.config.color.highlight))
-			button.Check:SetTexture(nil)
-			button.text:SetPoint("LEFT", 3, 0)
+hooksecurefunc("PaperDollTitlesPane_InitButton", function(button)
+	-- PlayerTitleButtonTemplate
 
-			button.skinned = true
-		end
-	end
+	button.BgTop:Hide()
+	button.BgBottom:Hide()
+	button.BgMiddle:Hide()
+	button.Stripe:SetColorTexture(0.5, 0.5, 0.5, 1)
+	button.Check:SetTexture()
+
+	button.SelectedBar:SetColorTexture(unpack(core.config.color.checked))
+	button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+
+	button.text:SetPoint("LEFT", 3, 0)
+	core.util.fix_string(button.text, core.config.font_size_mini)
 end)
 
-hooksecurefunc("PaperDollEquipmentManagerPane_Update", function()
-	local buttons = PaperDollEquipmentManagerPane.buttons;
-	for i = 1, #buttons do
-		button = buttons[i]
-		if not button.skinned then
-			button.BgTop:SetTexture(nil)
-			button.BgBottom:SetTexture(nil)
-			button.BgMiddle:Hide()
-			button.SelectedBar:SetTexture(core.media.textures.blank)
-			button.SelectedBar:SetVertexColor(unpack(core.config.color.selected))
-			button.HighlightBar:SetTexture(core.media.textures.blank)
-			button.HighlightBar:SetVertexColor(unpack(core.config.color.highlight))
+hooksecurefunc("PaperDollEquipmentManagerPane_InitButton", function(button)
+	-- GearSetButtonTemplate
 
-			button.icon_bg = button:CreateTexture(nil, "Border")
-			button.icon_bg:SetTexture(core.media.textures.blank)
-			button.icon_bg:SetVertexColor(unpack(core.config.color.border))
-			core.util.set_outside(button.icon_bg, button.icon)
+	button.BgTop:Hide()
+	button.BgBottom:Hide()
+	button.BgMiddle:Hide()
+	button.Stripe:SetColorTexture(0.5, 0.5, 0.5, 1)
+	-- button.Check
+	core.util.fix_string(button.text, core.config.font_size_sml)
+	
+	button.SpecRing:SetColorTexture(unpack(core.config.color.border))
+	button.SpecRing:SetDrawLayer("OVERLAY", -4)
+	button.SpecIcon:ClearAllPoints()
+	button.SpecIcon:SetPoint("BOTTOMRIGHT", button.icon, "BOTTOMRIGHT", 2, -2)
+	core.util.set_outside(button.SpecRing, button.SpecIcon)
+	core.util.crop_icon(button.SpecIcon)
 
-			button.SpecRing:SetTexture(nil)
-			core.util.crop_icon(button.icon)
+	button.HighlightBar:SetColorTexture(unpack(core.config.color.highlight))
+	button.SelectedBar:SetColorTexture(unpack(core.config.color.checked))
 
-			button.skinned = true
-		end
-	end
+	core.util.crop_icon(button.icon)
+	button.icon_bg = button:CreateTexture(nil, "BORDER")
+	button.icon_bg:SetColorTexture(unpack(core.config.color.border))
+	core.util.set_outside(button.icon_bg, button.icon)
 end)
+
+hooksecurefunc("ReputationFrame_InitReputationRow", function(button)
+	-- ReputationBarTemplate
+
+	button.Container.Background:Hide()
+	button.Container.ReputationBar.AtWarHighlight1:SetColorTexture(1, 0.25, 0.25, 1)
+	button.Container.ReputationBar.AtWarHighlight2:SetTexture()
+
+	button.Container.ReputationBar.LeftTexture:Hide()
+	button.Container.ReputationBar.RightTexture:Hide()
+
+	button.Container.ReputationBar.Highlight1:SetColorTexture(unpack(core.config.color.highlight))
+	button.Container.ReputationBar.Highlight1:SetAllPoints(button)
+	button.Container.ReputationBar.Highlight2:SetTexture()
+	
+	core.util.gen_backdrop(button.Container.ReputationBar)
+	button.Container.ReputationBar:SetStatusBarTexture(core.media.textures.blank)
+	button.Container.ReputationBar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
+	button.Container.ReputationBar:SetHeight(16)
+end)
+
 
 hooksecurefunc("GearSetButton_SetSpecInfo", function(self, specID)
 	if ( specID and specID > 0 ) then
 		local _, _, _, texture = GetSpecializationInfoByID(specID);
 		self.SpecIcon:SetTexture(texture)
+		self.SpecIcon:ClearAllPoints()
+		self.SpecIcon:SetPoint("BOTTOMRIGHT", self.icon, "BOTTOMRIGHT", 2, -2)
 		core.util.crop_icon(self.SpecIcon)
-		if not self.spec_bg then
-			self.spec_bg = self:CreateTexture(nil, "OVERLAY", nil, -4)
-			self.spec_bg:SetTexture(core.media.textures.blank)
-			self.spec_bg:SetVertexColor(unpack(core.config.color.border))
-			core.util.set_outside(self.spec_bg, self.SpecIcon)
-		end
-		self.spec_bg:Show()
-	else
-		if self.spec_bg then
-			self.spec_bg:Hide()
-		end
+		core.util.set_outside(self.SpecRing, self.SpecIcon)
 	end
 end)
 
@@ -1668,33 +1734,24 @@ hooksecurefunc(MoneyDenominationDisplayMixin, "UpdateDisplayType", function(self
 end)
 
 local skin_token = function()
-
 	-- TokenFrame
-	core.util.gen_backdrop(TokenFrameContainer, unpack(core.config.frame_background_transparent))
-	core.util.fix_scrollbar(TokenFrameContainerScrollBar)
-	TokenFrameContainerScrollBar:SetPoint("TOPLEFT", TokenFrameContainer, "TOPRIGHT", 2, -16)
-	TokenFrameContainerScrollBar:SetPoint("BOTTOMLEFT", TokenFrameContainer, "BOTTOMRIGHT", 2, 16)
 
-	hooksecurefunc("TokenFrame_Update", function()
-		if not TokenFrameContainer.buttons then return end
-		local button
-		for i=1, #TokenFrameContainer.buttons do
-			button = TokenFrameContainer.buttons[i]
-			if not button.skinned then
-				button.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-				button.categoryLeft:SetTexture(nil)
-				button.categoryRight:SetTexture(nil)
-				button.categoryMiddle:SetTexture(nil)
-				button.stripe:SetTexture(nil)
-				button.highlight:SetVertexColor(unpack(core.config.color.highlight))
-				button.highlight.alt_SetTexture = button.highlight.SetTexture
-				hooksecurefunc(button.highlight, "SetTexture", function(self)
-					self:alt_SetTexture(core.media.textures.blank)
-				end)
-				button:SetHighlightTexture(core.media.textures.blank)
-				button.skinned = true
-			end
-		end
+	core.util.gen_backdrop(TokenFrame.ScrollBox, unpack(core.config.frame_background_transparent))
+	core.util.fix_scrollbar(TokenFrame.ScrollBar)
+	TokenFrame.ScrollBar:SetPoint("TOPLEFT", TokenFrame.ScrollBox, "TOPRIGHT")
+	TokenFrame.ScrollBar:SetPoint("BOTTOMLEFT", TokenFrame.ScrollBox, "BOTTOMRIGHT")
+
+	hooksecurefunc("TokenFrame_InitTokenButton", function(self, button)
+		-- TokenButtonTemplate
+
+		-- button.Stripe
+		core.util.crop_icon(button.Icon)
+
+		button.CategoryLeft:SetTexture()
+		button.CategoryRight:SetTexture()
+		button.CategoryMiddle:SetTexture()
+
+		button.Highlight:SetColorTexture(unpack(core.config.color.highlight))
 	end)
 end
 
@@ -1954,7 +2011,7 @@ if IsAddOnLoaded("Blizzard_TokenUI") then
 end
 
 if IsAddOnLoaded("Blizzard_TalentUI") then
-	skin_panel(PlayerTalentFrame)
+	-- skin_panel(PlayerTalentFrame)
 end
 
 if IsAddOnLoaded("Blizzard_Collections") then
@@ -2019,7 +2076,7 @@ loader:SetScript("OnEvent", function(self, event, addon)
 	if addon == "Blizzard_TokenUI" then
 		skin_token()
 	elseif addon == "Blizzard_TalentUI" then
-		skin_panel(PlayerTalentFrame)
+		-- skin_panel(PlayerTalentFrame)
 	elseif addon == "Blizzard_Collections" then
 		skin_panel(CollectionsJournal)
 	elseif addon == "Blizzard_FlightMap" then
