@@ -175,7 +175,6 @@ local skin_chat_frame = function(frame)
 	local bottom_flash = bottom.Flash
 
 	local scrollbar = frame.ScrollBar
-	local thumb = scrollbar.ThumbTexture -- $parentThumbTexture
 
 	local editbox = frame.editBox -- $parentEditBox
 	--header
@@ -225,11 +224,11 @@ local skin_chat_frame = function(frame)
 	bottom_flash:SetTexture()
 	skin_button(bottom, [[interface/buttons/arrow-down-down]], 0.05, 1.0, 0.0, 0.7)
 
-	scrollbar:SetWidth(20)
+	core.util.fix_scrollbar(scrollbar)
 
-	thumb:SetTexture(core.media.textures.blank)
-	thumb:SetWidth(18)
-	thumb:SetVertexColor(.5, .5, .5)
+	-- thumb:SetTexture(core.media.textures.blank)
+	-- thumb:SetWidth(18)
+	-- thumb:SetVertexColor(.5, .5, .5)
 
 	resize:SetSize(20, 20)
 	resize:HookScript("OnMouseUp", function(self)

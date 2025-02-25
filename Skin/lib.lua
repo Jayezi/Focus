@@ -35,6 +35,9 @@ lib.skin_input_scroller = function(scrollframe)
 end
 
 lib.skin_button = function(button, font_size)
+	if button.skinned then return end
+	button.skinned = true
+
 	if button.Left then button.Left:Hide() end
 	if button.Middle then button.Middle:Hide() end
 	if button.Right then button.Right:Hide() end
@@ -55,7 +58,25 @@ lib.skin_button = function(button, font_size)
 	if button:GetDisabledTexture() then button:GetDisabledTexture():SetTexture() end
 end
 
-lib.skin_icon_button = function(button, texture, ...)
+lib.skin_checkbox = function(box)
+	if box.skinned then return end
+	box.skinned = true
+
+	box.bg = box:CreateTexture(nil, "BACKGROUND")
+	box.bg:SetColorTexture(unpack(core.config.color.border))
+	core.util.set_outside(box.bg, box)
+
+	box:GetNormalTexture():SetColorTexture(unpack(core.config.color.background))
+	box:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+	box:GetCheckedTexture():SetColorTexture(unpack(core.config.color.checked_fill))
+
+	local pushed = box:GetPushedTexture()
+	if pushed then
+		pushed:SetColorTexture(unpack(core.config.color.pushed))
+	end
+end
+
+lib.skin_icon_button = function(button, texture, text, ...)
 	core.util.gen_backdrop(button)
 
 	local icon = texture or (button.Icon and button.Icon:GetTexture()) or (button:GetNormalTexture() and button:GetNormalTexture():GetTexture())
@@ -73,8 +94,15 @@ lib.skin_icon_button = function(button, texture, ...)
 		end
 	end
 
-	local normal = button:GetNormalTexture()
-	normal:SetTexture()
+	if text then
+		button.string = core.util.gen_string(button, core.config.font_size_lrg, nil, nil, "CENTER", "MIDDLE")
+		if button.Icon then button.Icon:Hide() end
+		button.string:SetPoint("CENTER", 1, 0)
+		button.string:SetText(text)
+	end
+
+	local normal = button:ClearNormalTexture()
+	--normal:SetTexture()
 
 	local pushed = button:GetPushedTexture()
 	core.util.set_inside(pushed, button)
@@ -104,6 +132,7 @@ lib.skin_stretchbutton = function(button, font_size, exclusions)
 
 	button:GetHighlightTexture():Show()
 	button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+
     core.util.set_inside(button:GetHighlightTexture(), button)
 end
 
@@ -118,7 +147,6 @@ lib.skin_itembutton = function(item, templates, w, h)
 	bg:SetColorTexture(unpack(core.config.color.background))
 	bg:SetAllPoints()
 
-	-- ItemButton
 	-- BORDER
 	local icon = item.icon
 	-- ARTWORK
@@ -135,6 +163,9 @@ lib.skin_itembutton = function(item, templates, w, h)
 	local search = item.searchOverlay
 	-- OVERLAY 5
 	local context = item.ItemContextOverlay
+
+	count:ClearAllPoints()
+	count:SetPoint("BOTTOMRIGHT", -2, 2)
 	
 	item:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
 	item:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
@@ -145,7 +176,8 @@ lib.skin_itembutton = function(item, templates, w, h)
 	
 	core.util.set_outside(border, icon)
 	border:SetDrawLayer("BACKGROUND", -8)
-	border:SetTexture(core.media.textures.blank)
+	--border:SetColorTexture(unpack(core.config.color.border))
+	border:Show()
 
 	overlay1:SetAllPoints()
 	overlay2:SetAllPoints()
@@ -154,11 +186,8 @@ lib.skin_itembutton = function(item, templates, w, h)
 		
 		if templates["LootButtonTemplate"] then
 
-			-- Layers
-
 			-- ARTWORK
 			local name = _G[item:GetName().."NameFrame"]
-
 			-- OVERLAY
 			local quest = _G[item:GetName().."IconQuestTexture"]
 			local text = _G[item:GetName().."Text"]
@@ -166,13 +195,59 @@ lib.skin_itembutton = function(item, templates, w, h)
 			quest:SetAllPoints(icon)
 		end
 
+		if templates["BankItemButtonBagTemplate"] then
+			
+			local highlight = item.SlotHighlightTexture
+
+			-- local cooldown = item.Cooldown -- $parentCooldown
+
+			highlight:SetTexture(core.media.textures.blank)
+			highlight:SetVertexColor(unpack(core.config.color.checked))
+		end
+
+		if templates["BankItemButtonGenericTemplate"] or templates["ReagentBankItemButtonGenericTemplate"] then
+
+			-- OVERLAY
+			local quest = item.IconQuestTexture
+
+			-- local cooldown = item.Cooldown -- $parentCooldown
+		
+			border.alt_SetTexture = border.SetTexture
+			hooksecurefunc(border, "SetTexture", function(self)
+				self:alt_SetTexture(core.media.textures.blank)
+			end)
+		
+			quest.letter = core.util.gen_string(item, core.config.font_size_lrg, nil, nil, "LEFT", "TOP", item:GetName().."QuestLetter")
+			quest.letter:SetText("Q")
+			quest.letter:SetTextColor(0.75, 0.75, 0)
+			quest.letter:SetAllPoints(icon)
+			quest.letter:Hide()
+			
+			quest:SetAllPoints(icon)
+
+			hooksecurefunc(quest, "SetTexture", function(self, texture)
+				if texture == TEXTURE_ITEM_QUEST_BORDER then
+					self.letter:Show()
+				else
+					self.letter:Hide()
+				end
+			end)
+
+			quest.alt_Hide = quest.Hide
+			hooksecurefunc(quest, "Show", function(self)
+				if self.letter:IsShown() then
+					self:alt_Hide()
+				end
+			end)
+
+			hooksecurefunc(quest, "Hide", function(self)
+				self.letter:Hide()
+			end)
+		end
+
 		if templates["ContainerFrameItemButtonTemplate"] then
 
-			-- Frames
-
-			local cooldown = _G[item:GetName().."Cooldown"] -- CooldownFrameTemplate
-
-			-- Animations
+			-- local cooldown = _G[item:GetName().."Cooldown"]
 
 			local new_anim = item.newitemglowAnim
 			local flash_anim = item.flashAnim
@@ -188,8 +263,6 @@ lib.skin_itembutton = function(item, templates, w, h)
 				end
 			end
 
-			-- Layers
-
 			-- OVERLAY 1
 			local upgrade = item.UpgradeIcon
 			-- OVERLAY 2
@@ -198,6 +271,7 @@ lib.skin_itembutton = function(item, templates, w, h)
 			local new = item.NewItemTexture
 			local battlepay = item.BattlepayItemTexture
 			local extended = item.ExtendedSlot
+			local bag = item.BagIndicator
 			-- OVERLAY 5
 			local junk = item.JunkIcon
 			
@@ -233,6 +307,9 @@ lib.skin_itembutton = function(item, templates, w, h)
 			hooksecurefunc(new, "SetAtlas", function(self)
 				self:SetTexture(core.media.textures.blank)
 			end)
+
+			bag:SetAllPoints()
+			bag:SetColorTexture(0, 0.5, 0.75, 0.3)
 		end
 
 	end
@@ -248,12 +325,15 @@ lib.skin_item_slot = function(item)
 			region:Hide()
 		end
 	end
+	item:GetHighlightTexture():Show()
 
 	_G[item:GetName().."Frame"]:Hide()
 
-	hooksecurefunc(item, "ResetAzeriteTextures", function(self)
-		self:SetHighlightTexture(core.media.textures.blank)
-	end)
+	if item.ResetAzeriteTextures then
+		hooksecurefunc(item, "ResetAzeriteTextures", function(self)
+			self:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+		end)
+	end
 
 	lib.skin_itembutton(item)
 end
@@ -295,34 +375,7 @@ lib.skin_help = function(button)
 	button:GetHighlightTexture():SetAllPoints(button.I)
 end
 
--- UIDropDownMenuTemplate
--- 		.Left
--- 		.Middle
--- 		.Right
--- 		.Text
--- 		.Icon
-
--- 		.Button
--- 			.NormalTexture
--- 			.PushedTexture
--- 			.DisabledTexture
--- 			.HighlightTexture
-lib.skin_dropdown = function(dropdown)
-
-	core.util.gen_backdrop(dropdown)
-
-	dropdown.Left:Hide()
-	dropdown.Middle:Hide()
-	dropdown.Right:Hide()
-
-	local button = dropdown.Button
-
-	dropdown.alt_SetHeight = dropdown.SetHeight
-	hooksecurefunc(dropdown, "SetHeight", function(self)
-		self:alt_SetHeight(24)
-	end)
-	dropdown:alt_SetHeight(24)
-
+lib.skin_dropdown_button = function(button)
 	button:ClearAllPoints()
 	button:SetPoint("TOPRIGHT")
 	button:SetSize(24, 24)
@@ -346,6 +399,37 @@ lib.skin_dropdown = function(dropdown)
 	disabled:SetTexture([[interface/buttons/arrow-down-disabled]])
 	disabled:SetTexCoord(-0.1, 1, -0.1, 0.65)
 	disabled:SetAllPoints(highlight)
+end
+
+-- UIDropDownMenuTemplate
+-- 		.Left
+-- 		.Middle
+-- 		.Right
+-- 		.Text
+-- 		.Icon
+
+-- 		.Button
+-- 			.NormalTexture
+-- 			.PushedTexture
+-- 			.DisabledTexture
+-- 			.HighlightTexture
+lib.skin_dropdown = function(dropdown)
+
+	core.util.gen_backdrop(dropdown)
+
+	dropdown.Left:Hide()
+	dropdown.Middle:Hide()
+	dropdown.Right:Hide()
+
+	dropdown.alt_SetHeight = dropdown.SetHeight
+	hooksecurefunc(dropdown, "SetHeight", function(self)
+		self:alt_SetHeight(24)
+	end)
+	dropdown:alt_SetHeight(24)
+
+	local button = dropdown.Button
+
+	lib.skin_dropdown_button(button)
 
 	dropdown.Text:ClearAllPoints()
 	dropdown.Text:SetPoint("LEFT")
@@ -356,4 +440,32 @@ lib.skin_dropdown = function(dropdown)
 	dropdown.Icon:ClearAllPoints()
 	dropdown.Icon:SetPoint("LEFT")
 	dropdown.Icon:SetPoint("RIGHT", button, "LEFT")
+end
+
+-- NavBarTemplate
+lib.skin_navbar = function(bar)
+	core.util.strip_textures(bar, true)
+	bar.overlay:Hide()
+
+	bar.overflow:GetNormalTexture():SetTexture()
+
+	bar.overflow:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+	bar.overflow:GetHighlightTexture():ClearAllPoints()
+	bar.overflow:GetHighlightTexture():SetPoint("TOPLEFT")
+	bar.overflow:GetHighlightTexture():SetPoint("BOTTOMRIGHT", -18, 0)
+	
+	bar.overflow:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
+	bar.overflow:GetPushedTexture():ClearAllPoints()
+	bar.overflow:GetPushedTexture():SetPoint("TOPLEFT")
+	bar.overflow:GetPushedTexture():SetPoint("BOTTOMRIGHT", -18, 0)
+
+	local left = core.util.gen_string(bar.overflow, 20, nil, nil, "CENTER", "MIDDLE")
+	left:SetPoint("CENTER", bar.overflow:GetHighlightTexture(), "CENTER")
+	left:SetText("<")
+
+	core.util.strip_textures(bar.home, true, {bar.home:GetHighlightTexture()})
+	bar.home:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+	bar.home:GetHighlightTexture():ClearAllPoints()
+	bar.home:GetHighlightTexture():SetPoint("TOPLEFT")
+	bar.home:GetHighlightTexture():SetPoint("BOTTOMRIGHT", -15, 0)
 end

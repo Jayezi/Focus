@@ -1,21 +1,52 @@
 local _, addon = ...
-if not addon.skin.enabled then return end
+
 local core = addon.core
 local lib = addon.skin.lib
 
 local hooksecurefunc = hooksecurefunc
 
+-- TODO use ClearNormalTexture etc
+do
+	local panel = ScriptErrorsFrame
+	core.util.fix_string(panel.Title, core.config.font_size_med)
+
+	core.util.strip_textures(panel, true)
+	panel:SetScale(core.config.ui_scale)
+	panel:SetSize(500, 300)
+	panel.DragArea:ClearAllPoints()
+	panel.DragArea:SetPoint("TOPLEFT")
+	panel.DragArea:SetPoint("TOPRIGHT")
+	panel.DragArea:SetHeight(30)
+
+	panel.ScrollFrame:SetSize(490, 220)
+	panel.ScrollFrame:SetPoint("TOPLEFT", 5, -30)
+
+	panel.ScrollFrame.Text:SetSize(490, 220)
+	core.util.fix_string(panel.ScrollFrame.Text, core.config.font_size_med)
+
+	core.util.fix_scrollbar(panel.ScrollFrame.ScrollBar)
+
+	panel:ClearAllPoints()
+	panel:SetPoint("BOTTOMLEFT")
+	core.util.gen_backdrop(panel)
+
+	lib.skin_button(panel.Close)
+	lib.skin_button(panel.Reload)
+end
+
+if not addon.skin.enabled then return end
+
 local panels = {
-	ScriptErrorsFrame,
 	CharacterFrame,
 	SpellBookFrame,
-	-- PVEFrame,
-	-- GossipFrame,
-	-- FriendsFrame,
-	-- QuestFrame,
-	-- GameMenuFrame,
-	-- MerchantFrame,
-	-- MailFrame
+	PVEFrame,
+	GossipFrame,
+	QuestFrame,
+	FriendsFrame,
+	GameMenuFrame,
+	MerchantFrame,
+	MailFrame,
+	TalkingHeadFrame,
 }
 
 local role_texts = {}
@@ -40,28 +71,31 @@ skin_panel = function(panel, nested)
 	if type == "InsetFrameTemplate" then
 		if panel.Bg then panel.Bg:Hide() end
 		if panel.Background then panel.Background:Hide() end
-		panel.NineSlice:Hide()
+		if panel.NineSlice then panel.NineSlice:Hide() end
 	elseif type == "Dialog" then
 		core.util.strip_textures(panel, true)
 	elseif type == "SimplePanelTemplate" then
 		panel.Bg:Hide()
 		panel.NineSlice:Hide()
 		core.util.gen_backdrop(panel, unpack(core.config.frame_background_transparent))
-	elseif type == "PortraitFrameTemplate" or type == "PortraitFrameTemplateMinimizable" then
+	elseif type == "PortraitFrameTemplate" or type == "PortraitFrameTemplateMinimizable" or type == "HeldBagLayout" then
 		-- PortraitFrameBaseTemplate
 		panel.NineSlice:Hide()
 
-		panel.portrait_bg = panel:CreateTexture(nil, "OVERLAY", nil, -3)
-		panel.portrait_bg:SetColorTexture(unpack(core.config.color.light_border))
-		core.util.set_outside(panel.portrait_bg, panel.PortraitContainer.portrait)
-		-- core.util.circle_mask(panel, panel.portrait_bg)
-		core.util.circle_mask(panel, panel.portrait_bg, 3)
-		core.util.circle_mask(panel, panel.PortraitContainer.portrait, 3)
+		panel.PortraitContainer.portrait:ClearAllPoints()
+		panel.PortraitContainer.portrait:SetPoint("TOPLEFT", -10, 10)
+		panel.PortraitContainer.bg = panel.PortraitContainer:CreateTexture(nil, "OVERLAY", nil, -2)
+		panel.PortraitContainer.bg:SetColorTexture(unpack(core.config.color.light_border))
+		core.util.set_outside(panel.PortraitContainer.bg, panel.PortraitContainer.portrait)
+
+		panel.PortraitContainer.portrait.mask = panel.PortraitContainer.CircleMask
+		core.util.circle_mask(panel.PortraitContainer, panel.PortraitContainer.portrait, 3)
+		core.util.circle_mask(panel.PortraitContainer, panel.PortraitContainer.bg, 3)
 		hooksecurefunc(panel, "SetPortraitShown", function(self, shown)
 			if shown then
-				panel.portrait_bg:Show()
+				panel.PortraitContainer.bg:Show()
 			else
-				panel.portrait_bg:Hide()
+				panel.PortraitContainer.bg:Hide()
 			end
 		end)
 		
@@ -70,31 +104,23 @@ skin_panel = function(panel, nested)
 		-- ButtonFrameTemplate
 		if panel.Bg then
 			panel.Bg:Hide()
-			panel.Bg:SetTexture(nil)
+			if panel.Bg.SetTexture then
+				panel.Bg:SetTexture()
+			end
 		end
 
 		if panel.TopTileStreaks then
 			panel.TopTileStreaks:Hide()
-			panel.TopTileStreaks:SetTexture(nil)
+			panel.TopTileStreaks:SetTexture()
 		end
 
 		if panel.CloseButton then
-			panel.CloseButton:GetNormalTexture():SetTexture()
-			panel.CloseButton:GetDisabledTexture():SetTexture()
-			panel.CloseButton:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
-			panel.CloseButton:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
-			panel.CloseButton:SetSize(22, 22)
-			panel.CloseButton:SetPoint("TOPRIGHT", -1, -1)
-
-			local x = core.util.gen_string(panel.CloseButton, 20, nil, nil, "CENTER", "MIDDLE")
-			x:SetPoint("CENTER", 1, 0)
-			x:SetText("x")
+			panel.CloseButton:ClearAllPoints()
+			panel.CloseButton:SetPoint("TOPRIGHT", -3, -3)
+			lib.skin_icon_button(panel.CloseButton, nil, "x")
 		end
-		
-		if name == "CharacterFrame" then
 
-			-- core.util.circle_mask(panel, panel.portrait_bg, 3)
-			-- core.util.circle_mask(panel, panel.PortraitContainer.portrait, 3)
+		if name == "CharacterFrame" then
 
 			-- skinned by PanelTemplates_SelectTab/PanelTemplates_DeselectTab
 			for t = 1, 3 do
@@ -195,8 +221,9 @@ skin_panel = function(panel, nested)
 			ReputationFrame.ScrollBar:SetPoint("BOTTOMLEFT", ReputationFrame.ScrollBox, "BOTTOMRIGHT")
 
 			-- ReputationDetailFrame
+			ReputationDetailFrame.alt_SetHeight = ReputationDetailFrame.SetHeight
 			hooksecurefunc(ReputationDetailFrame, "SetHeight", function()
-				ReputationDetailFrame:SetHeight(250)
+				ReputationDetailFrame:alt_SetHeight(250)
 			end)
 			ReputationDetailAtWarCheckBox:SetPoint("TOPLEFT", 5, -195)
 			core.util.strip_textures(ReputationDetailFrame, true)
@@ -214,14 +241,40 @@ skin_panel = function(panel, nested)
 
 			InspectFrameTab3:ClearAllPoints()
 			InspectFrameTab3:SetPoint("TOPLEFT", InspectFrameTab2, "TOPRIGHT", -1, 0)
-			
-			InspectFrameTab4:ClearAllPoints()
-			InspectFrameTab4:SetPoint("TOPLEFT", InspectFrameTab3, "TOPRIGHT", -1, 0)
+
+			lib.skin_button(InspectPaperDollFrame.ViewButton)
+			lib.skin_button(InspectPaperDollItemsFrame.InspectTalents)
+
+			InspectModelFrameBorderTopLeft:Hide()
+			InspectModelFrameBorderTopRight:Hide()
+			InspectModelFrameBorderBottomLeft:Hide()
+			InspectModelFrameBorderBottomRight:Hide()
+			InspectModelFrameBorderLeft:Hide()
+			InspectModelFrameBorderRight:Hide()
+			InspectModelFrameBorderTop:Hide()
+			InspectModelFrameBorderBottom:Hide()
+			InspectModelFrameBorderBottom2:Hide()
+
+			lib.skin_item_slot(InspectHeadSlot)
+			lib.skin_item_slot(InspectNeckSlot)
+			lib.skin_item_slot(InspectShoulderSlot)
+			lib.skin_item_slot(InspectBackSlot)
+			lib.skin_item_slot(InspectChestSlot)
+			lib.skin_item_slot(InspectShirtSlot)
+			lib.skin_item_slot(InspectTabardSlot)
+			lib.skin_item_slot(InspectWristSlot)
+			lib.skin_item_slot(InspectHandsSlot)
+			lib.skin_item_slot(InspectWaistSlot)
+			lib.skin_item_slot(InspectLegsSlot)
+			lib.skin_item_slot(InspectFeetSlot)
+			lib.skin_item_slot(InspectFinger0Slot)
+			lib.skin_item_slot(InspectFinger1Slot)
+			lib.skin_item_slot(InspectTrinket0Slot)
+			lib.skin_item_slot(InspectTrinket1Slot)
+			lib.skin_item_slot(InspectMainHandSlot)
+			lib.skin_item_slot(InspectSecondaryHandSlot)
 
 		elseif name == "SpellBookFrame" then
-
-			-- core.util.circle_mask(panel, panel.portrait_bg, 3)
-			-- core.util.circle_mask(panel, panel.PortraitContainer.portrait, 3)
 			
 			SpellBookPage1:Hide()
 			SpellBookPage2:Hide()
@@ -229,22 +282,69 @@ skin_panel = function(panel, nested)
 			lib.skin_help(SpellBookFrame.MainHelpButton)
 
 			-- skinned by PanelTemplates_SelectTab/PanelTemplates_DeselectTab
-			for t = 1, 5 do
-				local tab = _G["SpellBookFrameTabButton"..t]
-				tab:ClearAllPoints()
-				if t == 1 then
-					tab:SetPoint("TOPLEFT", SpellBookFrame, "BOTTOMLEFT", 0, 1)
-				else
-					tab:SetPoint("TOPLEFT", _G["SpellBookFrameTabButton"..(t - 1)], "TOPRIGHT", -1, 0)
+			local anchor_tabs = function()
+				for t = 1, 5 do
+					local tab = _G["SpellBookFrameTabButton"..t]
+					tab:ClearAllPoints()
+					if t == 1 then
+						tab:SetPoint("TOPLEFT", SpellBookFrame, "BOTTOMLEFT", 0, 1)
+					else
+						tab:SetPoint("TOPLEFT", _G["SpellBookFrameTabButton"..(t - 1)], "TOPRIGHT", -1, 0)
+					end
 				end
 			end
+			hooksecurefunc("SpellBookFrame_Update", anchor_tabs)
+			anchor_tabs()
 
 			-- SpellBookPageNavigationFrame
-			SpellBookPageText:SetTextColor(1, 1, 1)
-			-- SpellBookPrevPageButton
-			-- SpellBookNextPageButton
+			core.util.fix_string(SpellBookPageText, core.config.font_size_med)
+			SpellBookPageText:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
+			SpellBookPageText:SetPoint("TOPRIGHT", SpellBookPrevPageButton, "TOPLEFT", -5, 0)
+			SpellBookPageText:SetPoint("BOTTOMRIGHT", SpellBookPrevPageButton, "BOTTOMLEFT", -5, 0)
+
+			lib.skin_icon_button(SpellBookNextPageButton, nil, ">")
+			SpellBookNextPageButton:SetPoint("BOTTOMRIGHT", -3, 3)
+
+			lib.skin_icon_button(SpellBookPrevPageButton, nil, "<")
+			SpellBookPrevPageButton:SetPoint("BOTTOMRIGHT", SpellBookNextPageButton, "BOTTOMLEFT", -1, 0)
 
 			-- SpellBookSpellIconsFrame
+			for i = 1, SPELLS_PER_PAGE do
+				local button = _G["SpellButton"..i]
+
+				-- SpellButtonTemplate
+				core.util.set_outside(button.EmptySlot, button)
+				button.EmptySlot:SetColorTexture(unpack(core.config.color.border))
+
+				button.TextBackground:Hide()
+				button.TextBackground2:Hide()
+
+				button.IconTextureBg:SetColorTexture(unpack(core.config.color.background))
+
+				core.util.crop_icon(button.IconTexture)
+				
+				core.util.fix_string(button.SpellName, core.config.font_size_sml)
+				core.util.fix_string(button.SpellSubName, core.config.font_size_sml)
+				core.util.fix_string(button.RequiredLevelString, core.config.font_size_sml)
+				core.util.fix_string(button.SeeTrainerString, core.config.font_size_sml)
+
+				_G["SpellButton"..i.."SlotFrame"]:SetTexture()
+				button.UnlearnedFrame:SetTexture()
+
+				local r, g, b = unpack(core.config.color.highlight)
+				button.SpellHighlightTexture:SetColorTexture(r, g, b, 1)
+				button.SpellHighlightTexture:SetDrawLayer("BORDER", 1)
+				button.SpellHighlightTexture:SetAllPoints(button.EmptySlot)
+				
+				button:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
+				
+				hooksecurefunc(button, "UpdateButton", function(self)
+					button.SpellSubName:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
+					button.IconTextureBg:Show()
+					button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+					button:GetCheckedTexture():SetColorTexture(unpack(core.config.color.selected))
+				end)
+			end
 
 			-- SpellBookSideTabsFrame
 			for t = 1, MAX_SKILLLINE_TABS do
@@ -288,10 +388,13 @@ skin_panel = function(panel, nested)
 					local button = prof["SpellButton"..b]
 					-- button.subSpellString:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
 
+					core.util.crop_icon(button.IconTexture)
 					_G[button:GetName().."NameFrame"]:SetColorTexture(unpack(core.config.color.border))
 					core.util.set_outside(_G[button:GetName().."NameFrame"], button)
 					
-					-- button:GetPushedTexture():SetBlendMode("ADD")
+					button:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
+					button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+					button:GetCheckedTexture():SetColorTexture(unpack(core.config.color.selected))
 				end
 				prof.SpellButton2:SetPoint("TOPRIGHT", -109, 0)
 				prof.SpellButton1:SetPoint("TOPLEFT", prof.SpellButton2, "BOTTOMLEFT", 0, -3)
@@ -319,10 +422,13 @@ skin_panel = function(panel, nested)
 					local button = prof["SpellButton"..b]
 					-- button.subSpellString:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
 
+					core.util.crop_icon(button.IconTexture)
 					_G[button:GetName().."NameFrame"]:SetColorTexture(unpack(core.config.color.border))
 					core.util.set_outside(_G[button:GetName().."NameFrame"], button)
 					
-					-- button:GetPushedTexture():SetBlendMode("ADD")
+					button:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
+					button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+					button:GetCheckedTexture():SetColorTexture(unpack(core.config.color.selected))
 				end
 				
 				prof.statusBar:SetPoint("BOTTOMLEFT", -14, 0)
@@ -335,218 +441,85 @@ skin_panel = function(panel, nested)
 				prof.statusBar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
 				core.util.gen_backdrop(prof.statusBar)
 
-				-- prof.missingText:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
+				prof.missingHeader:SetTextColor(WHITE_FONT_COLOR.r / 2, WHITE_FONT_COLOR.g / 2, WHITE_FONT_COLOR.b / 2)
+				core.util.fix_string(prof.missingText, core.config.font_size_sml)
+				prof.missingText:SetTextColor(WHITE_FONT_COLOR.r / 2, WHITE_FONT_COLOR.g / 2, WHITE_FONT_COLOR.b / 2)
 			end
 		
-		elseif name == "PlayerTalentFrame" then
+		elseif name == "ClassTalentFrame" then
 
-			core.util.set_outside(panel.portrait_bg, panel.portrait, -2)
-
-			hooksecurefunc("PlayerTalentFrame_UpdateTabs", function()
-				for t = 1, 3 do
-					local tab = _G["PlayerTalentFrameTab"..t]
-					tab:ClearAllPoints()
-					if t == 1 then
-						tab:SetPoint("TOPLEFT", PlayerTalentFrame, "BOTTOMLEFT", 0, 1)
+			ClassTalentFrame.TabSystem:SetPoint("TOPLEFT", ClassTalentFrame, "BOTTOMLEFT", 0, 1)
+			hooksecurefunc(ClassTalentFrame.TabSystem, "LayoutChildren", function(self, children)
+				local prev
+				for i, child in ipairs(children) do
+					--lib.skin_tab(child)
+					child:ClearAllPoints()
+					if prev then
+						child:SetPoint("TOPLEFT", prev, "TOPRIGHT", -1, 0)
 					else
-						tab:SetPoint("TOPLEFT", _G["PlayerTalentFrameTab"..(t - 1)], "TOPRIGHT", -1, 0)
+						child:SetPoint("TOPLEFT", self, "TOPLEFT")
 					end
+					prev = child
 				end
 			end)
 
-			local skin_spec_spell = function(spell)
-				spell.ring:ClearAllPoints()
-				spell.ring:SetPoint("CENTER")
-				spell.ring:SetColorTexture(unpack(core.config.color.border))
-				spell.ring:SetDrawLayer("ARTWORK", -1)
-				spell.ring:SetSize(spell.icon:GetWidth(), spell.icon:GetHeight())
-				core.util.circle_mask(spell, spell.ring, 2)
-				core.util.circle_mask(spell, spell.icon, 3)
-			end
+			-- ClassTalentFrame.TalentsTab
+			-- ClassTalentTalentsTabTemplate
 
-			local skin_spec_frame = function(spec)
-				core.util.strip_textures(spec, true)
-				lib.skin_help(spec.MainHelpButton)
-				lib.skin_button(spec.learnButton)
-				spec.learnButton.Flash:SetColorTexture(unpack(core.config.color.selected))
-				core.util.set_inside(spec.learnButton.Flash, spec.learnButton)
-
-				for t = 1, 5 do
-					local tab = spec["specButton"..t]
-					local glow = _G[tab:GetName().."Glow"]
-					tab.bg:Hide()
-
-					tab.specIcon:SetPoint("CENTER", tab.ring)
-
-					tab.ring:SetColorTexture(unpack(core.config.color.border))
-					tab.ring:SetDrawLayer("ARTWORK", -1)
-					tab.ring:SetSize(tab.specIcon:GetWidth(), tab.specIcon:GetHeight())
-					tab.ring:SetPoint("LEFT", 2, 0)
-					core.util.circle_mask(tab, tab.ring, 2)
-
-					tab.specName:SetPoint("TOPLEFT", tab.ring, "TOPRIGHT", 10, -20)
-
-					tab.selectedTex:SetColorTexture(unpack(core.config.color.pushed))
-					tab.selectedTex:SetAllPoints()
-
-					tab.learnedTex:SetColorTexture(unpack(core.config.color.selected))
-					tab.learnedTex:SetAllPoints()
-					tab.learnedTex:SetDrawLayer("ARTWORK", -2)
-
-					tab:SetHighlightTexture(core.media.textures.blank)
-					tab:GetHighlightTexture():SetVertexColor(unpack(core.config.color.highlight))
-					tab:GetHighlightTexture():SetAllPoints()
-
-					glow:SetAllPoints(tab)
-					glow:SetColorTexture(unpack(core.config.color.highlight))
-
-					tab:SetHeight(tab.specIcon:GetHeight())
-				end
-				for _, child in ipairs({spec:GetChildren()}) do
-					if not child:GetName() then
-						child:Hide()
-					end
-				end
-				local scroll = spec.spellsScroll
-				core.util.strip_textures(scroll, true)
-				core.util.fix_scrollbar(scroll.ScrollBar)
-				scroll.child.gradient:Hide()
-				scroll.child.scrollwork_topleft:Hide()
-				scroll.child.scrollwork_topright:Hide()
-				scroll.child.scrollwork_bottomleft:Hide()
-				scroll.child.scrollwork_bottomright:Hide()
-
-				scroll.child.ring:SetColorTexture(unpack(core.config.color.border))
-				scroll.child.ring:SetDrawLayer("BORDER", 2)
-				core.util.circle_mask(scroll.child, scroll.child.ring, 2)
-				scroll.child.ring:SetSize(scroll.child.specIcon:GetWidth(), scroll.child.specIcon:GetHeight())
-
-				core.util.circle_mask(scroll.child, scroll.child.specIcon, 3)
-				scroll.child.specIcon:SetPoint("CENTER", scroll.child.ring)
-				scroll.child.specName:SetPoint("BOTTOMLEFT", scroll.child.ring, "RIGHT", 10, 3)
-				scroll.child.Seperator:SetColorTexture(unpack(core.player.color))
-				skin_spec_spell(scroll.child.abilityButton1)
-			end
-		
-			-- PlayerTalentFrameSpecialization
-			-- PlayerTalentFramePetSpecialization
-			skin_spec_frame(PlayerTalentFrameSpecialization)
-			skin_spec_frame(PlayerTalentFramePetSpecialization)
-
-			hooksecurefunc("PlayerTalentFrame_UpdateSpecFrame", function(self, spec)
-				for t = 1, 5 do
-					local tab = self["specButton"..t]
-					core.util.circle_mask(tab, tab.specIcon, 3)
-				end
-			end)
-
-			hooksecurefunc("PlayerTalentFrame_CreateSpecSpellButton", function(self, index)
-				skin_spec_spell(self.spellsScroll.child["abilityButton"..index])
-			end)
-
-			-- PlayerTalentFrameTalents
-			core.util.strip_textures(PlayerTalentFrameTalents, true)
-			lib.skin_help(PlayerTalentFrameTalents.MainHelpButton)
+			ClassTalentFrame.TalentsTab.BlackBG:Hide()
+			ClassTalentFrame.TalentsTab.BottomBar:Hide()
 			
-			for r = 1, MAX_TALENT_TIERS do
-				local row = PlayerTalentFrameTalents["tier"..r]
-				core.util.strip_textures(row, true)
-				row.GlowFrame.TopGlowLine:SetColorTexture(unpack(core.config.color.highlight))
-				row.GlowFrame.TopGlowLine:SetAllPoints()
-				row.GlowFrame.BottomGlowLine:Hide()
-
-				for t = 1, NUM_TALENT_COLUMNS do
-					local talent = row["talent"..t]
-					talent.GlowFrame.TopGlowLine:SetColorTexture(unpack(core.config.color.highlight))
-					talent.GlowFrame.TopGlowLine:SetAllPoints()
-					talent.GlowFrame.BottomGlowLine:Hide()
-
-					talent.Slot:SetColorTexture(unpack(core.config.color.border))
-					talent.Slot:SetDrawLayer("BACKGROUND", -1)
-					core.util.set_outside(talent.Slot, talent.icon)
-
-					talent.knownSelection:SetAllPoints()
-					talent.knownSelection:SetDrawLayer("BACKGROUND", -2)
-
-					talent.highlight:SetTexture(core.media.textures.blank)
-					talent.highlight:SetAllPoints()
-
+			hooksecurefunc(ClassTalentFrame.TalentsTab, "SetBackgroundAnimationsPlaying", function(self)
+				for _, group in ipairs(self.backgroundAnims) do
+					group:Stop()
 				end
-			end
+			end)
 
-			-- PlayerTalentFrameTalentsPvpTalentFrame
-			core.util.strip_textures(PlayerTalentFrameTalents.PvpTalentFrame, true, {
-				PlayerTalentFrameTalents.PvpTalentFrame.Swords,
+			lib.skin_dropdown(ClassTalentFrame.TalentsTab.LoadoutDropDown.DropDownControl.DropDownMenu)
+			core.util.fix_editbox(ClassTalentFrame.TalentsTab.SearchBox)
+			lib.skin_button(ClassTalentFrame.TalentsTab.ApplyButton)
+			lib.skin_button(ClassTalentFrame.TalentsTab.InspectCopyButton)
+
+			core.util.strip_textures(ClassTalentFrame.TalentsTab.WarmodeButton, true, {
+				ClassTalentFrame.TalentsTab.WarmodeButton.Swords,
 			})
-			
-			hooksecurefunc(PlayerTalentFrameTalents.PvpTalentFrame, "UpdateModelScene", function(self, scene)
-				scene:Hide()
-			end)
 
-			PlayerTalentFrameTalents.PvpTalentFrame.Swords:SetSize(PlayerTalentFrameTalents.PvpTalentFrame.Swords:GetWidth() * 1.5, PlayerTalentFrameTalents.PvpTalentFrame.Swords:GetHeight() * 1.5)
-			PlayerTalentFrameTalents.PvpTalentFrame.InvisibleWarmodeButton:SetAllPoints(PlayerTalentFrameTalents.PvpTalentFrame.Swords)
-			PlayerTalentFrameTalents.PvpTalentFrame.WarmodeIncentive:SetPoint("CENTER", PlayerTalentFrameTalents.PvpTalentFrame.InvisibleWarmodeButton, "BOTTOM")
+			ClassTalentFrame.TalentsTab.WarmodeButton.Swords:ClearAllPoints()
+			ClassTalentFrame.TalentsTab.WarmodeButton.Swords:SetPoint("CENTER")
+			ClassTalentFrame.TalentsTab.WarmodeButton.Swords:SetSize(ClassTalentFrame.TalentsTab.WarmodeButton.Swords:GetWidth() * 1.5, ClassTalentFrame.TalentsTab.WarmodeButton.Swords:GetHeight() * 1.5)
+			ClassTalentFrame.TalentsTab.WarmodeButton.WarmodeIncentive:ClearAllPoints()
+			ClassTalentFrame.TalentsTab.WarmodeButton.WarmodeIncentive:SetPoint("BOTTOM", ClassTalentFrame.TalentsTab.WarmodeButton.Swords)
 
-			PlayerTalentFrameTalents.PvpTalentFrame.WarmodeIncentive.CircleMask:Hide()
-			PlayerTalentFrameTalents.PvpTalentFrame.WarmodeIncentive.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-			PlayerTalentFrameTalents.PvpTalentFrame.WarmodeIncentive.IconRing:SetDrawLayer("ARTWORK", -1)
-			PlayerTalentFrameTalents.PvpTalentFrame.WarmodeIncentive.IconRing:SetTexture(core.media.textures.blank)
-			PlayerTalentFrameTalents.PvpTalentFrame.WarmodeIncentive.IconRing:SetVertexColor(unpack(core.config.color.border))
-			core.util.set_outside(PlayerTalentFrameTalents.PvpTalentFrame.WarmodeIncentive.IconRing, PlayerTalentFrameTalents.PvpTalentFrame.WarmodeIncentive)
+			ClassTalentFrame.TalentsTab.WarmodeButton.WarmodeIncentive.CircleMask:Hide()
+			ClassTalentFrame.TalentsTab.WarmodeButton.WarmodeIncentive.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+			ClassTalentFrame.TalentsTab.WarmodeButton.WarmodeIncentive.IconRing:SetDrawLayer("ARTWORK", -1)
+			ClassTalentFrame.TalentsTab.WarmodeButton.WarmodeIncentive.IconRing:SetTexture(core.media.textures.blank)
+			ClassTalentFrame.TalentsTab.WarmodeButton.WarmodeIncentive.IconRing:SetVertexColor(unpack(core.config.color.border))
+			core.util.set_outside(ClassTalentFrame.TalentsTab.WarmodeButton.WarmodeIncentive.IconRing, ClassTalentFrame.TalentsTab.WarmodeButton.WarmodeIncentive)
 
-			for s = 1, 3 do
-				-- PvpTalentSlotTemplate
-				local talent = PlayerTalentFrameTalents.PvpTalentFrame["TalentSlot"..s]
-				talent.Border:SetDrawLayer("BACKGROUND", -1)
-				talent.Texture:SetSize(40, 40)
-				talent.TalentName:SetSize(130, 15)
-				talent.TalentName:SetPoint("TOP", talent.Border, "BOTTOM")
-				core.util.set_outside(talent.Border, talent.Texture)
-				core.util.circle_mask(talent, talent.Border, 3)
-				core.util.circle_mask(talent, talent.Texture, 3)
-			end
+			ClassTalentFrame.SpecTab.BlackBG:Hide()
+			ClassTalentFrame.SpecTab.Background:Hide()
 
-			-- PlayerTalentFrameTalentsPvpTalentFrame.TalentList.ScrollFrame
-			for _, child in ipairs({PlayerTalentFrameTalentsPvpTalentFrame.TalentList:GetChildren()}) do
-				if child.Left then
-					lib.skin_button(child)
-				end
-			end
-			
-			-- PvpTalentButtonTemplate
-			local buttons = PlayerTalentFrameTalentsPvpTalentFrame.TalentList.ScrollFrame.buttons
-			for i = 1, #buttons do
-				local button = buttons[i]
+			hooksecurefunc(ClassTalentFrame.SpecTab, "UpdateSpecContents", function(self)
+				for frame in self.SpecContentFramePool:EnumerateActive() do
+					if not frame.skinned then
+						frame.skinned = true
+						frame.ColumnDivider:SetTexture()
+						--frame.SelectedBackgroundBack1:SetTexture()
+						frame.SelectedBackgroundBack2:SetTexture()
+						frame.SelectedBackgroundLeft1:SetTexture()
+						frame.SelectedBackgroundLeft2:SetTexture()
+						frame.SelectedBackgroundLeft3:SetTexture()
+						frame.SelectedBackgroundLeft4:SetTexture()
+						frame.SelectedBackgroundRight1:SetTexture()
+						frame.SelectedBackgroundRight2:SetTexture()
+						frame.SelectedBackgroundRight3:SetTexture()
+						frame.SelectedBackgroundRight4:SetTexture()
 
-				local bg
-				for _, region in ipairs({button:GetRegions()}) do
-					if region:GetDrawLayer() == "BACKGROUND" then
-						bg = region
+						lib.skin_button(frame.ActivateButton)
 					end
 				end
-
-				bg:SetTexture(core.media.textures.blank)
-				bg:SetVertexColor(unpack(core.config.color.border))
-				core.util.set_outside(bg, button.Icon)
-				button.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-
-				button.Selected:SetTexture(core.media.textures.blank)
-				button.Selected:SetVertexColor(unpack(core.config.color.selected))
-
-				button:SetHighlightTexture(core.media.textures.blank)
-				button:GetHighlightTexture():SetVertexColor(unpack(core.config.color.highlight))
-			end
-			
-			for _, child in ipairs({PlayerTalentFrameTalentsPvpTalentFrame.TalentList:GetChildren()}) do
-				if child:GetObjectType() == "Button" then
-					child:SetPoint("BOTTOM", 0, 2)
-				end
-			end
-
-			core.util.fix_scrollbar(PlayerTalentFrameTalentsPvpTalentFrame.TalentList.ScrollFrame.ScrollBar)
-			PlayerTalentFrameTalentsPvpTalentFrame.TalentList.ScrollFrame.ScrollBar:SetPoint("TOPLEFT", PlayerTalentFrameTalentsPvpTalentFrame.TalentList.ScrollFrame, "TOPRIGHT", -2, -15)
-			PlayerTalentFrameTalentsPvpTalentFrame.TalentList.ScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", PlayerTalentFrameTalentsPvpTalentFrame.TalentList.ScrollFrame, "BOTTOMRIGHT", -2, 15)
-			core.util.gen_backdrop(PlayerTalentFrameTalentsPvpTalentFrame.TalentList.Inset, unpack(core.config.frame_background_transparent))
+			end)
 		
 		elseif name == "FriendsFrame" then
 
@@ -571,9 +544,9 @@ skin_panel = function(panel, nested)
 				end
 			end
 
-			core.util.set_outside(panel.portrait_bg, FriendsFrameIcon)
-			core.util.circle_mask(panel, panel.portrait_bg, 4)
-			core.util.circle_mask(panel, FriendsFrameIcon, 4)
+			panel.PortraitContainer.bg:SetParent(panel)
+			core.util.set_outside(panel.PortraitContainer.bg, FriendsFrameIcon)
+			core.util.circle_mask(panel, FriendsFrameIcon, 3)
 
 			FriendsFrameIcon:ClearAllPoints()
 			FriendsFrameIcon:SetPoint("CENTER", panel, "TOPLEFT", 20, -20)
@@ -586,46 +559,48 @@ skin_panel = function(panel, nested)
 			FriendsFrameStatusDropDown:SetWidth(45)
 
 			hooksecurefunc(FriendsFrameBattlenetFrame.BroadcastFrame, "ShowFrame", function()
-				FriendsFrameBattlenetFrame.BroadcastButton:SetNormalTexture(nil)
+				FriendsFrameBattlenetFrame.BroadcastButton:GetNormalTexture():SetTexture()
 				FriendsFrameBattlenetFrame.BroadcastButton:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
 			end)
 
 			hooksecurefunc(FriendsFrameBattlenetFrame.BroadcastFrame, "HideFrame", function()
-				FriendsFrameBattlenetFrame.BroadcastButton:SetNormalTexture(nil)
+				FriendsFrameBattlenetFrame.BroadcastButton:GetNormalTexture():SetTexture()
 				FriendsFrameBattlenetFrame.BroadcastButton:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
 			end)
 
-			for _, button in pairs(FriendsListFrameScrollFrame.buttons) do
-				button.bg = button:CreateTexture()
-				button.bg:SetColorTexture(unpack(core.config.color.border))
-				button.bg:SetDrawLayer("BACKGROUND")
-				core.util.set_outside(button.bg, button.gameIcon)
-
-				button.gameIcon:ClearAllPoints()
-				button.gameIcon:SetPoint("RIGHT", -25, 0)
-				button.gameIcon:SetSize(24, 24)
-
-				button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
-
-				button.travelPassButton:SetPoint("TOPRIGHT", -2, -2)
-				button.travelPassButton:SetSize(20, 30)
-
-				lib.skin_icon_button(button.travelPassButton, [[Interface\FriendsFrame\TravelPass-Invite]], 0.08, 0.31, 0.32, 0.48)
-			end
-			
 			hooksecurefunc("FriendsFrame_UpdateFriendButton", function(button)
-				button.gameIcon:SetTexCoord(0.18, 0.82, 0.18, 0.82)
+				if not button.bg then
+					button.bg = button:CreateTexture()
+					button.bg:SetColorTexture(unpack(core.config.color.border))
+					button.bg:SetDrawLayer("BACKGROUND")
+					core.util.set_outside(button.bg, button.gameIcon)
+					
+					button.gameIcon:ClearAllPoints()
+					button.gameIcon:SetPoint("RIGHT", -25, 0)
+					button.gameIcon:SetSize(24, 24)
+
+					button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+
+					button.travelPassButton:SetPoint("TOPRIGHT", -2, -2)
+					button.travelPassButton:SetSize(20, 30)
+
+					core.util.fix_string(button.name, core.config.font_size_med)
+					core.util.fix_string(button.info, core.config.font_size_sml)
+				end
+
 				if button.gameIcon:IsShown() then
 					button.bg:Show()
 				else
 					button.bg:Hide()
 				end
+
+				button.gameIcon:SetTexCoord(0.18, 0.82, 0.18, 0.82)
 			end)
 
 			FriendsFrameBattlenetFrame.BroadcastButton:ClearAllPoints()
 			FriendsFrameBattlenetFrame.BroadcastButton:SetPoint("TOPLEFT", FriendsFrameBattlenetFrame, "TOPRIGHT", 2, 0)
 			FriendsFrameBattlenetFrame.BroadcastButton:SetSize(24, 22)
-			lib.skin_icon_button(FriendsFrameBattlenetFrame.BroadcastButton, nil, 0.25, 0.7, 0.275, 0.7)
+			lib.skin_icon_button(FriendsFrameBattlenetFrame.BroadcastButton, nil, nil, 0.25, 0.7, 0.275, 0.7)
 
 			core.util.strip_textures(FriendsFrameBattlenetFrame, true)
 			core.util.gen_backdrop(FriendsFrameBattlenetFrame.BroadcastFrame)
@@ -648,16 +623,16 @@ skin_panel = function(panel, nested)
 
 			lib.skin_button(FriendsFrameAddFriendButton)
 			lib.skin_button(FriendsFrameSendMessageButton)
-			core.util.fix_scrollbar(FriendsListFrameScrollFrame.Slider)
+			core.util.fix_scrollbar(FriendsListFrame.ScrollBar)
 
 			lib.skin_button(FriendsFrameIgnorePlayerButton)
 			lib.skin_button(FriendsFrameUnsquelchButton)
-			core.util.fix_scrollbar(IgnoreListFrameScrollFrame.Slider)
+			core.util.fix_scrollbar(IgnoreListFrame.ScrollBar)
 
 			lib.skin_button(WhoFrameGroupInviteButton)
 			lib.skin_button(WhoFrameAddFriendButton)
 			lib.skin_button(WhoFrameWhoButton)
-			core.util.fix_scrollbar(WhoListScrollFrame.Slider)
+			core.util.fix_scrollbar(WhoFrame.ScrollBar)
 			
 			WhoFrameEditBox:SetPoint("BOTTOM", -10, 30)
 			WhoFrameEditBox:SetHeight(22)
@@ -681,20 +656,22 @@ skin_panel = function(panel, nested)
 			lib.skin_button(RaidFrameConvertToRaidButton, core.config.font_size_sml)
 			lib.skin_button(RaidFrameRaidInfoButton, core.config.font_size_sml)
 
+			-- QuickJoinFrame
 			lib.skin_button(QuickJoinFrame.JoinQueueButton, core.config.font_size_sml)
-			core.util.fix_scrollbar(QuickJoinScrollFrame.Slider)
+			core.util.fix_scrollbar(QuickJoinFrame.ScrollBar)
 
 			-- RecruitAFriendFrame
 			lib.skin_button(RecruitAFriendFrame.RewardClaiming.ClaimOrViewRewardButton)
 
 			core.util.strip_textures(RecruitAFriendFrame.RecruitList.Header, true)
-			core.util.fix_scrollbar(RecruitAFriendFrame.RecruitList.ScrollFrame.Slider)
+			core.util.fix_scrollbar(RecruitAFriendFrame.RecruitList.ScrollBar)
 			lib.skin_button(RecruitAFriendFrame.RecruitmentButton)
 
 		elseif name == "PVEFrame" then
+
 			core.util.strip_textures(panel, true, {
-				panel.portrait,
-				panel.portrait_bg
+				panel.PortraitContainer.portrait,
+				panel.PortraitContainer.portrait.bg
 			})
 
 			for t = 1, 3 do
@@ -741,7 +718,7 @@ skin_panel = function(panel, nested)
 
 			core.util.strip_textures(panel.shadows)
 
-			-- LFDParentFrame
+			-- -- LFDParentFrame
 			core.util.strip_textures(LFDParentFrame)
 
 			-- LFDQueueFrame
@@ -751,19 +728,19 @@ skin_panel = function(panel, nested)
 			LFDQueueFrameTypeDropDown:SetPoint("BOTTOMRIGHT", GroupFinderFrame, "BOTTOMRIGHT", -5, 285)
 			lib.skin_dropdown(LFDQueueFrameTypeDropDown)
 
-			LFDQueueFrameTypeDropDown:HookScript("OnShow", function()
-				LFDQueueFrameTypeDropDown:SetSize(250, 24)
+			LFDQueueFrameTypeDropDown:HookScript("OnShow", function(self)
+				self:SetSize(250, 24)
 			end)
 
-			core.util.strip_textures(LFDQueueFrameSpecificListScrollFrame)
-			core.util.fix_scrollbar(LFDQueueFrameSpecificListScrollFrameScrollBar)
-
 			core.util.strip_textures(LFDQueueFrameRandomScrollFrame)
-			core.util.fix_scrollbar(LFDQueueFrameRandomScrollFrameScrollBar)
+			core.util.fix_scrollbar(LFDQueueFrameRandomScrollFrame.ScrollBar)
+
+			--core.util.strip_textures(LFDQueueFrameSpecific.ScrollBox)
+			core.util.fix_scrollbar(LFDQueueFrameSpecific.ScrollBar)
 
 			lib.skin_button(LFDQueueFrameFindGroupButton)
 
-			-- -- RaidFinderFrame
+			-- RaidFinderFrame
 			core.util.strip_textures(RaidFinderFrame)
 
 			lib.skin_button(RaidFinderFrameFindRaidButton)
@@ -775,8 +752,8 @@ skin_panel = function(panel, nested)
 			RaidFinderQueueFrameSelectionDropDown:SetPoint("BOTTOMRIGHT", GroupFinderFrame, "BOTTOMRIGHT", -5, 285)
 			lib.skin_dropdown(RaidFinderQueueFrameSelectionDropDown)
 
-			RaidFinderQueueFrameSelectionDropDown:HookScript("OnShow", function()
-				RaidFinderQueueFrameSelectionDropDown:SetSize(250, 24)
+			RaidFinderQueueFrameSelectionDropDown:HookScript("OnShow", function(self)
+				self:SetSize(250, 24)
 			end)
 
 			-- LFGListFrame
@@ -786,17 +763,17 @@ skin_panel = function(panel, nested)
 			core.util.fix_editbox(LFGListFrame.SearchPanel.SearchBox, 320, 22, 50)
 			LFGListFrame.SearchPanel.SearchBox:SetPoint("TOPLEFT", LFGListFrame.SearchPanel.CategoryName, "BOTTOMLEFT", 0, -8)
 			
-			core.util.fix_scrollbar(LFGListFrame.SearchPanel.ScrollFrame.scrollBar)
-			LFGListFrame.SearchPanel.ScrollFrame.scrollBar:SetPoint("BOTTOMLEFT", LFGListFrame.SearchPanel.ScrollFrame, "BOTTOMRIGHT", 4, 15)
+			core.util.fix_scrollbar(LFGListFrame.SearchPanel.ScrollBar)
+			LFGListFrame.SearchPanel.ScrollBar:SetPoint("BOTTOMLEFT", LFGListFrame.SearchPanel.ScrollBox, "BOTTOMRIGHT", 4, 15)
 
 			lib.skin_button(LFGListFrame.SearchPanel.BackButton)
 			lib.skin_button(LFGListFrame.SearchPanel.BackToGroupButton)
 			lib.skin_button(LFGListFrame.SearchPanel.SignUpButton)
 
-			lib.skin_icon_button(LFGListFrame.SearchPanel.RefreshButton, nil, -0.02, 1.03, -0.06, 0.98)
+			lib.skin_icon_button(LFGListFrame.SearchPanel.RefreshButton, nil, nil, -0.02, 1.03, -0.06, 0.98)
 			LFGListFrame.SearchPanel.RefreshButton:SetSize(24, 24)
 
-			for _, button in ipairs(LFGListFrame.SearchPanel.ScrollFrame.buttons) do
+			LFGListFrame.SearchPanel.ScrollBox:ForEachFrame(function(button)
 				core.util.set_inside(button.ResultBG, button)
 
 				button.ApplicationBG:SetColorTexture(0.12, 0.5, 0.12, 0.5)
@@ -815,7 +792,7 @@ skin_panel = function(panel, nested)
 				end
 
 				lib.skin_stretchbutton(button.CancelButton, 1, {button.CancelButton.Icon})
-			end
+			end)
 
 			LFGListFrame.ApplicationViewer.DataDisplay.Enumerate.roles = {}
 			for i, icon in ipairs(LFGListFrame.ApplicationViewer.DataDisplay.Enumerate.Icons) do
@@ -854,11 +831,11 @@ skin_panel = function(panel, nested)
 			lib.skin_button(LFGListFrame.ApplicationViewer.RoleColumnHeader, core.config.font_size_sml)
 			lib.skin_button(LFGListFrame.ApplicationViewer.ItemLevelColumnHeader, core.config.font_size_sml)
 			lib.skin_button(LFGListFrame.ApplicationViewer.RatingColumnHeader, core.config.font_size_sml)
-			lib.skin_icon_button(LFGListFrame.ApplicationViewer.RefreshButton, nil, -0.02, 1.03, -0.06, 0.98)
+			lib.skin_icon_button(LFGListFrame.ApplicationViewer.RefreshButton, nil, nil, -0.02, 1.03, -0.06, 0.98)
 			LFGListFrame.ApplicationViewer.RefreshButton:SetSize(24, 24)
 			LFGListFrame.ApplicationViewer.RefreshButton:ClearAllPoints()
 			LFGListFrame.ApplicationViewer.RefreshButton:SetPoint("LEFT", LFGListFrame.ApplicationViewer.RatingColumnHeader, "RIGHT", 5, 0)
-			core.util.fix_scrollbar(LFGListFrame.ApplicationViewer.ScrollFrame.scrollBar)
+			core.util.fix_scrollbar(LFGListFrame.ApplicationViewer.ScrollBar)
 
 			skin_panel(LFGListApplicationDialog)
 			lib.skin_button(LFGListApplicationDialog.SignUpButton)
@@ -881,52 +858,77 @@ skin_panel = function(panel, nested)
 			end
 
 		elseif name == "QuestFrame" then
+			
 			-- QuestFrameDetailPanel
 			lib.skin_button(QuestFrameAcceptButton)
 			lib.skin_button(QuestFrameDeclineButton)
 			
 			core.util.strip_textures(QuestDetailScrollFrame)
-			core.util.fix_scrollbar(QuestDetailScrollFrameScrollBar)
+			core.util.fix_scrollbar(QuestDetailScrollFrame.ScrollBar)
 
 			-- QuestFrameRewardPanel
 			lib.skin_button(QuestFrameCompleteQuestButton)
 			QuestFrameCompleteQuestButton:SetWidth(150)
 			
 			core.util.strip_textures(QuestRewardScrollFrame)
-			core.util.fix_scrollbar(QuestRewardScrollFrameScrollBar)
-
+			core.util.fix_scrollbar(QuestRewardScrollFrame.ScrollBar)
 
 			local skin_rewardbutton = function(button)
 				if not button.skinned then
 					button.NameFrame:Hide()
-					core.util.set_outside(button.IconBorder, button.Icon)
-
+					core.util.crop_icon(button.Icon)
+					if button.IconBorder then
+						core.util.set_outside(button.IconBorder, button.Icon)
+					end
 					button.skinned = true
 				end
 			end
 
-			hooksecurefunc("QuestInfo_GetRewardButton", function(rewardsFrame, index)
-				local rewardButtons = rewardsFrame.RewardButtons
-				skin_rewardbutton(rewardButtons[index])
-			end)
-			
 			for _, button in ipairs(QuestInfoRewardsFrame.RewardButtons) do
 				skin_rewardbutton(button)
 			end
+			for button in QuestInfoRewardsFrame.spellRewardPool:EnumerateActive() do
+				skin_rewardbutton(button)
+			end
+			for button in QuestInfoRewardsFrame.followerRewardPool:EnumerateActive() do
+				skin_rewardbutton(button)
+			end
+			for button in QuestInfoRewardsFrame.reputationRewardPool:EnumerateActive() do
+				skin_rewardbutton(button)
+			end
+
+			QuestInfoRewardsFrame:HookScript("OnShow", function()
+				for _, button in ipairs(QuestInfoRewardsFrame.RewardButtons) do
+					skin_rewardbutton(button)
+				end
+				for button in QuestInfoRewardsFrame.spellRewardPool:EnumerateActive() do
+					skin_rewardbutton(button)
+				end
+				for button in QuestInfoRewardsFrame.followerRewardPool:EnumerateActive() do
+					skin_rewardbutton(button)
+				end
+				for button in QuestInfoRewardsFrame.reputationRewardPool:EnumerateActive() do
+					skin_rewardbutton(button)
+				end
+			end)
 
 			-- QuestFrameProgressPanel
 			lib.skin_button(QuestFrameCompleteButton)
 			lib.skin_button(QuestFrameGoodbyeButton)
+
+			for i = 1, MAX_REQUIRED_ITEMS do
+				skin_rewardbutton(_G["QuestProgressItem"..i])
+			end
 			
 			core.util.strip_textures(QuestProgressScrollFrame)
-			core.util.fix_scrollbar(QuestProgressScrollFrameScrollBar)
+			core.util.fix_scrollbar(QuestProgressScrollFrame.ScrollBar)
 
 		elseif name == "GossipFrame" then
-			-- GossipFrameGreetingPanel
-			lib.skin_button(GossipFrameGreetingGoodbyeButton)
-			GossipFrameGreetingGoodbyeButton:SetWidth(90)
-			core.util.strip_textures(GossipGreetingScrollFrame)
-			core.util.fix_scrollbar(GossipGreetingScrollFrameScrollBar)
+			-- GreetingPanel
+			lib.skin_button(GossipFrame.GreetingPanel.GoodbyeButton)
+			GossipFrame.GreetingPanel.GoodbyeButton:SetWidth(90)
+			--core.util.strip_textures(GossipGreetingScrollFrame)
+			core.util.fix_scrollbar(GossipFrame.GreetingPanel.ScrollBar)
 
 			-- hooksecurefunc(GossipTitleButtonMixin, "UpdateTitleForQuest", function(self, _, text, ignored, trivial)
 			-- 	if ignored then
@@ -938,9 +940,6 @@ skin_panel = function(panel, nested)
 			-- 	end
 			-- end)
 		elseif name == "MerchantFrame" then
-
-			core.util.circle_mask(panel, panel.portrait_bg, 1)
-			core.util.circle_mask(panel, panel.portrait, 1)
 
 			BuybackBG:SetTexture()
 			BuybackBG:Hide()
@@ -985,6 +984,14 @@ skin_panel = function(panel, nested)
 				alt_currency:ClearAllPoints()
 				alt_currency:SetPoint("LEFT", item.ItemButton, "BOTTOMRIGHT", 5, -1)
 			end
+			
+			core.util.strip_textures(MerchantNextPageButton)
+			MerchantNextPageButton:SetHighlightTexture(core.media.textures.blank)
+			lib.skin_icon_button(MerchantNextPageButton, nil, ">")
+
+			core.util.strip_textures(MerchantPrevPageButton)
+			MerchantPrevPageButton:SetHighlightTexture(core.media.textures.blank)
+			lib.skin_icon_button(MerchantPrevPageButton, nil, "<")
 
 			local slot = _G["MerchantBuyBackItemSlotTexture"]
 			core.util.set_outside(slot, MerchantBuyBackItem.ItemButton)
@@ -1065,18 +1072,8 @@ skin_panel = function(panel, nested)
 			highlight:SetAllPoints(border)
 
 		elseif name == "MailFrame" then
-			local regions = {panel:GetRegions()}
-			for _, region in ipairs(regions) do
-				if not region:GetName() and region ~= panel.portrait_bg and region ~= panel.portrait_bg.mask then
-					region:SetTexture()
-					region:Hide()
-				end
-			end
-			panel.portrait:SetSize(70, 70)
-			panel.portrait:SetTexture("Interface\\MailFrame\\Mail-Icon")
-			core.util.circle_mask(panel, panel.portrait_bg, 5)
-			core.util.circle_mask(panel, panel.portrait, 5)
 
+			-- InboxFrame
 			for i = 1, 7 do
 				local frame = _G["MailItem"..i]
 				core.util.strip_textures(frame, true)
@@ -1113,13 +1110,111 @@ skin_panel = function(panel, nested)
 			end
 
 			lib.skin_button(OpenAllMail)
-			lib.skin_icon_button(InboxPrevPageButton, nil, 0.3, 0.63, 0.27, 0.77)
 			InboxPrevPageButton:SetSize(25, 25)
-			lib.skin_icon_button(InboxNextPageButton, nil, 0.3, 0.63, 0.27, 0.77)
 			InboxNextPageButton:SetSize(25, 25)
+			lib.skin_icon_button(InboxNextPageButton, nil, ">")
+			lib.skin_icon_button(InboxPrevPageButton, nil, "<")
 
 			MailFrameTab1:SetPoint("TOPLEFT", panel, "BOTTOMLEFT", 0, 1)
 			MailFrameTab2:SetPoint("TOPLEFT", MailFrameTab1, "TOPRIGHT", -1, 0)
+
+			-- SendMailFrame
+			core.util.strip_textures(SendMailFrame, true)
+			core.util.fix_scrollbar(SendMailScrollFrame.ScrollBar)
+			core.util.strip_textures(SendMailScrollFrame, true, {SendStationeryBackgroundLeft, SendStationeryBackgroundRight})
+			core.util.fix_editbox(SendMailNameEditBox)
+			SendMailNameEditBox:SetTextInsets(0, 0, 0, 0)
+			for _, region in ipairs({SendMailNameEditBox:GetRegions()}) do
+				if region:GetObjectType() == "FontString" then
+					region:ClearAllPoints()
+					region:SetPoint("RIGHT", SendMailNameEditBox, "LEFT", -5, 0)
+				end
+			end
+			core.util.fix_editbox(SendMailSubjectEditBox)
+			SendMailSubjectEditBox:SetTextInsets(0, 0, 0, 0)
+			for _, region in ipairs({SendMailSubjectEditBox:GetRegions()}) do
+				if region:GetObjectType() == "FontString" then
+					region:ClearAllPoints()
+					region:SetPoint("RIGHT", SendMailSubjectEditBox, "LEFT", -5, 0)
+				end
+			end
+
+			for i = 1, ATTACHMENTS_MAX do
+				local button = SendMailFrame.SendMailAttachments[i]
+				button.bg = button:GetRegions()
+				button.bg:SetColorTexture(unpack(core.config.color.background))
+				button.bg:SetAllPoints()
+				button.Count:SetPoint("BOTTOMRIGHT", -2, 2)
+
+				core.util.set_outside(button.IconBorder, button)
+				button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+			end
+
+			hooksecurefunc("SendMailFrame_Update", function()
+				for i = 1, ATTACHMENTS_MAX_SEND do
+					local button = SendMailFrame.SendMailAttachments[i]
+					if HasSendMailItem(i) then
+						core.util.crop_icon(button:GetNormalTexture())
+					end
+				end
+			end)
+			
+			core.util.fix_editbox(SendMailMoney.gold)
+			core.util.fix_editbox(SendMailMoney.silver)
+			SendMailMoney.silver.texture:SetPoint("RIGHT", -4, 0)
+			core.util.fix_editbox(SendMailMoney.copper)
+			SendMailMoney.copper.texture:SetPoint("RIGHT", -4, 0)
+
+			SendMailMoneyBg:Hide()
+			SendMailSendMoneyButton:SetPoint("TOPLEFT", SendMailMoney, "TOPRIGHT", 3, 12)
+			lib.skin_checkbox(SendMailSendMoneyButton)
+			SendMailCODButton:SetPoint("TOPLEFT", SendMailSendMoneyButton, "BOTTOMLEFT", 0, -3)
+			lib.skin_checkbox(SendMailCODButton)
+			
+			lib.skin_button(SendMailCancelButton)
+			lib.skin_button(SendMailMailButton)
+
+			-- OpenMailFrame
+			core.util.strip_textures(OpenMailFrame, true, {OpenMailFrameIcon})
+			skin_panel(OpenMailFrame)
+
+			OpenMailFrame.PortraitContainer.bg:SetParent(OpenMailFrame)
+			core.util.set_outside(OpenMailFrame.PortraitContainer.bg, OpenMailFrameIcon)
+			core.util.circle_mask(OpenMailFrame, OpenMailFrameIcon, 3)
+
+			OpenMailFrameIcon:ClearAllPoints()
+			OpenMailFrameIcon:SetPoint("CENTER", OpenMailFrame, "TOPLEFT", 20, -20)
+			
+			core.util.fix_scrollbar(OpenMailScrollFrame.ScrollBar)
+			core.util.strip_textures(OpenMailScrollFrame, true, {OpenStationeryBackgroundLeft, OpenStationeryBackgroundRight})
+			lib.skin_button(OpenMailReportSpamButton, core.config.font_size_sml)
+			lib.skin_button(OpenMailCancelButton)
+			lib.skin_button(OpenMailDeleteButton)
+			lib.skin_button(OpenMailReplyButton)
+
+			lib.skin_itembutton(OpenMailLetterButton)
+			lib.skin_itembutton(OpenMailMoneyButton)
+
+			for i = 1, ATTACHMENTS_MAX do
+				local button = OpenMailFrame.OpenMailAttachments[i]
+				lib.skin_itembutton(button)
+				-- button.Count:SetPoint("BOTTOMRIGHT", -2, 2)
+
+				-- core.util.set_outside(button.IconBorder, button)
+				-- button.IconBorder:SetDrawLayer("BACKGROUND", 0)
+				-- button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+				-- button:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
+			end
+
+			hooksecurefunc("OpenMailFrame_UpdateButtonPositions", function()
+				for i = 1, ATTACHMENTS_MAX_RECEIVE do
+					local button = OpenMailFrame.OpenMailAttachments[i]
+					if HasInboxItem(InboxFrame.openMailID, i) then
+						core.util.crop_icon(button.icon)
+						button:ClearNormalTexture()
+					end
+				end
+			end)
 
 		elseif name == "AuctionHouseFrame" then
 
@@ -1144,43 +1239,25 @@ skin_panel = function(panel, nested)
 			end
 
 			lib.skin_button(AuctionHouseFrame.SearchBar.SearchButton)
+			lib.skin_icon_button(AuctionHouseFrame.SearchBar.FavoritesSearchButton, nil, "F")
+
 			lib.skin_stretchbutton(AuctionHouseFrame.SearchBar.FilterButton, nil, {AuctionHouseFrame.SearchBar.FilterButton.Icon})
 			core.util.fix_editbox(AuctionHouseFrame.SearchBar.SearchBox)
 
-			hooksecurefunc("FilterButton_SetUp", function(button, info)
-				-- AuctionCategoryButtonTemplate
-				button.NormalTexture:SetTexture(nil)
-				button.HighlightTexture:SetColorTexture(unpack(core.config.color.highlight))
-				button.SelectedTexture:SetColorTexture(unpack(core.config.color.selected))
-				core.util.fix_string(button.Text, core.config.font_size_sml)
-			end)
-
-			core.util.strip_textures(AuctionHouseFrame.CategoriesList.ScrollFrame)
-			core.util.fix_scrollbar(AuctionHouseFrame.CategoriesList.ScrollFrame.ScrollBar)
-
-			-- AuctionHouseFrame.BrowseResultsFrame.ItemList.HeaderContainer
 			hooksecurefunc(AuctionHouseTableHeaderStringMixin, "Init", function(self)
-				-- ColumnDisplayButtonShortTemplate
+				-- AuctionHouseTableHeaderStringTemplate
 				lib.skin_button(self, core.config.font_size_sml)
 				self.Arrow:ClearAllPoints()
 				self.Arrow:SetPoint("RIGHT", self.Text, -5, 0)
 			end)
 
 			hooksecurefunc(AuctionHouseTableCellItemDisplayMixin, "Init", function(self)
-				self.Icon:SetSize(26, 26)
+				-- AuctionHouseTableCellItemDisplayTemplate
+				self.Icon:SetSize(40, 20)
+				self.Icon:SetTexCoord(0.1, 0.9, 0.3, 0.7)
 				self.IconBorder:SetDrawLayer("BACKGROUND", 0)
 				self.IconBorder:SetColorTexture(unpack(core.config.color.border))
 				core.util.set_outside(self.IconBorder, self.Icon)
-				core.util.crop_icon(self.Icon)
-			end)
-
-			hooksecurefunc(AuctionHouseFavoritableLineMixin, "InitLine", function(self)
-				self:SetHeight(30)
-				self.HighlightTexture:SetColorTexture(unpack(core.config.color.highlight))
-			end)
-
-			hooksecurefunc(AuctionHouseItemListMixin, "Init", function(self)
-				self.ResultsText:SetShadowOffset(0, 0)
 			end)
 
 			hooksecurefunc(AuctionHouseTableCellMinPriceMixin, "Init", function(self)
@@ -1191,10 +1268,188 @@ skin_panel = function(panel, nested)
 					end
 				end)
 			end)
+
+			local skin_item_list = function(list)
+				list.ResultsText:SetShadowOffset(0, 0)
+				core.util.fix_scrollbar(list.ScrollBar)
+				core.util.fix_string(list.RefreshFrame.TotalQuantity, core.config.font_size_sml)
+				lib.skin_icon_button(list.RefreshFrame.RefreshButton, nil, "R")
+			end
+
+			-- AuctionHouseFrame.CategoriesList
+			core.util.fix_scrollbar(AuctionHouseFrame.CategoriesList.ScrollBar)
+			hooksecurefunc("AuctionHouseFilterButton_SetUp", function(button, info)
+				-- AuctionCategoryButtonTemplate
+				button.NormalTexture:SetTexture()
+				button.HighlightTexture:SetColorTexture(unpack(core.config.color.highlight))
+				button.SelectedTexture:SetColorTexture(unpack(core.config.color.selected))
+				core.util.fix_string(button.Text, core.config.font_size_sml)
+			end)
+
+			-- AuctionHouseFrame.BrowseResultsFrame
+			skin_item_list(AuctionHouseFrame.BrowseResultsFrame.ItemList)
+			hooksecurefunc(AuctionHouseFrame.BrowseResultsFrame.ItemList, "RefreshScrollFrame", function(self)
+				self.ScrollBox:ForEachFrame(function(button)
+					-- AuctionHouseFavoritableLineTemplate
+					button.HighlightTexture:SetColorTexture(unpack(core.config.color.highlight))
+				end)
+			end)
+
+			-- AuctionHouseFrame.WoWTokenResults
+			AuctionHouseFrame.WoWTokenResults.GameTimeTutorial.PortraitContainer.bg:Hide()
+			AuctionHouseFrame.WoWTokenResults.GameTimeTutorial.LeftDisplay.Label:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
+			AuctionHouseFrame.WoWTokenResults.GameTimeTutorial.LeftDisplay.Tutorial1:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+			AuctionHouseFrame.WoWTokenResults.GameTimeTutorial.RightDisplay.Label:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
+			AuctionHouseFrame.WoWTokenResults.GameTimeTutorial.RightDisplay.Tutorial1:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+			lib.skin_button(AuctionHouseFrame.WoWTokenResults.GameTimeTutorial.RightDisplay.StoreButton)
+
+			core.util.gen_backdrop(AuctionHouseFrame.WoWTokenResults.GameTimeTutorial, unpack(core.config.frame_background_transparent))
+			core.util.strip_textures(AuctionHouseFrame.WoWTokenResults.TokenDisplay, true)
+			lib.skin_button(AuctionHouseFrame.WoWTokenResults.Buyout)
+			core.util.fix_scrollbar(AuctionHouseFrame.WoWTokenResults.DummyScrollBar)
+
+			-- AuctionHouseFrame.CommoditiesBuyFrame
+			lib.skin_button(AuctionHouseFrame.CommoditiesBuyFrame.BackButton)
+			core.util.strip_textures(AuctionHouseFrame.CommoditiesBuyFrame.BuyDisplay.ItemDisplay, true)
+			AuctionHouseFrame.CommoditiesBuyFrame.BuyDisplay.ItemDisplay.Name:SetShadowOffset(0, 0)
+			core.util.fix_editbox(AuctionHouseFrame.CommoditiesBuyFrame.BuyDisplay.QuantityInput.InputBox)
+			lib.skin_button(AuctionHouseFrame.CommoditiesBuyFrame.BuyDisplay.BuyButton)
+
+			skin_item_list(AuctionHouseFrame.CommoditiesBuyFrame.ItemList)
+			hooksecurefunc(AuctionHouseFrame.CommoditiesBuyFrame.ItemList, "RefreshScrollFrame", function(self)
+				self.ScrollBox:ForEachFrame(function(button)
+					button.NormalTexture:Hide()
+					button.HighlightTexture:SetColorTexture(unpack(core.config.color.highlight))
+					button.SelectedHighlight:SetColorTexture(unpack(core.config.color.selected))
+				end)
+			end)
 			
-			core.util.fix_scrollbar(AuctionHouseFrame.BrowseResultsFrame.ItemList.ScrollFrame.scrollBar)
+			-- AuctionHouseFrame.ItemBuyFrame
+			lib.skin_button(AuctionHouseFrame.ItemBuyFrame.BackButton)
+			AuctionHouseFrame.ItemBuyFrame.ItemDisplay.Name:SetShadowOffset(0, 0)
+			lib.skin_button(AuctionHouseFrame.ItemBuyFrame.BuyoutFrame.BuyoutButton)
+			core.util.fix_editbox(AuctionHouseFrame.ItemBuyFrame.BidFrame.BidAmount.gold)
+			core.util.fix_editbox(AuctionHouseFrame.ItemBuyFrame.BidFrame.BidAmount.silver)
+			AuctionHouseFrame.ItemBuyFrame.BidFrame.BidAmount.silver.texture:SetPoint("RIGHT", -4, 0)
+			core.util.fix_editbox(AuctionHouseFrame.ItemBuyFrame.BidFrame.BidAmount.copper)
+			AuctionHouseFrame.ItemBuyFrame.BidFrame.BidAmount.copper.texture:SetPoint("RIGHT", -4, 0)
+
+			AuctionHouseFrame.ItemBuyFrame.BidFrame.BidButton:SetPoint("LEFT", AuctionHouseFrame.ItemBuyFrame.BidFrame.BidAmount, "RIGHT", 10, 0)
+			lib.skin_button(AuctionHouseFrame.ItemBuyFrame.BidFrame.BidButton)
+
+			skin_item_list(AuctionHouseFrame.ItemBuyFrame.ItemList)
+			hooksecurefunc(AuctionHouseFrame.ItemBuyFrame.ItemList, "RefreshScrollFrame", function(self)
+				self.ScrollBox:ForEachFrame(function(button)
+					button.NormalTexture:Hide()
+					button.HighlightTexture:SetColorTexture(unpack(core.config.color.highlight))
+					button.SelectedHighlight:SetColorTexture(unpack(core.config.color.selected))
+				end)
+			end)
+
+			local remove_shadow = function(frame)
+				frame.Label:SetShadowOffset(0, 0)
+				frame.LabelTitle:SetShadowOffset(0, 0)
+				frame.Subtext:SetShadowOffset(0, 0)
+			end
+
+			local skin_sell_frame = function(frame)
+				-- AuctionHouseSellFrameTemplate
+				core.util.strip_textures(frame, true)
+				core.util.fix_string(frame.CreateAuctionLabel, core.config.font_size_med)
+	
+				core.util.strip_textures(frame.ItemDisplay, true)
+				frame.ItemDisplay.ItemButton.EmptyBackground:SetColorTexture(unpack(core.config.color.background))
+				frame.ItemDisplay.ItemButton.Icon:SetAllPoints()
+				core.util.crop_icon(frame.ItemDisplay.ItemButton.Icon)
+				core.util.set_outside(frame.ItemDisplay.ItemButton.IconBorder, frame.ItemDisplay.ItemButton)
+				frame.ItemDisplay.ItemButton.IconBorder:SetColorTexture(unpack(core.config.color.border))
+				frame.ItemDisplay.ItemButton.IconBorder:SetDrawLayer("BACKGROUND", -1)
+				frame.ItemDisplay.ItemButton.IconBorder:Show()
+				frame.ItemDisplay.ItemButton:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
+				frame.ItemDisplay.ItemButton.Highlight:SetColorTexture(unpack(core.config.color.highlight))
+
+				remove_shadow(frame.QuantityInput)
+				core.util.fix_editbox(frame.QuantityInput.InputBox)
+				lib.skin_button(frame.QuantityInput.MaxButton)
+	
+				remove_shadow(frame.PriceInput)
+				core.util.fix_editbox(frame.PriceInput.MoneyInputFrame.CopperBox)
+				core.util.fix_editbox(frame.PriceInput.MoneyInputFrame.SilverBox)
+				core.util.fix_editbox(frame.PriceInput.MoneyInputFrame.GoldBox)
+				core.util.fix_string(frame.PriceInput.PerItemPostfix, core.config.font_size_sml)
+				frame.PriceInput.PerItemPostfix:SetShadowOffset(0, 0)
+
+				lib.skin_dropdown(frame.DurationDropDown.DropDown)
+				remove_shadow(frame.DurationDropDown)
+				remove_shadow(frame.Deposit)
+				remove_shadow(frame.TotalPrice)
+				lib.skin_button(frame.PostButton)
+			end
+
+			-- AuctionHouseFrame.ItemSellFrame
+			remove_shadow(AuctionHouseFrame.ItemSellFrame.SecondaryPriceInput)
+			remove_shadow(AuctionHouseFrame.ItemSellFrame.SecondaryPriceInput)
+			core.util.fix_editbox(AuctionHouseFrame.ItemSellFrame.SecondaryPriceInput.MoneyInputFrame.CopperBox)
+			core.util.fix_editbox(AuctionHouseFrame.ItemSellFrame.SecondaryPriceInput.MoneyInputFrame.SilverBox)
+			core.util.fix_editbox(AuctionHouseFrame.ItemSellFrame.SecondaryPriceInput.MoneyInputFrame.GoldBox)
+			core.util.fix_string(AuctionHouseFrame.ItemSellFrame.SecondaryPriceInput.PerItemPostfix, core.config.font_size_sml)
+			AuctionHouseFrame.ItemSellFrame.SecondaryPriceInput.PerItemPostfix:SetShadowOffset(0, 0)
+
+			skin_sell_frame(AuctionHouseFrame.ItemSellFrame)
+			skin_item_list(AuctionHouseFrame.ItemSellList)
+			hooksecurefunc(AuctionHouseFrame.ItemSellList, "RefreshScrollFrame", function(self)
+				self.ScrollBox:ForEachFrame(function(button)
+					button.NormalTexture:Hide()
+					button.HighlightTexture:SetColorTexture(unpack(core.config.color.highlight))
+					button.SelectedHighlight:SetColorTexture(unpack(core.config.color.selected))
+				end)
+			end)
+
+			-- AuctionHouseFrame.CommoditySellFrame
+			skin_sell_frame(AuctionHouseFrame.CommoditiesSellFrame)
+			skin_item_list(AuctionHouseFrame.CommoditiesSellList)
+			hooksecurefunc(AuctionHouseFrame.CommoditiesSellList, "RefreshScrollFrame", function(self)
+				if self.ScrollBox:GetView() then
+					self.ScrollBox:ForEachFrame(function(button)
+						button.NormalTexture:Hide()
+						button.HighlightTexture:SetColorTexture(unpack(core.config.color.highlight))
+						button.SelectedHighlight:SetColorTexture(unpack(core.config.color.selected))
+					end)
+				end
+			end)
+
+			-- AuctionHouseFrame.AuctionsFrame
+			lib.skin_button(AuctionHouseFrame.AuctionsFrame.CancelAuctionButton)
+			core.util.fix_scrollbar(AuctionHouseFrame.AuctionsFrame.SummaryList.ScrollBar)
+			
+			skin_item_list(AuctionHouseFrame.AuctionsFrame.AllAuctionsList)
+			skin_item_list(AuctionHouseFrame.AuctionsFrame.BidsList)
+			skin_item_list(AuctionHouseFrame.AuctionsFrame.ItemList)
+			skin_item_list(AuctionHouseFrame.AuctionsFrame.CommoditiesList)
+
+			lib.skin_button(AuctionHouseFrame.AuctionsFrame.BuyoutFrame.BuyoutButton)
+			core.util.fix_editbox(AuctionHouseFrame.AuctionsFrame.BidFrame.BidAmount.gold)
+			core.util.fix_editbox(AuctionHouseFrame.AuctionsFrame.BidFrame.BidAmount.silver)
+			AuctionHouseFrame.AuctionsFrame.BidFrame.BidAmount.silver.texture:SetPoint("RIGHT", -4, 0)
+			core.util.fix_editbox(AuctionHouseFrame.AuctionsFrame.BidFrame.BidAmount.copper)
+			AuctionHouseFrame.AuctionsFrame.BidFrame.BidAmount.copper.texture:SetPoint("RIGHT", -4, 0)
+
+			AuctionHouseFrame.AuctionsFrame.BidFrame.BidButton:SetPoint("LEFT", AuctionHouseFrame.AuctionsFrame.BidFrame.BidAmount, "RIGHT", 10, 0)
+			lib.skin_button(AuctionHouseFrame.AuctionsFrame.BidFrame.BidButton)
+
+			core.util.gen_backdrop(AuctionHouseFrame.BuyDialog)
+			lib.skin_button(AuctionHouseFrame.BuyDialog.BuyNowButton)
+			lib.skin_button(AuctionHouseFrame.BuyDialog.CancelButton)
+			lib.skin_button(AuctionHouseFrame.BuyDialog.OkayButton)
+
 
 		elseif name == "CommunitiesFrame" then
+
+			CommunitiesFrame.PortraitContainer.bg:SetParent(CommunitiesFrame.PortraitOverlay)
+			CommunitiesFrame.PortraitContainer.bg:SetDrawLayer("BACKGROUND", 0)
+			CommunitiesFrame.PortraitOverlay.Portrait.mask = panel.PortraitOverlay.CircleMask
+			core.util.circle_mask(panel.PortraitOverlay, panel.PortraitOverlay.Portrait, 3)
+			core.util.set_outside(CommunitiesFrame.PortraitContainer.bg, CommunitiesFrame.PortraitOverlay.Portrait)
 
 			hooksecurefunc(CommunitiesFrame.MaximizeMinimizeFrame, "Minimize", function(frame)
 				local communitiesFrame = frame:GetParent()
@@ -1205,45 +1460,37 @@ skin_panel = function(panel, nested)
 				local communitiesFrame = frame:GetParent()
 				communitiesFrame.StreamDropDownMenu:SetPoint("TOPLEFT", 200, -32)
 			end)
+
+			lib.skin_icon_button(CommunitiesFrame.MaximizeMinimizeFrame.MaximizeButton, nil, "+")
+			lib.skin_icon_button(CommunitiesFrame.MaximizeMinimizeFrame.MinimizeButton, nil, "-")
+			lib.skin_icon_button(CommunitiesFrame.CommunitiesCalendarButton, nil, "C")
+			CommunitiesFrame.CommunitiesCalendarButton:SetSize(25, 25)
+			CommunitiesFrame.CommunitiesCalendarButton:SetPoint("TOPRIGHT", -8, -30)
+
+			lib.skin_stretchbutton(CommunitiesFrame.AddToChatButton)
 			
+			CommunitiesFrame.AddToChatButton:SetNormalTexture(core.media.textures.blank)
+			local normal = CommunitiesFrame.AddToChatButton:GetNormalTexture()
+			normal:SetTexture([[interface/buttons/arrow-down-up]])
+			normal:SetTexCoord(-0.1, 1, -0.1, 0.65)
+			normal:SetAllPoints(CommunitiesFrame.AddToChatButton:GetHighlightTexture())
+
+			CommunitiesFrame.AddToChatButton:SetPushedTexture(core.media.textures.blank)
+			local pushed = CommunitiesFrame.AddToChatButton:GetPushedTexture()
+			pushed:SetTexture([[interface/buttons/arrow-down-down]])
+			pushed:SetTexCoord(0, 1.1, 0.0, 0.75)
+			pushed:SetAllPoints(CommunitiesFrame.AddToChatButton:GetHighlightTexture())
+						
 			-- CommunitiesFrame.CommunitiesList
+			CommunitiesFrame.CommunitiesList:SetPoint("TOPLEFT", 1, -23)
 			core.util.strip_textures(CommunitiesFrame.CommunitiesList)
-			core.util.fix_scrollbar(CommunitiesFrame.CommunitiesList.ListScrollFrame.ScrollBar)
+			core.util.fix_scrollbar(CommunitiesFrame.CommunitiesList.ScrollBar)
 			core.util.strip_textures(CommunitiesFrame.CommunitiesList.FilligreeOverlay)
 			CommunitiesFrame.CommunitiesList.FilligreeOverlay:Hide()
 			CommunitiesFrame.CommunitiesList.InsetFrame:Hide()
-			CommunitiesFrame.CommunitiesList:SetPoint("TOPLEFT", 1, -23)
-			CommunitiesFrame.CommunitiesList:SetPoint("BOTTOMRIGHT", CommunitiesFrame, "BOTTOMLEFT", 160, 29)
-			CommunitiesFrame.CommunitiesList.ListScrollFrame.ScrollBar:SetPoint("TOPLEFT", CommunitiesFrame.CommunitiesList.ListScrollFrame, "TOPRIGHT", 1, -15)
-			CommunitiesFrame.CommunitiesList.ListScrollFrame.ScrollBar:SetPoint("BOTTOMLEFT", CommunitiesFrame.CommunitiesList.ListScrollFrame, "BOTTOMRIGHT", 1, 11)
-			CommunitiesFrame.CommunitiesList.ListScrollFrame.ScrollBar.Background:SetTexture()
 
 			-- CommunitiesListEntryTemplate
-			hooksecurefunc(CommunitiesListEntryMixin, "SetClubInfo", function(self)
-				self.Background:SetTexture()
-				self.Selection:SetColorTexture(unpack(core.config.color.selected))
-				self.Selection:SetAllPoints()
-				self:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
-				self:GetHighlightTexture():SetAllPoints()
-			end)
-
-			hooksecurefunc(CommunitiesListEntryMixin, "SetFindCommunity", function(self)
-				self.Background:SetTexture()
-				self.Selection:SetColorTexture(unpack(core.config.color.selected))
-				self.Selection:SetAllPoints()
-				self:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
-				self:GetHighlightTexture():SetAllPoints()
-			end)
-
-			hooksecurefunc(CommunitiesListEntryMixin, "SetAddCommunity", function(self)
-				self.Background:SetTexture()
-				self.Selection:SetColorTexture(unpack(core.config.color.selected))
-				self.Selection:SetAllPoints()
-				self:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
-				self:GetHighlightTexture():SetAllPoints()
-			end)
-
-			hooksecurefunc(CommunitiesListEntryMixin, "SetGuildFinder", function(self)
+			hooksecurefunc(CommunitiesListEntryMixin, "Init", function(self)
 				self.Background:SetTexture()
 				self.Selection:SetColorTexture(unpack(core.config.color.selected))
 				self.Selection:SetAllPoints()
@@ -1279,6 +1526,8 @@ skin_panel = function(panel, nested)
 			lib.skin_dropdown(CommunitiesFrame.CommunitiesListDropDownMenu)
 			lib.skin_dropdown(CommunitiesFrame.GuildMemberListDropDownMenu)
 			lib.skin_dropdown(CommunitiesFrame.CommunityMemberListDropDownMenu)
+			CommunitiesFrame.GuildMemberListDropDownMenu:SetPoint("TOPRIGHT", -10, -30)
+			CommunitiesFrame.CommunityMemberListDropDownMenu:SetPoint("TOPRIGHT", -10, -30)
 
 			-- CommunitiesFrame.MemberList
 			core.util.strip_textures(CommunitiesFrame.MemberList.WatermarkFrame)
@@ -1289,24 +1538,41 @@ skin_panel = function(panel, nested)
 				end
 			end)
 
-			core.util.fix_scrollbar(CommunitiesFrame.MemberList.ListScrollFrame.scrollBar)
-			CommunitiesFrame.MemberList.ListScrollFrame.scrollBar.Background:SetTexture()
+			core.util.fix_scrollbar(CommunitiesFrame.MemberList.ScrollBar)
+			
+			local crop_class = function(button)
+				local left, top, _, bottom, right = button.Class:GetTexCoord()
+				button.Class:SetTexCoord(left + 0.019, right - 0.019, top + 0.019, bottom - 0.019)
+			end
+
+			local skin_row = function(row)
+				row:GetNormalTexture():SetTexture()
+				row:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+				crop_class(row)
+				row.ProfessionHeader.Left:Hide()
+				row.ProfessionHeader.Right:Hide()
+				row.ProfessionHeader.Middle:Hide()
+			end
+
+			hooksecurefunc(CommunitiesMemberListEntryMixin, "Init", skin_row)
+			hooksecurefunc(CommunitiesMemberListEntryMixin, "SetMember", crop_class)
+
+			core.util.gen_backdrop(CommunitiesFrame.MemberList, unpack(core.config.frame_background_transparent))
+			CommunitiesFrame.MemberList.ScrollBox:ForEachFrame(crop_class)
 
 			hooksecurefunc(CommunitiesFrame.MemberList, "RefreshListDisplay", function(self)
-				local buttons = self.ListScrollFrame.buttons
-				for i = 1, #buttons do
-					local button = buttons[i]
-					button:SetHeight(22)
-					button:GetNormalTexture():SetTexture()
-					button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
-					button.Class:SetSize(22, 22)
-					local left, top, _, bottom, right = button.Class:GetTexCoord()
-					button.Class:SetTexCoord(left + 0.019, right - 0.019, top + 0.019, bottom - 0.019)
-				end
+				self.ScrollBox:ForEachFrame(crop_class)
 			end)
 
+			lib.skin_checkbox(CommunitiesFrame.MemberList.ShowOfflineButton)
+			CommunitiesFrame.MemberList.ShowOfflineButton:SetSize(20, 20)
+			CommunitiesFrame.MemberList.ShowOfflineButton:SetPoint("BOTTOMLEFT", CommunitiesFrame.MemberList, "TOPLEFT", 0, 28)
+			CommunitiesFrame.MemberList.ShowOfflineButton.Text:SetPoint("LEFT", CommunitiesFrame.MemberList.ShowOfflineButton, "RIGHT", 3, 0)
+
 			-- CommunitiesFrame.Chat
-			core.util.fix_scrollbar(CommunitiesFrame.Chat.MessageFrame.ScrollBar)
+			core.util.gen_backdrop(CommunitiesFrame.Chat, unpack(core.config.frame_background_transparent))
+			core.util.fix_scrollbar(CommunitiesFrame.Chat.ScrollBar)
+			
 			lib.skin_button(JumpToUnreadButton)
 
 			-- CommunitiesFrame.ChatEditBox
@@ -1316,6 +1582,385 @@ skin_panel = function(panel, nested)
 			CommunitiesFrame.InviteButton:SetPoint("BOTTOMRIGHT", -5, 2)
 			lib.skin_button(CommunitiesFrame.CommunitiesControlFrame.GuildRecruitmentButton)
 			CommunitiesFrame.CommunitiesControlFrame:SetPoint("BOTTOMRIGHT", -5, 2)
+
+			lib.skin_button(CommunitiesFrame.CommunitiesControlFrame.CommunitiesSettingsButton)
+			lib.skin_button(CommunitiesFrame.CommunitiesControlFrame.GuildControlButton)
+			lib.skin_button(CommunitiesFrame.CommunitiesControlFrame.GuildRecruitmentButton)
+
+			lib.skin_button(CommunitiesFrame.GuildLogButton)
+
+			-- CommunitiesFrame.GuildBenefitsFrame
+			core.util.strip_textures(CommunitiesFrame.GuildBenefitsFrame, true)
+
+			core.util.strip_textures(CommunitiesFrame.GuildBenefitsFrame.Perks, true)
+			core.util.strip_textures(CommunitiesFrame.GuildBenefitsFrame.Rewards, true)
+
+			hooksecurefunc("CommunitiesGuildPerks_Update", function(self)
+				self.ScrollBox:ForEachFrame(function(frame)
+					if frame.skinned then return end
+					frame.skinned = true
+					core.util.strip_textures(frame, true, {frame.Right, frame.Icon})
+					core.util.set_outside(frame.Right, frame.Icon)
+					frame.Right:SetColorTexture(unpack(core.config.color.border))
+					core.util.crop_icon(frame.Icon)
+				end)
+			end)
+
+			local skin_reward = function(button)
+				if button.skinned then return end
+				button.skinned = true
+				local normal = button:GetNormalTexture()
+				core.util.set_outside(normal, button.Icon)
+				normal:SetColorTexture(unpack(core.config.color.border))
+				core.util.crop_icon(button.Icon)
+				button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+			end
+
+			hooksecurefunc(CommunitiesGuildRewardsButtonMixin, "Init", skin_reward)
+			hooksecurefunc("CommunitiesGuildRewards_Update", function(self)
+				self.ScrollBox:ForEachFrame(skin_reward)
+			end)
+
+			core.util.fix_scrollbar(CommunitiesFrame.GuildBenefitsFrame.Rewards.ScrollBar)
+
+			core.util.strip_textures(CommunitiesFrame.GuildDetailsFrame, true)
+			core.util.strip_textures(CommunitiesFrame.GuildDetailsFrame.Info, true)
+			core.util.fix_scrollbar(CommunitiesFrame.GuildDetailsFrame.Info.MOTDScrollFrame.ScrollBar)
+			core.util.fix_scrollbar(CommunitiesFrame.GuildDetailsFrame.Info.DetailsFrame.ScrollBar)
+
+			core.util.strip_textures(CommunitiesFrame.GuildDetailsFrame.News, true)
+			core.util.fix_scrollbar(CommunitiesFrame.GuildDetailsFrame.News.ScrollBar)
+
+			CommunitiesFrame.GuildDetailsFrame.News.ScrollBox:ForEachFrame(function(button)
+				button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+				button.header:SetTexture()
+			end)
+			hooksecurefunc(CommunitiesGuildNewsButtonMixin, "Init", function(button)
+				button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+				button.header:SetTexture()
+			end)
+			
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.Left:Hide()
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.Right:Hide()
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.Middle:Hide()
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.BG:ClearAllPoints()
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.BG:SetAllPoints()
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.BG:SetColorTexture(unpack(core.config.color.border))
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.Shadow:ClearAllPoints()
+			core.util.set_inside(CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.Shadow, CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar)
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.Shadow:SetColorTexture(unpack(core.config.color.background))
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.Progress:ClearAllPoints()
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.Progress:SetPoint("TOPLEFT", 1, -1)
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.Progress:SetPoint("BOTTOMLEFT", 1, 1)
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.Progress:SetTexture(core.media.textures.blank)
+			CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar.Progress:SetDrawLayer("BACKGROUND", 2)
+
+			hooksecurefunc(CommunitiesFrame.GuildBenefitsFrame.FactionFrame.Bar, "SetProgress", function(bar, cur, max)
+				if max == 0 then
+					cur = 1
+					max = 1
+				end
+			
+				local max_width = bar:GetWidth() - 2;
+				local progress = min(max_width * cur / max, max_width);
+				bar.Progress:SetWidth(progress)
+				
+				bar.Shadow:Show()
+			end)
+
+			local set_roles = function(frame)
+				if not frame.TankRoleFrame.CheckBox:IsEnabled() then
+					frame.TankRoleFrame.string:SetText("|cffaaaaaaT|r")
+				else
+					frame.TankRoleFrame.string:SetText(role_texts[LFG_LIST_GROUP_DATA_ATLASES.TANK])
+				end
+				if not frame.HealerRoleFrame.CheckBox:IsEnabled() then
+					frame.HealerRoleFrame.string:SetText("|cffaaaaaaH|r")
+				else
+					frame.HealerRoleFrame.string:SetText(role_texts[LFG_LIST_GROUP_DATA_ATLASES.HEALER])
+				end
+				if not frame.DpsRoleFrame.CheckBox:IsEnabled() then
+					frame.DpsRoleFrame.string:SetText("|cffaaaaaaD|r")
+				else
+					frame.DpsRoleFrame.string:SetText(role_texts[LFG_LIST_GROUP_DATA_ATLASES.DAMAGER])
+				end
+			end
+
+			local skin_role_frame = function(frame, text)
+				frame.Icon:Hide()
+				local string = core.util.gen_string(frame, 30, nil, core.media.fonts.role_symbols)
+				string:SetText(text)
+				string:SetAllPoints()
+				lib.skin_checkbox(frame.CheckBox)
+				frame.CheckBox:SetSize(15, 15)
+				frame.string = string
+			end
+
+			local skin_club_finder = function(frame)
+				-- OptionsList
+				lib.skin_dropdown(frame.OptionsList.ClubFilterDropdown)
+				lib.skin_dropdown(frame.OptionsList.ClubSizeDropdown)
+				lib.skin_dropdown(frame.OptionsList.SortByDropdown)
+
+				skin_role_frame(frame.OptionsList.TankRoleFrame, role_texts[LFG_LIST_GROUP_DATA_ATLASES.TANK])
+				skin_role_frame(frame.OptionsList.HealerRoleFrame, role_texts[LFG_LIST_GROUP_DATA_ATLASES.HEALER])
+				skin_role_frame(frame.OptionsList.DpsRoleFrame, role_texts[LFG_LIST_GROUP_DATA_ATLASES.DAMAGER])
+				
+				set_roles(frame.OptionsList)
+				hooksecurefunc(frame.OptionsList, "SetEnabledRoles", set_roles)
+				hooksecurefunc(frame.OptionsList, "SetupGuildFinderOptions", function(self)
+					self.ClubFilterDropdown:SetWidth(150)
+					self.ClubSizeDropdown:ClearAllPoints()
+					self.ClubSizeDropdown:SetPoint("BOTTOMLEFT", self.ClubFilterDropdown, "BOTTOMRIGHT", 5, 0)
+				end)
+				hooksecurefunc(frame.OptionsList, "SetupCommunityFinderOptions", function(self)
+					self.ClubFilterDropdown:SetWidth(150)
+					self.SortByDropdown:ClearAllPoints()
+					self.SortByDropdown:SetPoint("BOTTOMLEFT", self.ClubFilterDropdown, "BOTTOMRIGHT", 5, 0)
+				end)
+				frame.OptionsList.ClubFilterDropdown:SetWidth(150)
+
+				core.util.fix_editbox(frame.OptionsList.SearchBox)
+				lib.skin_button(frame.OptionsList.Search)
+				frame.OptionsList.Search:ClearAllPoints()
+				frame.OptionsList.Search:SetPoint("TOPLEFT", frame.OptionsList.SearchBox, "BOTTOMLEFT", 0, -5)
+				frame.OptionsList.Search:SetPoint("TOPRIGHT", frame.OptionsList.SearchBox, "BOTTOMRIGHT", 0, -5)
+
+				core.util.fix_scrollbar(frame.CommunityCards.ScrollBar)
+				core.util.fix_scrollbar(frame.PendingCommunityCards.ScrollBar)
+
+				lib.skin_icon_button(frame.GuildCards.PreviousPage, nil, "<")
+				lib.skin_icon_button(frame.GuildCards.NextPage, nil, ">")
+				lib.skin_icon_button(frame.PendingGuildCards.PreviousPage, nil, "<")
+				lib.skin_icon_button(frame.PendingGuildCards.NextPage, nil, ">")
+				
+				skin_tab(frame.ClubFinderSearchTab)
+				skin_tab(frame.ClubFinderPendingTab)
+			end
+			
+			skin_club_finder(CommunitiesFrame.GuildFinderFrame)
+			skin_club_finder(CommunitiesFrame.CommunityFinderFrame)
+
+			core.util.gen_backdrop(CommunitiesFrame.GuildMemberDetailFrame)
+			lib.skin_icon_button(CommunitiesFrame.GuildMemberDetailFrame.CloseButton, nil, "x")
+			CommunitiesFrame.GuildMemberDetailFrame.CloseButton:SetPoint("TOPRIGHT", -3, -3)
+			lib.skin_button(CommunitiesFrame.GuildMemberDetailFrame.RemoveButton, core.config.font_size_sml)
+			lib.skin_button(CommunitiesFrame.GuildMemberDetailFrame.GroupInviteButton, core.config.font_size_sml)
+
+			core.util.gen_backdrop(CommunitiesFrame.GuildMemberDetailFrame.NoteBackground)
+			CommunitiesFrame.GuildMemberDetailFrame.NoteBackground.NineSlice:Hide()
+			core.util.gen_backdrop(CommunitiesFrame.GuildMemberDetailFrame.OfficerNoteBackground)
+			CommunitiesFrame.GuildMemberDetailFrame.OfficerNoteBackground.NineSlice:Hide()
+		
+		elseif name == "EncounterJournal" then
+			
+			core.util.fix_editbox(EncounterJournal.searchBox)
+			lib.skin_navbar(EncounterJournal.navBar)
+			lib.skin_dropdown(EncounterJournal.instanceSelect.tierDropDown)
+			EncounterJournal.instanceSelect.tierDropDown:SetPoint("TOPRIGHT", -5, -5)
+			core.util.fix_scrollbar(EncounterJournal.instanceSelect.ScrollBar)
+			EncounterJournal.instanceSelect.border = EncounterJournal.instanceSelect:CreateTexture(nil, "BACKGROUND", nil, -1)
+			EncounterJournal.instanceSelect.border:SetColorTexture(unpack(core.config.color.border))
+			core.util.set_outside(EncounterJournal.instanceSelect.border, EncounterJournal.instanceSelect)
+			EncounterJournal.instanceSelect.bg:SetAllPoints()
+			EncounterJournal.instanceSelect.bg:SetTexCoord(0.01, 0.96, 0.01, 1)
+
+			hooksecurefunc("EncounterJournal_ListInstances", function()
+				EncounterJournal.instanceSelect.ScrollBox:ForEachFrame(function(frame)
+					if frame.skinned then return end
+					frame.skinned = true
+
+					frame.border = frame:CreateTexture(nil, "BACKGROUND", nil, -1)
+					frame.border:SetColorTexture(unpack(core.config.color.border))
+					frame.border:SetAllPoints()
+					core.util.set_inside(frame.bgImage, frame)
+					frame.bgImage:SetTexCoord(0.05, 0.63, 0.05, 0.69)
+
+					frame:ClearNormalTexture()
+					frame:GetPushedTexture():SetColorTexture(unpack(core.config.color.pushed))
+					frame:GetPushedTexture():SetAllPoints(frame.bgImage)
+					frame:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+					frame:GetHighlightTexture():SetAllPoints(frame.bgImage)
+				end)
+			end)
+
+			core.util.fix_scrollbar(EncounterJournal.encounter.instance.LoreScrollBar)
+			EncounterJournal.encounter.info.border = EncounterJournal.encounter.info:CreateTexture(nil, "BACKGROUND", nil, -1)
+			EncounterJournal.encounter.info.border:SetColorTexture(unpack(core.config.color.border))
+			core.util.set_outside(EncounterJournal.encounter.info.border, EncounterJournal.encounter.info)
+
+			core.util.fix_scrollbar(EncounterJournal.encounter.info.BossesScrollBar)
+			core.util.fix_scrollbar(EncounterJournalEncounterFrameInfoDetailsScrollFrame.ScrollBar)
+			core.util.fix_scrollbar(EncounterJournalEncounterFrameInfoOverviewScrollFrame.ScrollBar)
+			core.util.fix_scrollbar(EncounterJournal.encounter.info.LootContainer.ScrollBar)
+
+			-- EJButtonTemplate
+			local skin_filter_button = function(button)
+				core.util.strip_textures(button, true)
+				core.util.gen_backdrop(button)
+				button:SetHighlightTexture(core.media.textures.blank)
+				button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+				core.util.set_inside(button:GetHighlightTexture(), button)
+			end
+			skin_filter_button(EncounterJournal.encounter.info.difficulty)
+			skin_filter_button(EncounterJournal.encounter.info.LootContainer.filter)
+			skin_filter_button(EncounterJournal.encounter.info.LootContainer.slotFilter)
+
+			EncounterJournal.MonthlyActivitiesTab:ClearAllPoints()
+			EncounterJournal.MonthlyActivitiesTab:SetPoint("TOPLEFT", EncounterJournal, "BOTTOMLEFT", 0, 1)
+			EncounterJournal.suggestTab:ClearAllPoints()
+			EncounterJournal.suggestTab:SetPoint("TOPLEFT", EncounterJournal.MonthlyActivitiesTab, "TOPRIGHT", -1, 0)
+			EncounterJournal.dungeonsTab:ClearAllPoints()
+			EncounterJournal.dungeonsTab:SetPoint("TOPLEFT", EncounterJournal.suggestTab, "TOPRIGHT", -1, 0)
+			EncounterJournal.raidsTab:ClearAllPoints()
+			EncounterJournal.raidsTab:SetPoint("TOPLEFT", EncounterJournal.dungeonsTab, "TOPRIGHT", -1, 0)
+			EncounterJournal.LootJournalTab:ClearAllPoints()
+			EncounterJournal.LootJournalTab:SetPoint("TOPLEFT", EncounterJournal.raidsTab, "TOPRIGHT", -1, 0)
+
+			hooksecurefunc("EncounterJournal_CheckAndDisplayTradingPostTab", function()
+				EncounterJournal.suggestTab:ClearAllPoints()
+				if C_PlayerInfo.IsTradingPostAvailable() then
+					EncounterJournal.suggestTab:SetPoint("TOPLEFT", EncounterJournal.MonthlyActivitiesTab, "TOPRIGHT", -1, 0)
+				else
+					EncounterJournal.suggestTab:SetPoint("TOPLEFT", EncounterJournal, "BOTTOMLEFT", 0, 1)
+				end
+			end)
+
+		elseif name == "ClassTrainerFrame" then
+
+			ClassTrainerFrame.BG:Hide()
+			ClassTrainerFrameMoneyBg:Hide()
+
+			core.util.strip_textures(ClassTrainerStatusBar, true)
+			ClassTrainerStatusBar:SetStatusBarTexture(core.media.textures.blank)
+			ClassTrainerStatusBar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
+			core.util.gen_backdrop(ClassTrainerStatusBar)
+			ClassTrainerStatusBar:SetPoint("TOPLEFT", 60, -36)
+
+			lib.skin_dropdown(ClassTrainerFrameFilterDropDown)
+			ClassTrainerFrameFilterDropDown:HookScript("OnShow", function(self)
+				self:SetWidth(120)
+			end)
+			ClassTrainerFrameFilterDropDown:SetPoint("TOPRIGHT", -5, -30)
+			lib.skin_button(ClassTrainerTrainButton)
+			core.util.fix_scrollbar(ClassTrainerFrame.ScrollBar)
+
+			hooksecurefunc("ClassTrainerFrame_InitServiceButton", function(button)
+				-- ClassTrainerSkillButtonTemplate
+				
+				if button.skinned then return end
+				button.skinned = true
+				
+				core.util.crop_icon(button.icon)
+				button.selectedTex:SetColorTexture(unpack(core.config.color.selected))
+				button:GetNormalTexture():SetColorTexture(unpack(core.config.color.border))
+				core.util.set_outside(button:GetNormalTexture(), button.icon)
+				button:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+			end)
+
+		elseif name == "ProfessionsFrame" then
+			
+			ProfessionsFrame.TabSystem:SetPoint("TOPLEFT", ProfessionsFrame, "BOTTOMLEFT", 0, 1)
+			hooksecurefunc(ProfessionsFrame.TabSystem, "LayoutChildren", function(self, children)
+				local prev
+				for i, child in ipairs(children) do
+					child:ClearAllPoints()
+					if prev then
+						child:SetPoint("TOPLEFT", prev, "TOPRIGHT", -1, 0)
+					else
+						child:SetPoint("TOPLEFT", self, "TOPLEFT")
+					end
+					prev = child
+				end
+			end)
+
+			lib.skin_tab(ProfessionsFrame:GetTabButton(ProfessionsFrame.recipesTabID))
+			lib.skin_tab(ProfessionsFrame:GetTabButton(ProfessionsFrame.specializationsTabID))
+			lib.skin_tab(ProfessionsFrame:GetTabButton(ProfessionsFrame.craftingOrdersTabID))
+
+			-- ProfessionsCraftingPageTemplate
+			lib.skin_help(ProfessionsFrame.CraftingPage.TutorialButton)
+			core.util.gen_backdrop(ProfessionsFrame.CraftingPage.RecipeList, unpack(core.config.frame_background_transparent))
+			ProfessionsFrame.CraftingPage.RecipeList.Backgroud:Hide()
+			ProfessionsFrame.CraftingPage.RecipeList.BackgroundNineSlice:Hide()
+			
+			core.util.strip_textures(ProfessionsFrame.CraftingPage.RecipeList.FilterButton, true)
+			core.util.gen_backdrop(ProfessionsFrame.CraftingPage.RecipeList.FilterButton)
+			ProfessionsFrame.CraftingPage.RecipeList.FilterButton:SetHighlightTexture(core.media.textures.blank)
+			ProfessionsFrame.CraftingPage.RecipeList.FilterButton:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+			core.util.set_inside(ProfessionsFrame.CraftingPage.RecipeList.FilterButton:GetHighlightTexture(), ProfessionsFrame.CraftingPage.RecipeList.FilterButton)
+			core.util.fix_editbox(ProfessionsFrame.CraftingPage.RecipeList.SearchBox)
+
+			ProfessionsFrame.CraftingPage.SchematicForm.Background:Show()
+			ProfessionsFrame.CraftingPage.SchematicForm.TrackRecipeCheckBox:SetPoint("TOPRIGHT", -(math.floor(ProfessionsFrame.CraftingPage.SchematicForm.TrackRecipeCheckBox.text:GetStringWidth()) + 25), -16)
+			ProfessionsFrame.CraftingPage.SchematicForm.TrackRecipeCheckBox.text:SetPoint("LEFT", ProfessionsFrame.CraftingPage.SchematicForm.TrackRecipeCheckBox, "RIGHT", 5, 0)
+			lib.skin_checkbox(ProfessionsFrame.CraftingPage.SchematicForm.TrackRecipeCheckBox)
+			lib.skin_checkbox(ProfessionsFrame.CraftingPage.SchematicForm.AllocateBestQualityCheckBox)
+
+			lib.skin_button(ProfessionsFrame.CraftingPage.CreateButton)
+			lib.skin_button(ProfessionsFrame.CraftingPage.CreateAllButton)
+
+			core.util.strip_textures(ProfessionsFrame.CraftingPage.CreateMultipleInputBox, true)
+			core.util.fix_editbox(ProfessionsFrame.CraftingPage.CreateMultipleInputBox)
+			ProfessionsFrame.CraftingPage.CreateMultipleInputBox:SetWidth(40)
+			lib.skin_icon_button(ProfessionsFrame.CraftingPage.CreateMultipleInputBox.IncrementButton, nil, ">")
+			lib.skin_icon_button(ProfessionsFrame.CraftingPage.CreateMultipleInputBox.DecrementButton, nil, "<")
+			ProfessionsFrame.CraftingPage.CreateMultipleInputBox.IncrementButton:SetPoint("LEFT", ProfessionsFrame.CraftingPage.CreateMultipleInputBox, "RIGHT", 1, 0)
+			ProfessionsFrame.CraftingPage.CreateMultipleInputBox.DecrementButton:SetPoint("RIGHT", ProfessionsFrame.CraftingPage.CreateMultipleInputBox, "LEFT", -1, 0)
+
+			lib.skin_itembutton(ProfessionsFrame.CraftingPage.Prof0ToolSlot)
+			lib.skin_itembutton(ProfessionsFrame.CraftingPage.Prof0Gear0Slot)
+			lib.skin_itembutton(ProfessionsFrame.CraftingPage.Prof0Gear1Slot)
+
+			lib.skin_icon_button(ProfessionsFrame.CraftingPage.LinkButton, nil, ">")
+
+			-- ProfessionsSpecPageTemplate
+			ProfessionsFrame.SpecPage.PanelFooter:Hide()
+
+			lib.skin_button(ProfessionsFrame.SpecPage.ApplyButton)
+			lib.skin_button(ProfessionsFrame.SpecPage.UnlockTabButton)
+			lib.skin_button(ProfessionsFrame.SpecPage.DetailedView.SpendPointsButton)
+			lib.skin_button(ProfessionsFrame.SpecPage.DetailedView.UnlockPathButton)
+
+			core.util.crop_icon(ProfessionsFrame.SpecPage.DetailedView.UnspentPoints.Icon)
+			
+			ProfessionsFrame.SpecPage.VerticalDivider:Hide()
+			ProfessionsFrame.SpecPage.TopDivider:Hide()
+
+			-- ProfessionsCraftingOrderPageTemplate
+			core.util.gen_backdrop(ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList, unpack(core.config.frame_background_transparent))
+
+			ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList.Backgroud:Hide()
+			ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList.BackgroundNineSlice:Hide()
+
+			core.util.strip_textures(ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList.FilterButton, true)
+			core.util.gen_backdrop(ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList.FilterButton)
+			ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList.FilterButton:SetHighlightTexture(core.media.textures.blank)
+			ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList.FilterButton:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+			core.util.set_inside(ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList.FilterButton:GetHighlightTexture(), ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList.FilterButton)
+			core.util.fix_editbox(ProfessionsFrame.OrdersPage.BrowseFrame.RecipeList.SearchBox)
+			
+			lib.skin_icon_button(ProfessionsFrame.OrdersPage.BrowseFrame.FavoritesSearchButton, nil, "F")
+			lib.skin_button(ProfessionsFrame.OrdersPage.BrowseFrame.SearchButton)
+			ProfessionsFrame.OrdersPage.BrowseFrame.SearchButton:SetPoint("LEFT", ProfessionsFrame.OrdersPage.BrowseFrame.FavoritesSearchButton, "RIGHT", 5, 0)
+
+			ProfessionsFrame.OrdersPage.BrowseFrame.OrderList.NineSlice:Hide()
+			ProfessionsFrame.OrdersPage.BrowseFrame.OrdersRemainingDisplay.Background:Hide()
+
+			hooksecurefunc(ProfessionsFrame.OrdersPage, "SetupTable", function(self)
+				for frame in self.tableBuilder:EnumerateHeaders() do
+					lib.skin_button(frame, core.config.font_size_sml)
+					frame.Arrow:SetSize(9, 12)
+					frame.Arrow:ClearAllPoints()
+					frame.Arrow:SetPoint("RIGHT", -5, 0)
+				end
+			end)
+			for frame in ProfessionsFrame.OrdersPage.tableBuilder:EnumerateHeaders() do
+				lib.skin_button(frame, core.config.font_size_sml)
+				frame.Arrow:SetSize(9, 12)
+				frame.Arrow:ClearAllPoints()
+				frame.Arrow:SetPoint("RIGHT", -5, 0)
+			end
 		end
 
 	elseif name == "WorldMapFrame" then
@@ -1331,31 +1976,7 @@ skin_panel = function(panel, nested)
 			end
 		end
 
-		-- WorldMapFrame.NavBar
-		core.util.strip_textures(WorldMapFrame.NavBar, true)
-		WorldMapFrame.NavBar.overlay:Hide()
-		core.util.strip_textures(WorldMapFrame.NavBar.home, true, {WorldMapFrame.NavBar.home:GetHighlightTexture()})
-		WorldMapFrame.NavBar.home:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
-		WorldMapFrame.NavBar.home:GetHighlightTexture():ClearAllPoints()
-		WorldMapFrame.NavBar.home:GetHighlightTexture():SetPoint("TOPLEFT")
-		WorldMapFrame.NavBar.home:GetHighlightTexture():SetPoint("BOTTOMRIGHT", -20, 0)
-		
-		hooksecurefunc(WorldMapFrame.NavBar, "Refresh", function(self)
-			for _, nav in ipairs(self.navList) do
-				if nav.selected then
-					nav.text:SetPoint("LEFT", 2, 0)
-					nav:SetText("->  "..nav:GetText())
-					nav.selected:SetColorTexture(unpack(core.config.color.selected))
-					nav.arrowUp:SetTexture(nil)
-					nav.arrowDown:SetTexture(nil)
-					nav:SetNormalTexture(nil)
-					nav:SetPushedTexture(nil)
-					nav:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
-
-					core.util.strip_textures(nav.MenuArrowButton, true, {nav.MenuArrowButton.Art})
-				end
-			end
-		end)
+		lib.skin_navbar(WorldMapFrame.NavBar)
 
 		WorldMapFrame.QuestLog.Background:Hide()
 		WorldMapFrame.QuestLog.VerticalSeparator:Hide()
@@ -1394,37 +2015,22 @@ skin_panel = function(panel, nested)
 		end
 
 	elseif name == "FlightMapFrame" then
-		core.util.circle_mask(panel.BorderFrame, panel.BorderFrame.portrait_bg, 4)
-		core.util.circle_mask(panel, FlightMapFramePortrait, 4)
+
 		panel.BorderFrame.TopBorder:SetTexture()
 		panel.BorderFrame.TopBorder:Hide()
 
-	elseif name == "ScriptErrorsFrame" then
+	elseif name == "TalkingHeadFrame" then
 
-		core.util.fix_string(panel.Title, core.config.font_size_med)
-
-		core.util.strip_textures(panel, true)
-		panel:SetScale(core.config.ui_scale)
-		panel:SetSize(500, 300)
-		panel.DragArea:ClearAllPoints()
-		panel.DragArea:SetPoint("TOPLEFT")
-		panel.DragArea:SetPoint("TOPRIGHT")
-		panel.DragArea:SetHeight(30)
-
-		panel.ScrollFrame:SetSize(490, 220)
-		panel.ScrollFrame:SetPoint("TOPLEFT", 5, -30)
-		
-		panel.ScrollFrame.Text:SetSize(490, 220)
-		core.util.fix_string(panel.ScrollFrame.Text, core.config.font_size_med)
-
-		core.util.fix_scrollbar(panel.ScrollFrame.ScrollBar)
-
-		panel:ClearAllPoints()
-		panel:SetPoint("BOTTOMLEFT")
-		core.util.gen_backdrop(panel)
-
-		lib.skin_button(panel.Close)
-		lib.skin_button(panel.Reload)
+		TalkingHeadFrame:SetSize(500, 140)
+		TalkingHeadFrame.PortraitFrame:Hide()
+		TalkingHeadFrame.MainFrame.Model:SetSize(138, 138)
+		TalkingHeadFrame.MainFrame.Model:SetPoint("TOPLEFT", 1, -1)
+		TalkingHeadFrame.MainFrame.Model:SetPoint("BOTTOMRIGHT", TalkingHeadFrame.MainFrame, "TOPLEFT", 139, -139)
+		TalkingHeadFrame.MainFrame.Model.PortraitBg:Hide()
+		TalkingHeadFrame.MainFrame.CloseButton:SetPoint("TOPRIGHT", -1, -1)
+		lib.skin_icon_button(TalkingHeadFrame.MainFrame.CloseButton, nil, "x")
+		TalkingHeadFrame.BackgroundFrame:Hide()
+		core.util.gen_backdrop(TalkingHeadFrame, unpack(core.config.frame_background_transparent))
 		
 	end
 
@@ -1447,6 +2053,13 @@ local skin_static_popup = function(popup)
 
 	lib.skin_itembutton(popup.ItemFrame, nil, 36, 36)
 	_G[popup.ItemFrame:GetName().."NameFrame"]:Hide()
+
+	local money_input = _G[popup:GetName().."MoneyInputFrame"]
+	core.util.fix_editbox(money_input.gold)
+	core.util.fix_editbox(money_input.silver)
+	money_input.silver.texture:SetPoint("RIGHT", -4, 0)
+	core.util.fix_editbox(money_input.copper)
+	money_input.copper.texture:SetPoint("RIGHT", -4, 0)
 end
 
 skin_static_popup(StaticPopup1)
@@ -1454,10 +2067,24 @@ skin_static_popup(StaticPopup2)
 skin_static_popup(StaticPopup3)
 skin_static_popup(StaticPopup4)
 
-hooksecurefunc("SetItemButtonQuality", function(button, quality, itemIDOrLink, suppressOverlays, isBound)
-	if button.useCircularIconBorder then return end
+hooksecurefunc("SetItemButtonQuality", function(button, quality, id_or_link)
+	if button.CircleMask then
+		icon = button.Icon or button.icon
+		
+		icon:SetAllPoints()
+		core.util.set_outside(button.IconBorder, button)
 
-	if itemIDOrLink and IsArtifactRelicItem(itemIDOrLink) then
+		icon.mask = button.CircleMask
+		core.util.circle_mask(button, icon)
+		core.util.circle_mask(button, button.IconBorder)
+
+		local quality_color = BAG_ITEM_QUALITY_COLORS[quality]
+		if quality_color then
+			button.IconBorder:SetVertexColor(quality_color.r, quality_color.g, quality_color.b)
+		end
+	end
+
+	if id_or_link and IsArtifactRelicItem(id_or_link) then
 		button.IconBorder:SetDrawLayer("OVERLAY")
 	else
 		button.IconBorder:SetDrawLayer("BACKGROUND", -8)
@@ -1497,82 +2124,10 @@ hooksecurefunc("TalentFrame_Update", function(frame)
 	end
 end)
 
--- hooksecurefunc("SpellButton_OnShow", function(button)
--- 	if button.skinned then return end
-
--- 	if button.EmptySlot then
--- 		button.EmptySlot:SetTexture(core.media.textures.blank)
--- 		button.EmptySlot:SetVertexColor(unpack(core.config.color.border))
--- 		core.util.set_outside(button.EmptySlot, button)
--- 		button.TextBackground:Hide()
--- 		button.TextBackground2:Hide()
--- 		button.IconTextureBg:SetTexture(core.media.textures.blank)
--- 		button.IconTextureBg:SetVertexColor(unpack(core.config.color.background))
--- 		_G[button:GetDebugName().."SlotFrame"]:SetTexture(nil)
--- 		core.util.set_outside(_G[button:GetDebugName().."AutoCastable"], button)
--- 		_G[button:GetDebugName().."AutoCastable"]:SetTexCoord(0.22, 0.76, 0.22, 0.77)
-
--- 		core.util.set_outside(button.SpellHighlightTexture, button)
--- 		button.SpellHighlightTexture:SetDrawLayer("BACKGROUND", 1)
--- 		button.SpellHighlightTexture:SetTexture(core.media.textures.blank)
--- 	end
--- 	button:SetPushedTexture(core.media.textures.blank)
--- 	button:GetPushedTexture():SetVertexColor(unpack(core.config.color.pushed))
--- 	button:GetPushedTexture():SetBlendMode("ADD")
-
--- 	button:SetCheckedTexture(core.media.textures.blank)
--- 	button:GetCheckedTexture():SetVertexColor(unpack(core.config.color.selected))
-
--- 	_G[button:GetDebugName().."IconTexture"]:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-
--- 	button.skinned = true
--- end)
-
 hooksecurefunc("UpdateProfessionButton", function(button)
 	button:GetHighlightTexture():SetTexture(core.media.textures.blank)
 	button:GetHighlightTexture():SetVertexColor(unpack(core.config.color.highlight))
 end)
-
--- hooksecurefunc("SpellButton_UpdateButton", function(button)
--- 	if button.IconTextureBg then
--- 		button.IconTextureBg:Show()
--- 	end
-	
--- 	if button.SpellName then
--- 		button.SpellName:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
--- 		button.SpellSubName:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
--- 		button.RequiredLevelString:SetTextColor(WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b)
--- 	end
-	
--- 	button:GetHighlightTexture():SetTexture(core.media.textures.blank)
--- 	button:GetHighlightTexture():SetVertexColor(unpack(core.config.color.highlight))
-	
--- 	if button.shine then
--- 		button.shine:SetAllPoints()
--- 	end
--- end)
-
--- hooksecurefunc("ReputationFrame_SetRowType", function(factionRow, isChild, isHeader, hasRep)
--- 	local factionRowName = factionRow:GetName()
--- 	_G[factionRowName.."Background"]:Hide()
--- 	_G[factionRowName.."ReputationBarLeftTexture"]:Hide()
--- 	_G[factionRowName.."ReputationBarRightTexture"]:Hide()
-	
--- 	local factionBar = _G[factionRowName.."ReputationBar"]
--- 	factionBar:GetStatusBarTexture():SetDrawLayer("BORDER", -1)
--- 	factionBar:SetStatusBarTexture(core.media.textures.blank)
--- 	core.util.gen_backdrop(factionBar)
--- 	factionBar:SetHeight(16)
-
--- 	_G[factionRowName.."ReputationBarAtWarHighlight1"]:SetTexture(core.media.textures.blank)
--- 	_G[factionRowName.."ReputationBarAtWarHighlight1"]:SetVertexColor(1, 0.25, 0.25, 0.25)
--- 	_G[factionRowName.."ReputationBarAtWarHighlight2"]:SetTexture(nil)
-
--- 	_G[factionRowName.."ReputationBarHighlight1"]:SetTexture(core.media.textures.blank)
--- 	_G[factionRowName.."ReputationBarHighlight1"]:SetVertexColor(unpack(core.config.color.highlight))
--- 	_G[factionRowName.."ReputationBarHighlight1"]:SetAllPoints(factionRow)
--- 	_G[factionRowName.."ReputationBarHighlight2"]:SetTexture(nil)
--- end)
 
 hooksecurefunc("PaperDollFrame_UpdateStats", function()
 	for frame in CharacterStatsPane.statsFramePool:EnumerateActive() do
@@ -1620,6 +2175,14 @@ hooksecurefunc("PanelTemplates_DeselectTab", function(tab)
 	tabText:ClearAllPoints()
 	tabText:SetPoint("CENTER", tab)
 	tab.selected_texture:Hide()
+end)
+
+hooksecurefunc(TabSystemButtonArtMixin, "SetTabSelected", function(self, selected)
+	lib.skin_tab(self)
+	local text = self.Text or _G[self:GetName().."Text"]
+	text:ClearAllPoints()
+	text:SetPoint("CENTER", self)
+	self.selected_texture:SetShown(selected)
 end)
 
 hooksecurefunc("PaperDollTitlesPane_InitButton", function(button)
@@ -1684,7 +2247,6 @@ hooksecurefunc("ReputationFrame_InitReputationRow", function(button)
 	button.Container.ReputationBar:SetHeight(16)
 end)
 
-
 hooksecurefunc("GearSetButton_SetSpecInfo", function(self, specID)
 	if ( specID and specID > 0 ) then
 		local _, _, _, texture = GetSpecializationInfoByID(specID);
@@ -1733,6 +2295,24 @@ hooksecurefunc(MoneyDenominationDisplayMixin, "UpdateDisplayType", function(self
 	self.Icon:SetSize(15, 15)
 end)
 
+hooksecurefunc("NavBar_AddButton", function(bar)
+	local nav = bar.navList[#bar.navList]
+	nav:SetText("->  "..nav:GetText())
+
+	if nav.skinned then return end
+	nav.skinned = true
+
+	nav.text:SetPoint("LEFT", 2, 0)
+	nav.selected:SetColorTexture(unpack(core.config.color.selected))
+	nav.arrowUp:SetTexture()
+	nav.arrowDown:SetTexture()
+	nav:GetNormalTexture():SetTexture()
+	nav:GetPushedTexture():SetTexture()
+	nav:GetHighlightTexture():SetColorTexture(unpack(core.config.color.highlight))
+
+	core.util.strip_textures(nav.MenuArrowButton, true, {nav.MenuArrowButton.Art})
+end)
+
 local skin_token = function()
 	-- TokenFrame
 
@@ -1753,6 +2333,7 @@ local skin_token = function()
 
 		button.Highlight:SetColorTexture(unpack(core.config.color.highlight))
 	end)
+	
 end
 
 local skin_challenges = function()
@@ -1760,10 +2341,12 @@ local skin_challenges = function()
 	core.util.strip_textures(ChallengesFrame, true, {ChallengesFrame.Background})
 	ChallengesFrameInset:Hide()
 
-	hooksecurefunc("ChallengesFrame_Update", function(self)
+	hooksecurefunc(ChallengesFrame, "Update", function(self)
+		local width = ChallengesFrame.WeeklyInfo:GetWidth()
+		local size = (width - (#self.DungeonIcons * 5)) / #self.DungeonIcons
 		local prev
 		for _, dungeon in ipairs(self.DungeonIcons) do
-			dungeon:SetSize(54, 54)
+			dungeon:SetSize(size, size)
 
 			local border
 			for _, region in ipairs({dungeon:GetRegions()}) do
@@ -1781,7 +2364,7 @@ local skin_challenges = function()
 
 			if prev then
 				dungeon:ClearAllPoints()
-				dungeon:SetPoint("BOTTOMLEFT", prev, "BOTTOMLEFT", 55, 0)
+				dungeon:SetPoint("BOTTOMLEFT", prev, "BOTTOMLEFT", size + 5, 0)
 			end
 			prev = dungeon
 		end
@@ -1835,7 +2418,20 @@ local skin_pvp = function()
 
 	HonorFrameTypeDropDown:SetPoint("BOTTOMRIGHT", HonorFrame.Inset, "TOPRIGHT", -5, 5)
 	lib.skin_dropdown(HonorFrameTypeDropDown)
-	core.util.fix_scrollbar(HonorFrameSpecificFrameScrollBar)
+	core.util.fix_scrollbar(HonorFrame.SpecificScrollBar)
+
+	hooksecurefunc("HonorFrame_InitSpecificButton", function(button)
+		-- PVPInstanceListEntryButtonTemplate
+		button.Bg:Hide()
+		button.SelectedTexture:SetColorTexture(unpack(core.config.color.selected))
+		button.Border:SetColorTexture(unpack(core.config.color.border))
+		button.Border:SetDrawLayer("BORDER", 1)
+		core.util.set_outside(button.Border, button.Icon)
+		
+		button.HighlightTexture:SetColorTexture(unpack(core.config.color.highlight))
+
+		core.util.fix_string(button.InfoText, core.config.font_size_sml)
+	end)
 
 	lib.skin_button(HonorFrame.QueueButton)
 
@@ -1855,53 +2451,7 @@ local skin_pvp = function()
 	PVPQueueFrame.HonorInset.NineSlice:Hide()
 end
 
-local skin_talking_head = function()
-
-	local mover = core.util.get_mover_frame("TalkingHead", {"LEFT", UIParent, "LEFT", 10, 0})
-
-	TalkingHeadFrame:SetSize(500, 140)
-	TalkingHeadFrame.PortraitFrame:Hide()
-	TalkingHeadFrame.MainFrame.Model:SetSize(138, 138)
-	TalkingHeadFrame.MainFrame.Model:SetPoint("TOPLEFT", 1, -1)
-	TalkingHeadFrame.MainFrame.Model:SetPoint("BOTTOMRIGHT", TalkingHeadFrame.MainFrame, "TOPLEFT", 138, -138)
-	TalkingHeadFrame.MainFrame.Model.PortraitBg:Hide()
-	TalkingHeadFrame.MainFrame.CloseButton:SetPoint("TOPRIGHT", -1, -1)
-	TalkingHeadFrame.BackgroundFrame:Hide()
-	core.util.gen_backdrop(TalkingHeadFrame, unpack(core.config.frame_background_transparent))
-
-	TalkingHeadFrame.alt_SetPoint = TalkingHeadFrame.SetPoint
-	hooksecurefunc(TalkingHeadFrame, "SetPoint", function(self)
-		self:ClearAllPoints()
-		local relative, _, _, x, y = mover:GetPoint()
-		self:alt_SetPoint(relative, x, y)
-	end)
-
-	for index, alertFrameSubSystem in ipairs(AlertFrame.alertFrameSubSystems) do
-		if alertFrameSubSystem.anchorFrame and alertFrameSubSystem.anchorFrame == TalkingHeadFrame then
-			tremove(AlertFrame.alertFrameSubSystems, index)
-		end
-	end
-end
-
 local skin_raid_manager = function()
-
-	CompactRaidFrameManager.containerResizeFrame.mover:EnableMouse(false)
-	CompactRaidFrameManager.containerResizeFrame.resizer:EnableMouse(false)
-	hooksecurefunc("CompactRaidFrameManager_UnlockContainer", function(self)
-		if InCombatLockdown() then
-			self.containerResizeFrame:SetAlpha(0)
-		else
-			self.containerResizeFrame:Hide()
-		end
-	end)
-	
-	hooksecurefunc("CompactRaidFrameManager_UpdateContainerVisibility", function(self)
-		if InCombatLockdown() then
-			CompactRaidFrameManager.container:SetAlpha(0)
-		else
-			CompactRaidFrameManager.container:Hide()
-		end
-	end)
 
 	core.util.strip_textures(CompactRaidFrameManager)
 	core.util.gen_backdrop(CompactRaidFrameManager, unpack(core.config.frame_background_transparent))
@@ -1910,32 +2460,19 @@ local skin_raid_manager = function()
 	CompactRaidFrameManager.toggleButton.arrow:SetText(">")
 	CompactRaidFrameManager.toggleButton.arrow:SetAllPoints(CompactRaidFrameManager.toggleButton:GetNormalTexture())
 	CompactRaidFrameManager.toggleButton:GetNormalTexture():SetTexture()
-
 	core.util.strip_textures(CompactRaidFrameManager.displayFrame, true)
-
 	CompactRaidFrameManager.displayFrame.optionsFlowContainer:SetPoint("TOPLEFT", -10, -30)
-
-	CompactRaidFrameManager.displayFrame.profileSelector:HookScript("OnShow", function(self)
-		self:SetWidth(162)
-	end)
-
 	core.util.strip_textures(CompactRaidFrameManager.displayFrame.filterOptions)
 
-	lib.skin_dropdown(CompactRaidFrameManager.displayFrame.profileSelector)
-
-	hooksecurefunc("CompactRaidFrameManager_UpdateOptionsFlowContainer", function()
-		CompactRaidFrameManager.displayFrame.profileSelector:SetPoint("TOPLEFT", CompactRaidFrameManager.displayFrame.optionsFlowContainer, "TOPLEFT", 24, 4)
-	end)
-
 	hooksecurefunc("CompactRaidFrameManager_Expand", function(self)
-		self.toggleButton.arrow:SetText("<")
+		CompactRaidFrameManager.toggleButton.arrow:SetText("<")
 	end)
 
 	hooksecurefunc("CompactRaidFrameManager_Collapse", function(self)
-		self.toggleButton.arrow:SetText(">")
+		CompactRaidFrameManager.toggleButton.arrow:SetText(">")
 	end)
 
-	lib.skin_stretchbutton(CompactRaidFrameManager.displayFrame.lockedModeToggle, core.config.font_size_sml)
+	lib.skin_stretchbutton(CompactRaidFrameManager.displayFrame.editMode, core.config.font_size_sml)
 	lib.skin_stretchbutton(CompactRaidFrameManager.displayFrame.hiddenModeToggle, core.config.font_size_sml)
 	lib.skin_stretchbutton(CompactRaidFrameManager.displayFrame.convertToRaid, core.config.font_size_sml)
 
@@ -1958,30 +2495,12 @@ local skin_raid_manager = function()
 	lib.skin_stretchbutton(CompactRaidFrameManager.displayFrame.filterOptions.filterGroup6, core.config.font_size_sml)
 	lib.skin_stretchbutton(CompactRaidFrameManager.displayFrame.filterOptions.filterGroup7, core.config.font_size_sml)
 	lib.skin_stretchbutton(CompactRaidFrameManager.displayFrame.filterOptions.filterGroup8, core.config.font_size_sml)
-
-	core.util.strip_textures(CompactRaidFrameManager.containerResizeFrame)
-	core.util.gen_backdrop(CompactRaidFrameManager.containerResizeFrame, unpack(core.config.frame_background_transparent))
-
-	CompactRaidFrameManager.containerResizeFrame.mover:ClearAllPoints()
-	CompactRaidFrameManager.containerResizeFrame.mover:SetSize(60, 24)
-	local text = core.util.gen_string(CompactRaidFrameManager.containerResizeFrame.mover)
-	text:SetText("move")
-	text:SetAllPoints()
-	CompactRaidFrameManager.containerResizeFrame.mover:SetPoint("BOTTOMLEFT", CompactRaidFrameManager.containerResizeFrame, "TOPLEFT", 0, -1)
-	core.util.gen_backdrop(CompactRaidFrameManager.containerResizeFrame.mover, unpack(core.config.frame_background_transparent))
-	CompactRaidFrameManager.containerResizeFrame.mover:GetNormalTexture():SetTexture()
-
-	CompactRaidFrameManager.containerResizeFrame.resizer:SetSize(60, 24)
-	text = core.util.gen_string(CompactRaidFrameManager.containerResizeFrame.resizer)
-	text:SetText("resize")
-	text:SetAllPoints()
-	CompactRaidFrameManager.containerResizeFrame.resizer:ClearAllPoints()
-	CompactRaidFrameManager.containerResizeFrame.resizer:SetPoint("TOP", CompactRaidFrameManager.containerResizeFrame, "BOTTOM", 0, 1)
-	core.util.gen_backdrop(CompactRaidFrameManager.containerResizeFrame.resizer, unpack(core.config.frame_background_transparent))
-	CompactRaidFrameManager.containerResizeFrame.resizer:GetNormalTexture():SetTexture()
 end
 
 local skin_weekly_reward = function()
+
+	lib.skin_icon_button(WeeklyRewardsFrame.CloseButton, nil, "x")
+	lib.skin_button(WeeklyRewardsFrame.SelectRewardButton)
 
 	hooksecurefunc(WeeklyRewardConfirmSelectionMixin, "ShowPopup", function(self)
 		item = self.ItemFrame
@@ -2002,72 +2521,68 @@ local skin_weekly_reward = function()
 	end)
 end
 
-if IsAddOnLoaded("Blizzard_AuctionHouseUI") then
-	skin_panel(AuctionHouseFrame)
-end
-
-if IsAddOnLoaded("Blizzard_TokenUI") then
-	skin_token()
-end
-
-if IsAddOnLoaded("Blizzard_TalentUI") then
-	-- skin_panel(PlayerTalentFrame)
-end
-
-if IsAddOnLoaded("Blizzard_Collections") then
-	skin_panel(CollectionsJournal)
-end
-
-if IsAddOnLoaded("Blizzard_FlightMap") then
-	skin_panel(FlightMapFrame)
+if IsAddOnLoaded("Blizzard_ChallengesUI") then
+	skin_challenges()
 end
 
 if IsAddOnLoaded("Blizzard_PVPUI") then
 	skin_pvp()
 end
 
-if IsAddOnLoaded("Blizzard_ChallengesUI") then
-	skin_challenges()
+if IsAddOnLoaded("Blizzard_TokenUI") then
+	skin_token()
+end
+
+if IsAddOnLoaded("Blizzard_Collections") then
+	skin_panel(CollectionsJournal)
 end
 
 if IsAddOnLoaded("Blizzard_Communities") then
 	skin_panel(CommunitiesFrame)
 end
 
-if IsAddOnLoaded("Blizzard_TradeSkillUI") then
-	skin_panel(TradeSkillFrame)
-end
-
-if IsAddOnLoaded("Blizzard_ItemSocketingUI") then
-	skin_panel(ItemSocketingFrame)
-end
-
-if IsAddOnLoaded("Blizzard_InspectUI") then
-	skin_panel(InspectFrame)
+if IsAddOnLoaded("Blizzard_ClassTalentUI") then
+	skin_panel(ClassTalentFrame)
 end
 
 if IsAddOnLoaded("Blizzard_WorldMap") then
 	skin_panel(WorldMapFrame)
 end
 
+if IsAddOnLoaded("Blizzard_FlightMap") then
+	skin_panel(FlightMapFrame)
+end
+
+if IsAddOnLoaded("Blizzard_ItemSocketingUI") then
+	skin_panel(ItemSocketingFrame)
+end
+
+if IsAddOnLoaded("Blizzard_AuctionHouseUI") then
+	skin_panel(AuctionHouseFrame)
+end
+
+if IsAddOnLoaded("Blizzard_WeeklyRewards") then
+	skin_weekly_reward()
+end
+
 if IsAddOnLoaded("Blizzard_EncounterJournal") then
 	skin_panel(EncounterJournal)
 end
 
-if IsAddOnLoaded("Blizzard_TalkingHeadUI") then
-	skin_talking_head()
+if IsAddOnLoaded("Blizzard_InspectUI") then
+	skin_panel(InspectFrame)
 end
 
 if IsAddOnLoaded("Blizzard_TrainerUI") then
 	skin_panel(ClassTrainerFrame)
 end
 
-if IsAddOnLoaded("Blizzard_CompactRaidFrames") then
-	skin_raid_manager()
+if IsAddOnLoaded("Blizzard_Professions") then
+	skin_panel(ProfessionsFrame)
 end
 
-if IsAddOnLoaded("Blizzard_WeeklyRewards") then
-	skin_weekly_reward()
+if IsAddOnLoaded("Blizzard_CompactRaidFrames") then
+	skin_raid_manager()
 end
 
 local loader = CreateFrame("Frame")
@@ -2075,8 +2590,8 @@ loader:RegisterEvent("ADDON_LOADED")
 loader:SetScript("OnEvent", function(self, event, addon)
 	if addon == "Blizzard_TokenUI" then
 		skin_token()
-	elseif addon == "Blizzard_TalentUI" then
-		-- skin_panel(PlayerTalentFrame)
+	elseif addon == "Blizzard_ClassTalentUI" then
+		skin_panel(ClassTalentFrame)
 	elseif addon == "Blizzard_Collections" then
 		skin_panel(CollectionsJournal)
 	elseif addon == "Blizzard_FlightMap" then
@@ -2089,8 +2604,8 @@ loader:SetScript("OnEvent", function(self, event, addon)
 		skin_challenges()
 	elseif addon == "Blizzard_Communities" then
 		skin_panel(CommunitiesFrame)
-	elseif addon == "Blizzard_TradeSkillUI" then
-		skin_panel(TradeSkillFrame)
+	elseif addon == "Blizzard_Professions" then
+		skin_panel(ProfessionsFrame)
 	elseif addon == "Blizzard_ItemSocketingUI" then
 		skin_panel(ItemSocketingFrame)
 	elseif addon == "Blizzard_InspectUI" then
@@ -2099,8 +2614,6 @@ loader:SetScript("OnEvent", function(self, event, addon)
 		skin_panel(WorldMapFrame)
 	elseif addon == "Blizzard_EncounterJournal" then
 		skin_panel(EncounterJournal)
-	elseif addon == "Blizzard_TalkingHeadUI" then
-		skin_talking_head()
 	elseif addon == "Blizzard_TrainerUI" then
 		skin_panel(ClassTrainerFrame)
 	elseif addon == "Blizzard_CompactRaidFrames" then

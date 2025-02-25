@@ -1,8 +1,11 @@
+local Local = {}
 local _, addon = ...
 if not addon.bars.enabled then return end
-local core = addon.core
-local cfg = addon.bars.cfg
-local styles = addon.bars.styles
+
+Local.addon = addon
+Local.core = Local.addon.core
+Local.cfg = Local.addon.bars.cfg
+Local.styles = Local.addon.bars.styles
 
 local CreateFrame = CreateFrame
 local UIParent = UIParent
@@ -11,10 +14,11 @@ local GetBindingKey = GetBindingKey
 local GetBindingText = GetBindingText
 local GameTooltip = GameTooltip
 local MainMenuBarBackpackButton = MainMenuBarBackpackButton
-local AUTOCAST_SHINE_TIMERS = AUTOCAST_SHINE_TIMERS
-local AUTOCAST_SHINE_SPEEDS = AUTOCAST_SHINE_SPEEDS
 local strfind = strfind
 local InCombatLockdown = InCombatLockdown
+
+local genBackdrop = Local.core.util.gen_backdrop
+local setInside = Local.core.util.set_inside
 
 local MICRO_BUTTONS = {
 	"CharacterMicroButton",
@@ -71,54 +75,132 @@ local set_tooltip = function(self)
 	end
 end
 
-local setup_bar = function(name, num, bar_cfg, style_func, buttons)
-	
-	for i = 1, num do
-		local button = buttons and buttons[i] or _G[name.."Button"..i]
-		local parent = button:GetParent()
+local layoutActionBar = function(bar, cfg)
 
-		if not InCombatLockdown() then
+	if InCombatLockdown() then return end
 
-			if bar_cfg.buttons.size then
-				button:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.height or bar_cfg.buttons.size)
+	for i = 1, bar.numButtons do
+
+		local button = bar.actionButtons[i]
+		local container = button.container
+
+		button:SetAllPoints()
+
+		if bar_cfg.buttons.size then
+			container:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.height or bar_cfg.buttons.size)
+		end
+
+		if bar.numRows == 1 then
+			container:ClearAllPoints()
+
+			local padding = bar.buttonPadding
+			if i <= bar.numButtons / 2 then
+				container:SetPoint("BOTTOMLEFT", bar, "BOTTOM", -(bar_cfg.buttons.size + padding) * (bar.numButtons / 2 - i + 1) + padding / 2, 0)
+			else
+				container:SetPoint("BOTTOMRIGHT", bar, "BOTTOM", (bar_cfg.buttons.size + padding) * (i - bar.numButtons / 2) - padding / 2, 0)
 			end
+		end
 
-			if parent.numRows == 1 then
-				button:ClearAllPoints()
+		if bar.numRows == 2 then
+			local cols = bar.numButtons / 2
+			local row = i <= cols and 1 or 2
+			local col = i > cols and i - cols or i
 
-				local padding = parent.buttonPadding
-				if i <= num / 2 then
-					button:SetPoint("BOTTOMLEFT", parent, "BOTTOM", -(bar_cfg.buttons.size + padding) * (num / 2 - i + 1) + padding / 2, 0)
+			container:ClearAllPoints()
+
+			local padding = bar.buttonPadding
+			if row == 1 then
+				if col <= cols / 2 then
+					container:SetPoint("BOTTOMLEFT", bar, "BOTTOM", -(bar_cfg.buttons.size + padding) * (cols / 2 - col + 1) + padding / 2, 0)
 				else
-					button:SetPoint("BOTTOMRIGHT", parent, "BOTTOM", (bar_cfg.buttons.size + padding) * (i - num / 2) - padding / 2, 0)
+					container:SetPoint("BOTTOMRIGHT", bar, "BOTTOM", (bar_cfg.buttons.size + padding) * (col - cols / 2) - padding / 2, 0)
+				end
+			else
+				local height = bar_cfg.buttons.height or bar_cfg.buttons.size
+				if col <= cols / 2 then
+					container:SetPoint("BOTTOMLEFT", bar, "BOTTOM", -(bar_cfg.buttons.size + padding) * (cols / 2 - col + 1) + padding / 2, height + padding)
+				else
+					container:SetPoint("BOTTOMRIGHT", bar, "BOTTOM", (bar_cfg.buttons.size + padding) * (col - cols / 2) - padding / 2, height + padding)
 				end
 			end
 		end
-
-		style_func(button, bar_cfg)
 	end
 end
 
-local setup_actionbars = function()
+local setupActionBars = function()
 
 	local bars = {
-		"Action",
-		"MultiBarBottomLeft",
-		"MultiBarBottomRight",
-		"MultiBarLeft",
-		"MultiBarRight",
+		MainMenuBar,
+		MultiBarBottomLeft,
+		MultiBarBottomRight,
+		MultiBarLeft,
+		MultiBarRight,
+		-- MultiBar5,
+		-- MultiBar6,
+		-- MultiBar7,
 	}
 
-	for _, name in ipairs(bars) do
-		local bar_cfg = cfg.bars[name]
+	for _, bar in ipairs(bars) do
+		local cfg = Local.cfg.bars[bar:GetName()]
+	
+		for i = 1, bar.numButtons do
+			local button = bar.actionButtons[i]
+			local container = button.container
 
-		local parent = _G[name.."Button1"]:GetParent()
+			button:SetAllPoints()
 
-		setup_bar(name, NUM_ACTIONBAR_BUTTONS, bar_cfg, styles.actionbutton)
+			if not InCombatLockdown() then
 
-		for i = 1, NUM_ACTIONBAR_BUTTONS do
-			hooksecurefunc(_G[name.."Button"..i], "SetTooltip", set_tooltip)
+				if cfg.buttons.size then
+					container:SetSize(cfg.buttons.size, cfg.buttons.height or cfg.buttons.size)
+				end
+
+				if bar.numRows == 1 then
+					container:ClearAllPoints()
+
+					local padding = bar.buttonPadding
+					if i <= bar.numButtons / 2 then
+						container:SetPoint("BOTTOMLEFT", bar, "BOTTOM", -(cfg.buttons.size + padding) * (bar.numButtons / 2 - i + 1) + padding / 2, 0)
+					else
+						container:SetPoint("BOTTOMRIGHT", bar, "BOTTOM", (cfg.buttons.size + padding) * (i - bar.numButtons / 2) - padding / 2, 0)
+					end
+				end
+
+				if bar.numRows == 2 then
+					local cols = bar.numButtons / 2
+					local row = i <= cols and 1 or 2
+					local col = i > cols and i - cols or i
+
+					container:ClearAllPoints()
+
+					local padding = bar.buttonPadding
+					if row == 1 then
+						if col <= cols / 2 then
+							container:SetPoint("BOTTOMLEFT", bar, "BOTTOM", -(cfg.buttons.size + padding) * (cols / 2 - col + 1) + padding / 2, 0)
+						else
+							container:SetPoint("BOTTOMRIGHT", bar, "BOTTOM", (cfg.buttons.size + padding) * (col - cols / 2) - padding / 2, 0)
+						end
+					else
+						local height = cfg.buttons.height or cfg.buttons.size
+						if col <= cols / 2 then
+							container:SetPoint("BOTTOMLEFT", bar, "BOTTOM", -(cfg.buttons.size + padding) * (cols / 2 - col + 1) + padding / 2, height + padding)
+						else
+							container:SetPoint("BOTTOMRIGHT", bar, "BOTTOM", (cfg.buttons.size + padding) * (col - cols / 2) - padding / 2, height + padding)
+						end
+					end
+				end
+			end
+
+			if button.styled then return end
+			button.styled = {}
+
+			genBackdrop(button, unpack(Local.core.config.frame_background_transparent))
+			Local.styles.ActionBarButtonTemplate(button, cfg)
 		end
+
+		-- for i = 1, NUM_ACTIONBAR_BUTTONS do
+		-- 	hooksecurefunc(_G[name.."Button"..i], "SetTooltip", set_tooltip)
+		-- end
 	end
 
 	--StatusTrackingBarManager:Hide()
@@ -172,23 +254,48 @@ local setup_bagbar = function()
 		CharacterReagentBag0Slot
 	}
 
-	MainMenuBarBackpackButton:ClearAllPoints()
-	MainMenuBarBackpackButton:SetPoint("BOTTOMRIGHT", MicroButtonAndBagsBar, "BOTTOMLEFT", 0, 5)
+	BagsBar:SetSize(BagsBar.initialWidth, BagsBar.initialHeight)
+	BagBarExpandToggle:SetSize(BagsBar.bagBarExpandToggleInitialWidth, BagsBar.bagBarExpandToggleInitialHeight)
 
-	local prev
+	MainMenuBarBackpackButton:ClearAllPoints()
+	MainMenuBarBackpackButton:SetPoint("BOTTOMRIGHT", BagsBar, "BOTTOMRIGHT", 0, 0)
+
+	local expand = MainMenuBarBagManager:ShouldBarExpand();
+
+	local left = 0
+	local right = math.pi
+	local rotation = expand and right or left;
+
+	BagBarExpandToggle:GetNormalTexture():SetRotation(rotation);
+	BagBarExpandToggle:GetPushedTexture():SetRotation(rotation);
+	BagBarExpandToggle:GetHighlightTexture():SetRotation(rotation);
+
+	BagBarExpandToggle:ClearAllPoints()
+	BagBarExpandToggle:SetPoint("TOPRIGHT", MainMenuBarBackpackButton, "TOPLEFT")
+
+	local prev = BagBarExpandToggle
 	for _, bag in ipairs(bags) do
 		styles.bagbutton(bag)
 		bag:SetSize(bar_cfg.buttons.size, bar_cfg.buttons.size)
 
-		if prev and bag ~= CharacterBag0Slot then
-			bag:SetPoint("RIGHT", prev, "LEFT", -2, 0)
+		if bag:IsShown() and bag ~= MainMenuBarBackpackButton then
+			bag:ClearAllPoints()
+			bag:SetPoint("TOPRIGHT", prev, "TOPLEFT", -2, 0)
+			prev = bag
 		end
-		prev = bag
 	end
 end
 
+-- hooksecurefunc(BagsBar, "Layout", function()
+-- 	setup_bagbar()
+-- end)
+
+-- EventRegistry:RegisterCallback("MainMenuBarManager.OnExpandChanged", function()
+-- 	setup_bagbar()
+-- end, BagsBar);
+
 local setup_microbar = function()
-	MicroButtonAndBagsBar:SetSize(290, 50)
+	-- MicroButtonAndBagsBar:SetSize(290, 50)
 	for _, name in ipairs(MICRO_BUTTONS) do
 		local button = _G[name]
 		styles.microbutton(button)
@@ -200,109 +307,51 @@ loader:RegisterEvent("PLAYER_LOGIN")
 loader:RegisterEvent("ADDON_LOADED")
 loader:SetScript("OnEvent", function(self, event, addon)
 	if event == "PLAYER_LOGIN" then
-		setup_actionbars()
-		setup_microbar()
-		setup_stancebar()
-		setup_petbar()
-		setup_possessbar()
-		setup_bagbar()
+		setupActionBars()
+		--setup_microbar()
+		-- setup_stancebar()
+		-- setup_petbar()
+		-- setup_possessbar()
+		-- setup_bagbar()
 	else
 		if addon == "Blizzard_UIWidgets" then
-			place_widget()
+			--place_widget()
 		end
 	end
 end)
 
-hooksecurefunc('CooldownFrame_Set', function(self)
-	if self:IsForbidden() then return end
-	
-	if strfind(self:GetDebugName(), "ChargeCooldown") then
-		self:SetHideCountdownNumbers(false)
-		self:SetDrawEdge(false)
-		self:SetFrameStrata("HIGH")
-		core.util.fix_string(self:GetRegions(), core.config.font_size_lrg)
-	end
-end)
-
-hooksecurefunc('ActionButton_UpdateCooldown', function(self)
-	if (self.chargeCooldown and self.chargeCooldown:IsShown()) then
-		self.cooldown:GetRegions():SetAlpha(0)
+hooksecurefunc('ActionButton_UpdateCooldown', function(button)
+	if (button.chargeCooldown and button.chargeCooldown:IsShown()) then
+		button.cooldown:GetRegions():SetAlpha(0)
 	else
-		self.cooldown:GetRegions():SetAlpha(1)
+		button.cooldown:GetRegions():SetAlpha(1)
 	end
 end)
 
-SpellFlyout.Background:Hide()
+hooksecurefunc('StartChargeCooldown', function(button, chargeStart, chargeDuration, chargeModRate)
+	-- if self:IsForbidden() then return end
+	setInside(button.chargeCooldown, button)
+	Local.styles.CooldownFrameTemplate(button.chargeCooldown)
 
-SpellFlyout:HookScript("OnShow", function(self)
-	local b = 1
-	local button = _G["SpellFlyoutButton"..b]
-	while button do
-		if not button.styled then
-			styles.actionbutton(button)
-			button.styled = true
-		end
-		b = b + 1
-		button = _G["SpellFlyoutButton"..b]
-	end
+	button.chargeCooldown:SetHideCountdownNumbers(false)
+	button.chargeCooldown:SetDrawEdge(false)
 end)
 
--- adjust the vertical distance for squashed buttons
+--SpellFlyout.Background:Hide()
 
-local autocast_shines = {}
+-- SpellFlyout:HookScript("OnShow", function(self)
+-- 	local b = 1
+-- 	local button = _G["SpellFlyoutButton"..b]
+-- 	while button do
+-- 		if not button.styled then
+-- 			styles.actionbutton(button)
+-- 			button.styled = true
+-- 		end
+-- 		b = b + 1
+-- 		button = _G["SpellFlyoutButton"..b]
+-- 	end
+-- end)
 
-hooksecurefunc('AutoCastShine_AutoCastStart', function(button, r, g, b)
-	if autocast_shines[button] then
-		return
-	end
-
-	autocast_shines[button] = true
-end)
-
-hooksecurefunc('AutoCastShine_AutoCastStop', function(button, r, g, b)
-	autocast_shines[button] = nil
-end)
-
-hooksecurefunc('AutoCastShine_OnUpdate', function()
-	for button, _ in pairs(autocast_shines) do
-		local parent, distance = button, button:GetWidth()
-		local height = button:GetHeight()
-
-		if distance == height then
-			return
-		end
-
-		local mult = height / distance
-
-		for i = 1, 4 do
-			local timer = AUTOCAST_SHINE_TIMERS[i]
-			local speed = AUTOCAST_SHINE_SPEEDS[i]
-
-			if ( timer <= speed ) then
-				local basePosition = timer / speed * distance
-				button.sparkles[0 + i]:SetPoint("CENTER", parent, "TOPLEFT", basePosition, 0)
-				button.sparkles[4 + i]:SetPoint("CENTER", parent, "BOTTOMRIGHT", -basePosition, 0)
-				button.sparkles[8 + i]:SetPoint("CENTER", parent, "TOPRIGHT", 0, -basePosition * mult)
-				button.sparkles[12 + i]:SetPoint("CENTER", parent, "BOTTOMLEFT", 0, basePosition * mult)
-			elseif ( timer <= speed * 2 ) then
-				local basePosition = (timer-speed) / speed * distance
-				button.sparkles[0 + i]:SetPoint("CENTER", parent, "TOPRIGHT", 0, -basePosition * mult)
-				button.sparkles[4 + i]:SetPoint("CENTER", parent, "BOTTOMLEFT", 0, basePosition * mult)
-				button.sparkles[8 + i]:SetPoint("CENTER", parent, "BOTTOMRIGHT", -basePosition, 0)
-				button.sparkles[12 + i]:SetPoint("CENTER", parent, "TOPLEFT", basePosition, 0)
-			elseif ( timer <= speed * 3 ) then
-				local basePosition = (timer-speed*2) / speed * distance
-				button.sparkles[0 + i]:SetPoint("CENTER", parent, "BOTTOMRIGHT", -basePosition, 0)
-				button.sparkles[4 + i]:SetPoint("CENTER", parent, "TOPLEFT", basePosition, 0)
-				button.sparkles[8 + i]:SetPoint("CENTER", parent, "BOTTOMLEFT", 0, basePosition * mult)
-				button.sparkles[12 + i]:SetPoint("CENTER", parent, "TOPRIGHT", 0, -basePosition * mult)
-			else
-				local basePosition = (timer-speed * 3) / speed * distance
-				button.sparkles[0 + i]:SetPoint("CENTER", parent, "BOTTOMLEFT", 0, basePosition  * mult)
-				button.sparkles[4 + i]:SetPoint("CENTER", parent, "TOPRIGHT", 0, -basePosition  * mult)
-				button.sparkles[8 + i]:SetPoint("CENTER", parent, "TOPLEFT", basePosition, 0)
-				button.sparkles[12 + i]:SetPoint("CENTER", parent, "BOTTOMRIGHT", -basePosition, 0)
-			end
-		end
-	end
+hooksecurefunc("ActionButton_SetupOverlayGlow", function(button)
+	Local.styles.ActionBarButtonSpellActivationAlert(button.SpellActivationAlert)
 end)

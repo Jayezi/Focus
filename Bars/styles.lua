@@ -12,17 +12,351 @@ local CharacterMicroButton = CharacterMicroButton
 local MicroButtonPortrait = MicroButtonPortrait
 local Mixin = Mixin
 local BackdropTemplateMixin = BackdropTemplateMixin
+local ActionButtonCastType = {
+	Cast = 1, 
+	Channel = 2, 
+	Empowered = 3, 
+}
 
-styles.actionbutton = function(button, bar_cfg)
-	if button.styled then return end
-	button.styled = true
+local blank = core.media.textures.blank
+local blank2 = core.media.textures.blank2
+local setInside = core.util.set_inside
 
-	local blank = core.media.textures.blank
-	core.util.gen_backdrop(button, unpack(core.config.frame_background_transparent))
+styles.ActionButtonInterruptTemplate = function(frame)
+	
+	-- Frames
 
-	local name = button:GetName()
+	local highlight = frame.Highlight
+	-- >> Layers
+	-- >> ARTWORK
+	local highlightHighlightTexture = highlight.HighlightTexture
+	local highlightMask = highlight.Mask
+	-- >> Animations
+	local highlightAnimIn = highlight.AnimIn
 
-	-- ActionButtonTemplate (ActionButton, PetActionButtonTemplate, StanceButtonTemplate, PossessButtonTemplate)
+	local base = frame.Base
+	-- >> Layers
+	-- >> ARTWORK
+	local baseBase = base.Base
+	-- >> Animations
+	local baseAnimIn = base.AnimIn
+
+	highlight:SetAllPoints()
+
+	highlightHighlightTexture:SetColorTexture(1, 0, 0, 0.25)
+	highlightHighlightTexture:SetAllPoints()
+
+	highlightMask:SetTexture(blank2, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+	setInside(highlightMask, highlight)
+
+	setInside(base, frame)
+	baseBase:SetAllPoints()
+	baseBase:SetColorTexture(1, 0, 0, 0.25)
+end
+
+styles.ActionButtonCastingAnimFrameTemplate = function(frame)
+
+	-- Frames
+
+	local fill = frame.Fill
+	-- >> Layers
+	-- >> ARTWORK
+	local fillInnerGlowTexture = fill.InnerGlowTexture
+	local fillCastFill = fill.CastFill
+	local fillFillMask = fill.FillMask -- CastFill
+	-- >> Animations
+	local fillCastingAnim = fill.CastingAnim
+
+	local endBurst = frame.EndBurst
+	-- >> Layers
+	-- >> ARTWORK
+	local endBurstGlowRing = endBurst.GlowRing
+	local endBurstEndMask = endBurst.EndMask
+	-- >> Animations
+	local endBurstFinishCastAnim = endBurst.FinishCastAnim
+
+	fill:SetAllPoints()
+
+	fillInnerGlowTexture:SetAllPoints()
+	fillInnerGlowTexture:Hide()
+
+	setInside(fillFillMask, fill)
+    fillFillMask:SetTexture(core.media.textures.blank2, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+
+	hooksecurefunc(frame, "Setup", function(self, actionButtonCastType)
+		local isChannelCast = actionButtonCastType == ActionButtonCastType.Channel
+		fillInnerGlowTexture:SetColorTexture(1, 1, 1, 1)
+		fillCastFill:SetColorTexture(1, 1, 1, 0.5)
+		fillCastFill:ClearAllPoints()
+		fillCastFill:SetSize(fill:GetWidth(), fill:GetHeight())
+		if isChannelCast then
+			fillCastFill:SetPoint("BOTTOMLEFT", fill, "BOTTOMRIGHT")
+			fillCastingAnim.CastFillTranslation:SetOffset(-fill:GetWidth(), 0)
+		else
+			fillCastFill:SetPoint("BOTTOMRIGHT", fill, "BOTTOMLEFT")
+			fillCastingAnim.CastFillTranslation:SetOffset(fill:GetWidth(), 0)
+		end
+	end)
+
+	endBurst:SetAllPoints()
+
+	endBurstGlowRing:SetAllPoints()
+	endBurstGlowRing:SetColorTexture(0, 1, 0, 0.25)
+
+	setInside(endBurstEndMask, endBurst)
+	endBurstEndMask:SetTexture(blank2, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+end
+
+styles.ActionButtonTargetReticleFrameTemplate = function(frame)
+	
+	-- Layers
+
+	-- OVERLAY 2
+	local base = frame.Base
+	-- OVERLAY 3
+	local highlight = frame.Highlight
+	local mask = frame.Mask -- Highlight
+
+	-- Animations
+
+	local highlightAnim = frame.HighlightAnim -- Highlight
+
+	base:SetAllPoints()
+
+	highlight:SetAllPoints()
+	highlight:Hide()
+	mask:SetAllPoints()
+	mask:Hide()
+end
+
+styles.ActionButtonCooldownFlashTemplate = function(frame)
+	
+	-- Layers
+
+	-- ARTWORK
+	local flipbook = frame.Flipbook
+
+	-- Animations
+
+	local flashAnim = frame.FlashAnim -- Flipbook
+
+	flipbook:SetAllPoints()
+end
+
+styles.ActionButtonSpellFXTemplate = function(button)
+	if button.styled.ActionButtonSpellFXTemplate then return end
+	button.styled.ActionButtonSpellFXTemplate = true
+
+	-- Frames
+
+	local interruptDisplay = button.InterruptDisplay -- (ActionButtonInterruptTemplate)
+	local spellCastAnimFrame = button.SpellCastAnimFrame -- (ActionButtonCastingAnimFrameTemplate)
+	local targetReticleAnimFrame = button.TargetReticleAnimFrame -- (ActionButtonTargetReticleFrameTemplate)
+	local cooldownFlash = button.CooldownFlash
+
+	spellCastAnimFrame:SetAllPoints()
+	styles.ActionButtonCastingAnimFrameTemplate(spellCastAnimFrame)
+
+	interruptDisplay:SetAllPoints()
+	styles.ActionButtonInterruptTemplate(interruptDisplay)
+
+	targetReticleAnimFrame:SetAllPoints()
+	styles.ActionButtonTargetReticleFrameTemplate(targetReticleAnimFrame)
+
+	cooldownFlash:SetAllPoints()
+	styles.ActionButtonCooldownFlashTemplate(cooldownFlash)
+end
+
+styles.AutoCastOverlayTemplate = function(frame)
+
+	-- Layers
+
+	-- OVERLAY 0
+	local shine = frame.Shine
+	local shineAnim = shine.Anim
+	local mask = frame.Mask -- Shine
+	-- OVERLAY 1
+	local corners = frame.Corners
+
+	shine:ClearAllPoints()
+	shine:SetPoint("CENTER")
+	shine:SetSize(frame:GetWidth(), frame:GetWidth())
+
+	mask:SetAllPoints()
+
+	-- corners:SetTexCoord(0, 1, 0, 1)
+	corners:SetPoint("TOPLEFT", -1, 1)
+	corners:SetPoint("BOTTOMRIGHT", 1, -1)
+end
+
+styles.CooldownFrameTemplate = function(frame)
+	core.util.fix_string(frame:GetRegions(), bar_cfg and bar_cfg.cooldown_size or core.config.font_size_lrg)
+end
+
+styles.ActionButtonTemplate = function(button, bar_cfg)
+	if button.styled.ActionButtonTemplate then return end
+	button.styled.ActionButtonTemplate = true
+
+	-- Layers
+
+	local normalTexture = button.NormalTexture
+	local pushedTexture = button.PushedTexture
+	local highlightTexture = button.HighlightTexture
+	local checkedTexture = button.CheckedTexture
+
+	-- BACKGROUND
+	local icon = button.icon -- $parentIcon
+	local iconMask = button.IconMask -- icon
+	local slotBackground = button.SlotBackground
+	local slotArt = button.SlotArt
+
+	-- ARTWORK 1
+	local flash = button.Flash -- $parentFlash
+	local flyoutBorderShadow = button.FlyoutBorderShadow -- $parentFlyoutBorderShadow
+
+	-- OVERLAY
+	local name = button.Name -- $parentName
+	local border = button.Border -- $parentBorder
+
+	-- OVERLAY 1
+	local newActionTexture = button.NewActionTexture
+	local spellHighlightTexture = button.SpellHighlightTexture
+	local levelLinkLockIcon = button.LevelLinkLockIcon
+
+	-- Animations
+
+	local spellHighlightAnim = button.SpellHighlightAnim
+
+	-- Frames
+
+	local textOverlayContainer = button.TextOverlayContainer -- frameLevel=500
+	-- >> Layers
+	-- >> OVERLAY
+	local textOverlayContainerHotKey = textOverlayContainer.HotKey -- $parentHotKey
+	local textOverlayContainerCount = textOverlayContainer.Count -- $parentCount
+
+	local flyoutArrowContainer = button.FlyoutArrowContainer
+	-- >> Layers
+	-- >> ARTWORK 2
+	local flyoutArrowContainerFlyoutArrowNormal = flyoutArrowContainer.FlyoutArrowNormal
+	local flyoutArrowContainerFlyoutArrowPushed = flyoutArrowContainer.FlyoutArrowPushed
+	local flyoutArrowContainerFlyoutArrowHighlight = flyoutArrowContainer.FlyoutArrowHighlight
+
+	local autoCastOverlay = button.AutoCastOverlay -- (AutoCastOverlayTemplate)
+
+	local cooldown = button.cooldown -- $parentCooldown (CooldownFrameTemplate) useParentLevel
+
+	setInside(cooldown, button)
+	styles.CooldownFrameTemplate(cooldown)
+
+	--autoCastOverlay:SetFrameLevel(cooldown:GetFrameLevel() + 1)
+	autoCastOverlay:SetAllPoints()
+	styles.AutoCastOverlayTemplate(autoCastOverlay)
+
+	local adjust = 0.4 * button:GetHeight() / button:GetWidth()
+	icon:SetTexCoord(0.1, 0.9, 0.5 - adjust, 0.5 + adjust)
+	icon:SetDrawLayer("ARTWORK", -7)
+	setInside(icon, button)
+
+	iconMask:Hide()
+	slotBackground:Hide()
+	slotArt:Hide()
+
+	flash:SetTexture(blank)
+	flash:SetVertexColor(unpack(core.config.color.flash))
+	flash:SetAllPoints(icon)
+
+	flyoutBorderShadow:SetTexture()
+
+	core.util.fix_string(textOverlayContainerHotKey, core.config.font_size_med)
+	textOverlayContainerHotKey:ClearAllPoints()
+	textOverlayContainerHotKey:SetPoint("BOTTOMRIGHT")
+	hooksecurefunc(button, "UpdateHotkeys", function(button)
+		button.HotKey:ClearAllPoints()
+		button.HotKey:SetPoint("BOTTOMRIGHT")
+	end)
+
+
+	core.util.fix_string(textOverlayContainerCount, core.config.font_size_lrg)
+	textOverlayContainerCount:ClearAllPoints()
+	textOverlayContainerCount:SetPoint("TOPLEFT")
+	textOverlayContainerCount:SetJustifyH("LEFT")
+
+	name:Hide()
+
+	border:SetTexture(blank)
+	border:SetAllPoints()
+	border:SetDrawLayer("BORDER")
+
+	newActionTexture:SetAllPoints(icon)
+	newActionTexture:SetTexture(blank)
+	newActionTexture:SetVertexColor(unpack(core.config.color.new))
+
+	spellHighlightTexture:SetAllPoints(icon)
+	spellHighlightTexture:SetTexture(blank)
+	spellHighlightTexture:SetVertexColor(unpack(core.config.color.highlight))
+
+	normalTexture:SetAllPoints(icon)
+	normalTexture:SetTexture()
+
+	pushedTexture:SetAllPoints(icon)
+	pushedTexture:SetTexture(blank)
+	pushedTexture:SetVertexColor(unpack(core.config.color.pushed))
+	--pushedTexture:SetDrawLayer("ARTWORK", -6)
+
+	highlightTexture:SetAllPoints(icon)
+	highlightTexture:SetTexture(blank)
+	highlightTexture:SetVertexColor(unpack(core.config.color.highlight))
+
+	checkedTexture:SetAllPoints(icon)
+	checkedTexture:SetTexture(blank)
+	checkedTexture:SetVertexColor(unpack(core.config.color.checked))
+	-- checked.alt_SetAlpha = checked.SetAlpha
+	-- hooksecurefunc(checked, "SetAlpha", function(self)
+	-- 	self:alt_SetAlpha(core.config.color.checked[4])
+	-- end)
+
+	styles.ActionButtonSpellFXTemplate(button)
+end
+
+styles.QuickKeybindButtonTemplate = function(button)
+	if button.styled.QuickKeybindButtonTemplate then return end
+	button.styled.QuickKeybindButtonTemplate = true
+
+	-- Layers
+
+	-- OVERLAY
+	local quickKeybindHighlightTexture = button.QuickKeybindHighlightTexture
+
+	setInside(quickKeybindHighlightTexture, button)
+	quickKeybindHighlightTexture:SetColorTexture(unpack(core.config.color.highlight))
+end
+
+styles.ActionBarButtonCodeTemplate = function(button)
+	if button.styled.ActionBarButtonCodeTemplate then return end
+	button.styled.ActionBarButtonCodeTemplate = true
+
+	styles.QuickKeybindButtonTemplate(button)
+	styles.ActionButtonSpellFXTemplate(button)
+
+
+end
+
+
+styles.ActionBarButtonTemplate = function(button, bar_cfg)
+	if button.styled.ActionBarButtonTemplate then return end
+	button.styled.ActionBarButtonTemplate = true
+
+	styles.ActionButtonTemplate(button, bar_cfg)
+	styles.ActionBarButtonCodeTemplate(button)
+end
+
+styles.ActionBarButtonSpellActivationAlert = function(frame)
+	frame.ProcStartFlipbook:SetSize(frame:GetWidth() * 2.5, frame:GetHeight() * 2.5)
+end
+
+local dummy = function()
+	-- ActionButtonTemplate
 	--   Layers
 	--     BACKGROUND
 	local icon = button.icon -- $parentIcon
@@ -47,7 +381,7 @@ styles.actionbutton = function(button, bar_cfg)
 	--local levellock = button.LevelLinkLockIcon
 	--   Frames
 	local flyout = button.FlyoutArrowContainer
-	local shine = button.AutoCastShine -- $parentShine
+	local autocast = button.AutoCastOverlay
 	local cooldown = button.cooldown -- $parentCooldown
 	--   NormalTexture
 	--local normal = button.NormalTexture -- $parentNormalTexture
@@ -78,69 +412,29 @@ styles.actionbutton = function(button, bar_cfg)
 
 	-- Frames
 
-	cooldown:SetFrameLevel(button:GetFrameLevel() + 1)
-	cooldown:SetAllPoints(icon)
-	cooldown:SetHideCountdownNumbers(false)
-	cooldown:SetDrawEdge(false)
-	core.util.fix_string(cooldown:GetRegions(), bar_cfg and bar_cfg.cooldown_size or core.config.font_size_lrg)
 
-	shine:SetFrameLevel(cooldown:GetFrameLevel() + 1)
-	shine:SetAllPoints(icon)
+
+
 
 	-- parent text regions to a higher frame so cooldown and highlights dont cover them
 	local text_overlay = CreateFrame("Frame", button:GetName().."TextOverlay", button)
-	text_overlay:SetFrameLevel(shine:GetFrameLevel() + 1)
+	text_overlay:SetFrameLevel(autocast:GetFrameLevel() + 1)
 	text_overlay:SetAllPoints(button)
 
 	-- Layers
 
-	-- BACKGROUND
-
-	local adjust = 0.4 * button:GetHeight() / button:GetWidth()
-	icon:SetTexCoord(0.1, 0.9, 0.5 - adjust, 0.5 + adjust)
-	icon:SetDrawLayer("ARTWORK", -7)
-	core.util.set_inside(icon, button)
-
-	mask:Hide()
-	slotbg:Hide()
-	slotart:Hide()
 
 	-- BACKGROUND 1
 
 	if fbg then fbg:Hide() end
 
-	-- ARTWORK 1
-
-	flash:SetTexture(blank)
-	flash:SetVertexColor(unpack(core.config.color.flash))
-	flash:SetAllPoints(icon)
-
-	fobs:SetTexture()
-
 	-- ARTWORK 2
 
-	core.util.fix_string(hotkey, core.config.font_size_med)
-	hotkey:SetParent(text_overlay)
-	hotkey:ClearAllPoints()
-	hotkey:SetPoint("BOTTOMLEFT")
-	hotkey:SetPoint("BOTTOMRIGHT")
-	hotkey:SetJustifyH("RIGHT")
-	hotkey:SetJustifyV("BOTTOM")
 
-	core.util.fix_string(count, core.config.font_size_lrg)
-	count:SetParent(text_overlay)
-	count:ClearAllPoints()
-	count:SetPoint("TOPLEFT", icon, "TOPLEFT", -4, 6)
-	count:SetJustifyH("LEFT")
-	count:SetJustifyV("TOP")
 
 	-- OVERLAY
 
-	macro:Hide()
-
-	border:SetTexture(blank)
-	border:SetAllPoints(button)
-	border:SetDrawLayer("BORDER")
+	
 
 	if petauto then
 		petauto:SetParent(text_overlay)
@@ -151,13 +445,9 @@ styles.actionbutton = function(button, bar_cfg)
 
 	-- OVERLAY 1
 
-	new:SetAllPoints(icon)
-	new:SetTexture(blank)
-	new:SetVertexColor(unpack(core.config.color.new))
+	
 
-	spellhighlight:SetAllPoints(icon)
-	spellhighlight:SetTexture(blank)
-	spellhighlight:SetVertexColor(unpack(core.config.color.highlight))
+	
 
 	auto:SetParent(text_overlay)
 	auto:SetDrawLayer("BACKGROUND")
@@ -166,34 +456,18 @@ styles.actionbutton = function(button, bar_cfg)
 
 	-------------------------
 
-	local normal = button:GetNormalTexture()
-	normal:SetAllPoints(icon)
-	normal:SetTexture()
+	
 
 	-- pet thing
 	hooksecurefunc(button, "SetNormalTexture", function()
 		normal:SetTexture()
 	end)
 
-	local pushed = button:GetPushedTexture()
-	pushed:SetAllPoints(icon)
-	pushed:SetTexture(blank)
-	pushed:SetVertexColor(unpack(core.config.color.pushed))
-	pushed:SetDrawLayer("ARTWORK", -6)
+	
 
-	local highlight = button:GetHighlightTexture()
-	highlight:SetAllPoints(icon)
-	highlight:SetTexture(blank)
-	highlight:SetVertexColor(unpack(core.config.color.highlight))
+	
 
-	local checked = button:GetCheckedTexture()
-	checked:SetAllPoints(icon)
-	checked:SetTexture(blank)
-	checked:SetVertexColor(unpack(core.config.color.checked))
-	checked.alt_SetAlpha = checked.SetAlpha
-	hooksecurefunc(checked, "SetAlpha", function(self)
-		self:alt_SetAlpha(core.config.color.checked[4])
-	end)
+	
 
 	hooksecurefunc(button, "UpdateButtonArt", function()
 		slotbg:Hide()
@@ -240,6 +514,9 @@ styles.vehiclebutton = function(button)
 end
 
 styles.bagbutton = function(button)
+	if button.styled then return end
+	button.styled = true
+
 	core.util.gen_backdrop(button, unpack(core.config.frame_background_transparent))
 
 	-- ItemButton

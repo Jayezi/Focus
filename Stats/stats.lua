@@ -7,11 +7,8 @@ local CreateFrame = CreateFrame
 local GameTooltip = GameTooltip
 local UIParent = UIParent
 local FocusDataPanel = FocusDataPanel
-local GetNumAddOns = GetNumAddOns
 local UpdateAddOnMemoryUsage = UpdateAddOnMemoryUsage
 local GetAddOnMemoryUsage = GetAddOnMemoryUsage
-local GetAddOnInfo = GetAddOnInfo
-local IsAddOnLoaded = IsAddOnLoaded
 local GetNetStats = GetNetStats
 local GetFramerate = GetFramerate
 local GetMoney = GetMoney
@@ -20,6 +17,7 @@ local UnitXPMax = UnitXPMax
 local UnitLevel = UnitLevel
 local GetXPExhaustion = GetXPExhaustion
 local C_Reputation = C_Reputation
+local C_AddOns = C_AddOns
 
 -- memory ---------------
 
@@ -43,7 +41,7 @@ mem_button.last = 0
 
 mem_button:RegisterEvent("PLAYER_LOGIN")
 mem_button:SetScript("OnEvent", function(self)
-	self.num = GetNumAddOns()
+	self.num = C_AddOns.GetNumAddOns()
 	local mem_sum = 0
 	UpdateAddOnMemoryUsage()
 	for i = 1, self.num do
@@ -61,9 +59,9 @@ local mem_update = function(button)
 	local mem_list = {}
 	UpdateAddOnMemoryUsage()
 	for i = 1, button.num do
-		local _, name = GetAddOnInfo(i)
+		local _, name = C_AddOns.GetAddOnInfo(i)
 		local memory = 0
-		if IsAddOnLoaded(i) then
+		if C_AddOns.IsAddOnLoaded(i) then
 			memory = GetAddOnMemoryUsage(i)
 			table.insert(mem_list, {
 				name = name,

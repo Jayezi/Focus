@@ -3,6 +3,7 @@
 ## Author: Jayeasy
 ## SavedVariables: FocusFramePositions, FocusStatsRealmGold, FocusBindsLayouts
 ## X-oUF: ElvUF
+## OptionalDeps: LibStub
 
 core.lua
 Skin\lib.lua
@@ -13,6 +14,7 @@ Bars\bars.lua
 
 Raid\raid.lua
 
+Libs\LibDispel\LibDispel.lua
 Libs\oUF\oUF.xml
 Libs\oUF_Plugins\oUF_AuraWatch.lua
 

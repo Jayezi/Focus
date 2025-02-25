@@ -30,10 +30,10 @@ local SetCVar = SetCVar
 
 addon.units = { enabled = true }
 addon.bars = { enabled = true }
-addon.buffs = { enabled = true }
-addon.raid = { enabled = true }
-addon.chat = { enabled = true }
-addon.map = { enabled = true }
+addon.buffs = { enabled = false }
+addon.raid = { enabled = false }
+addon.chat = { enabled = false }
+addon.map = { enabled = false }
 addon.stats = { enabled = true }
 addon.binds = { enabled = true }
 addon.bag = { enabled = false }
@@ -58,7 +58,8 @@ core.media = {
 	},
 
 	textures = {
-		blank = [[Interface\Buttons\WHITE8x8]]
+		blank = [[Interface\Buttons\WHITE8x8]],
+		blank2 = [[Interface\Tooltips\UI-Tooltip-Background]]
 	}
 }
 
@@ -98,10 +99,11 @@ core.config = {
 		disabled = {0, 0, 0, 0.5},
 		border = {0, 0, 0, 1},
 		light_border = {0.66, 0.66, 0.66, 1},
-		background = {0.16, 0.16, 0.16, 1},
+		background = {0.15, 0.15, 0.15, 1},
 		flash = {0.5, 0.5, 0.5, 0.5},
 		new = {0.66, 0.66, 0, 0.75},
 		checked = {0.5, 0.5, 0, 0.5},
+		checked_fill = {0.5, 0.5, 0, 1},
 	},
 
 	ui_scale = PixelUtil.GetPixelToUIUnitFactor(),
@@ -224,7 +226,7 @@ core.util = {
 		tex.mask = mask
 		mask:SetPoint("TOPLEFT", tex, "TOPLEFT", crop or 0, crop and -crop or 0)
 		mask:SetPoint("BOTTOMRIGHT", tex, "BOTTOMRIGHT", crop and -crop or 0, crop or 0)
-		mask:SetTexture("Interface/CHARACTERFRAME/TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+		mask:SetTexture("Interface/CharacterFrame/TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
 		tex:AddMaskTexture(mask)
 	end,
 
@@ -257,6 +259,15 @@ core.util = {
 		--	OVERLAY
 		-- .Overlay
 
+		-- UIPanelScrollBarTemplate
+		local up = scrollbar.ScrollUpButton or scrollbar.ScrollUp
+		local down = scrollbar.ScrollDownButton or scrollbar.ScrollDown
+		local thumbtex = scrollbar.ThumbTexture or scrollbar.thumbTexture
+		local bg = bg or scrollbar.trackBG
+		local top = scrollbar.ScrollBarTop
+		local middle = scrollbar.ScrollBarMiddle
+		local bottom = scrollbar.ScrollBarBottom
+
 		if bp then bp:Hide() end
 		if bg then bg:Hide() end
 
@@ -264,21 +275,27 @@ core.util = {
 			thumb.Begin:Hide()
 			thumb.End:Hide()
 			thumb.Middle:SetAllPoints()
-			thumb.Middle:SetColorTexture(0.5, 0.5, 0.5, 1)
-			hooksecurefunc(thumb, "UpdateAtlas", function(self)
+			local color = function(self)
 				if self.over then
-					thumb.Middle:SetColorTexture(0.66, 0.66, 0.66, 1)
+					self.Middle:SetColorTexture(0.66, 0.66, 0.66, 1)
 				else
-					thumb.Middle:SetColorTexture(0.5, 0.5, 0.5, 1)
+					self.Middle:SetColorTexture(0.5, 0.5, 0.5, 1)
 				end
-			end)
+			end
+			-- color(thumb)
+			-- thumb:HookScript("OnShow", color)
+			-- thumb:HookScript("OnEnter", color)
+			-- thumb:HookScript("OnLeave", color)
+			-- thumb:HookScript("OnEnable", color)
+			-- thumb:HookScript("OnDisable", color)
+			-- thumb:HookScript("OnSizeChanged", color)
 		end
 
 		if back then
-			core.util.gen_backdrop(back)
+			--core.util.gen_backdrop(back)
 
 			core.util.set_inside(back.Texture, back)
-			core.util.set_inside(back.Overlay, back)
+			--core.util.set_inside(back.Overlay, back)
 
 			if back:IsEnabled() then
 				if back.down then
@@ -294,41 +311,41 @@ core.util = {
 			end
 			back.Texture:ClearPointsOffset()
 
-			hooksecurefunc(back, "UpdateAtlas", function(self)
-				if self:IsEnabled() then
-					if self.down then
-						self.Texture:SetTexture([[interface/buttons/arrow-up-down]])
-						self.Texture:SetTexCoord(0, 1.1, 0.35, 1.05)
-					else
-						self.Texture:SetTexture([[interface/buttons/arrow-up-up]])
-						self.Texture:SetTexCoord(-0.1, 1, 0.25, 1)
-					end
-				else
-					self.Texture:SetTexture([[interface/buttons/arrow-up-disabled]])
-					self.Texture:SetTexCoord(-0.1, 1, 0.25, 1)
-				end
-				self.Texture:ClearPointsOffset()
-			end)
+			-- hooksecurefunc(back, "UpdateAtlas", function(self)
+			-- 	if self:IsEnabled() then
+			-- 		if self.down then
+			-- 			self.Texture:SetTexture([[interface/buttons/arrow-up-down]])
+			-- 			self.Texture:SetTexCoord(0, 1.1, 0.35, 1.05)
+			-- 		else
+			-- 			self.Texture:SetTexture([[interface/buttons/arrow-up-up]])
+			-- 			self.Texture:SetTexCoord(-0.1, 1, 0.25, 1)
+			-- 		end
+			-- 	else
+			-- 		self.Texture:SetTexture([[interface/buttons/arrow-up-disabled]])
+			-- 		self.Texture:SetTexCoord(-0.1, 1, 0.25, 1)
+			-- 	end
+			-- 	self.Texture:ClearPointsOffset()
+			-- end)
 
 			back:HookScript("OnMouseDown", function(self)
 				self.Texture:ClearPointsOffset()
-				self.Overlay:ClearPointsOffset()
+				--self.Overlay:ClearPointsOffset()
 			end)
 
 			back:HookScript("OnMouseUp", function(self)
 				self.Texture:ClearPointsOffset()
-				self.Overlay:ClearPointsOffset()
+				--self.Overlay:ClearPointsOffset()
 			end)
 
-			back.Overlay:SetColorTexture(unpack(core.config.color.highlight))
-			core.util.set_inside(back.Overlay, back)
+			--back.Overlay:SetColorTexture(unpack(core.config.color.highlight))
+			--core.util.set_inside(back.Overlay, back)
 		end
 
 		if forward then
-			core.util.gen_backdrop(forward)
+		-- 	core.util.gen_backdrop(forward)
 
 			core.util.set_inside(forward.Texture, forward)
-			core.util.set_inside(forward.Overlay, forward)
+			--core.util.set_inside(forward.Overlay, forward)
 
 			if forward:IsEnabled() then
 				if forward.down then
@@ -344,136 +361,74 @@ core.util = {
 			end
 			forward.Texture:ClearPointsOffset()
 
-			hooksecurefunc(forward, "UpdateAtlas", function(self)
-				if self:IsEnabled() then
-					if self.down then
-						self.Texture:SetTexture([[interface/buttons/arrow-down-down]])
-						self.Texture:SetTexCoord(0, 1.1, -0.05, 0.75)
-					else
-						self.Texture:SetTexture([[interface/buttons/arrow-down-up]])
-						self.Texture:SetTexCoord(-0.1, 1, -0.1, 0.65)
-					end
-				else
-					self.Texture:SetTexture([[interface/buttons/arrow-down-disabled]])
-					self.Texture:SetTexCoord(-0.1, 1, -0.1, 0.65)
-				end
-				self.Texture:ClearPointsOffset()
-			end)
+			-- hooksecurefunc(forward, "UpdateAtlas", function(self)
+			-- 	if self:IsEnabled() then
+			-- 		if self.down then
+			-- 			self.Texture:SetTexture([[interface/buttons/arrow-down-down]])
+			-- 			self.Texture:SetTexCoord(0, 1.1, -0.05, 0.75)
+			-- 		else
+			-- 			self.Texture:SetTexture([[interface/buttons/arrow-down-up]])
+			-- 			self.Texture:SetTexCoord(-0.1, 1, -0.1, 0.65)
+			-- 		end
+			-- 	else
+			-- 		self.Texture:SetTexture([[interface/buttons/arrow-down-disabled]])
+			-- 		self.Texture:SetTexCoord(-0.1, 1, -0.1, 0.65)
+			-- 	end
+			-- 	self.Texture:ClearPointsOffset()
+			-- end)
 
 			forward:HookScript("OnMouseDown", function(self)
 				self.Texture:ClearPointsOffset()
-				self.Overlay:ClearPointsOffset()
+				--self.Overlay:ClearPointsOffset()
 			end)
 
 			forward:HookScript("OnMouseUp", function(self)
 				self.Texture:ClearPointsOffset()
-				self.Overlay:ClearPointsOffset()
+				--self.Overlay:ClearPointsOffset()
 			end)
 
-			forward.Overlay:SetColorTexture(unpack(core.config.color.highlight))
-			core.util.set_inside(forward.Overlay, forward)
+			--forward.Overlay:SetColorTexture(unpack(core.config.color.highlight))
+			--core.util.set_inside(forward.Overlay, forward)
 		end
 
-		-- HybridScrollFrameTemplate
-		--		.ScrollChild
-		--		.scrollBar
-		--		HybridScrollBarBackgroundTemplate
-		--			.trackBG
-		--			.ScrollBarTop
-		--			.ScrollBarBottom
-		--			.ScrollBarMiddle
-		--			.thumbTexture
-		--		HybridScrollBarTemplate
-		--			.ScrollUpButton		UIPanelScrollUpButtonTemplate
-		--			.ScrollDownButton	UIPanelScrollDownButtonTemplate
+		if thumbtex then thumbtex:SetColorTexture(0.5, 0.5, 0.5, 1) end
+		if top then top:Hide() end
+		if middle then middle:Hide() end
+		if bottom then bottom:Hide() end
 
-		-- UIPanelScrollBarTemplate
-		--		.ThumbTexture
+		if up then
+			up.Normal:SetTexture([[interface/buttons/arrow-up-up]])
+			up.Normal:SetTexCoord(-0.1, 1, 0.25, 1)
 
-		--		.ScrollUpButton		UIPanelScrollUpButtonTemplate
-		--		.ScrollDownButton	UIPanelScrollDownButtonTemplate
+			up.Pushed:SetTexture([[interface/buttons/arrow-up-down]])
+			up.Pushed:SetTexCoord(0, 1.1, 0.35, 1.05)
 
-		-- HybridScrollBarTrimTemplate
-		-- 		.trackBG
-		-- 		.Top
-		-- 		.Bottom
-		-- 		.Middle
+			up.Disabled:SetTexture([[interface/buttons/arrow-up-disabled]])
+			up.Disabled:SetTexCoord(-0.1, 1, 0.25, 1)
 
-		-- 		.UpButton
-		-- 		.DownButton
-		
-		-- 		.thumbTexture
+			up.Highlight:SetColorTexture(unpack(core.config.color.highlight))
+			core.util.set_inside(up.Highlight, up)
+		end
 
-		-- if scrollbar.trackBG then scrollbar.trackBG:Hide() end
-		-- if scrollbar.ScrollBarTop then scrollbar.ScrollBarTop:Hide() end
-		-- if scrollbar.Top then scrollbar.Top:Hide() end
-		-- if scrollbar.ScrollBarBottom then scrollbar.ScrollBarBottom:Hide() end
-		-- if scrollbar.Bottom then scrollbar.Bottom:Hide() end
-		-- if scrollbar.ScrollBarMiddle then scrollbar.ScrollBarMiddle:Hide() end
-		-- if scrollbar.Middle then scrollbar.Middle:Hide() end
+		if down then
+			down.Normal:SetTexture([[interface/buttons/arrow-down-up]])
+			down.Normal:SetTexCoord(-0.1, 1, -0.1, 0.65)
 
-		-- core.util.gen_backdrop(scrollbar)
-		-- scrollbar:SetWidth(20)
+			down.Pushed:SetTexture([[interface/buttons/arrow-down-down]])
+			down.Pushed:SetTexCoord(0, 1.1, -0.05, 0.75)
 
-		-- local scrollUpButton = scrollbar.ScrollUpButton or scrollbar.ScrollUp or scrollbar.UpButton
-		-- local scrollDownButton = scrollbar.ScrollDownButton or scrollbar.ScrollDown or scrollbar.DownButton
-		-- local thumbTexture = scrollbar.ThumbTexture or scrollbar.thumbTexture
-		
-		-- thumbTexture:SetTexture(core.media.textures.blank)
-		-- thumbTexture:SetWidth(18)
-		-- thumbTexture:SetVertexColor(0.5, 0.5, 0.5)
+			down.Disabled:SetTexture([[interface/buttons/arrow-down-disabled]])
+			down.Disabled:SetTexCoord(-0.1, 1, -0.1, 0.65)
 
-		-- if scrollUpButton then
-		-- 	core.util.gen_backdrop(scrollUpButton)
-		-- 	scrollUpButton:SetSize(20, 15)
-		-- 	scrollUpButton:SetPoint("BOTTOM", scrollbar, "TOP", 0, 1)
+			down.Highlight:SetColorTexture(unpack(core.config.color.highlight))
+			core.util.set_inside(down.Highlight, down)
+		end
 
-		-- 	local highlight = scrollUpButton:GetHighlightTexture()
-		-- 	highlight:SetTexture(core.media.textures.blank)
-		-- 	highlight:SetVertexColor(.6, .6, .6, .3)
-		-- 	core.util.set_inside(highlight, scrollUpButton)
-
-		-- 	local normal = scrollUpButton:GetNormalTexture()
-		-- 	normal:SetTexture([[interface/buttons/arrow-up-up]])
-		-- 	normal:SetTexCoord(-0.1, 1, 0.25, 1)
-		-- 	normal:SetAllPoints(highlight)
-
-		-- 	local pushed = scrollUpButton:GetPushedTexture()
-		-- 	pushed:SetTexture([[interface/buttons/arrow-up-down]])
-		-- 	pushed:SetTexCoord(0, 1.1, 0.35, 1.05)
-		-- 	pushed:SetAllPoints(highlight)
-
-		-- 	local disabled = scrollUpButton:GetDisabledTexture()
-		-- 	disabled:SetTexture([[interface/buttons/arrow-up-disabled]])
-		-- 	disabled:SetTexCoord(-0.1, 1, 0.25, 1)
-		-- 	disabled:SetAllPoints(highlight)
-		-- end
-
-		-- if scrollDownButton then
-		-- 	core.util.gen_backdrop(scrollDownButton)
-		-- 	scrollDownButton:SetSize(20, 15)
-		-- 	scrollDownButton:SetPoint("TOP", scrollbar, "BOTTOM", 0, -1)
-
-		-- 	local highlight = scrollDownButton:GetHighlightTexture()
-		-- 	highlight:SetTexture(core.media.textures.blank)
-		-- 	highlight:SetVertexColor(.6, .6, .6, .3)
-		-- 	core.util.set_inside(highlight, scrollDownButton)
-
-		-- 	local normal = scrollDownButton:GetNormalTexture()
-		-- 	normal:SetTexture([[interface/buttons/arrow-down-up]])
-		-- 	normal:SetTexCoord(-0.1, 1, -0.1, 0.65)
-		-- 	normal:SetAllPoints(highlight)
-
-		-- 	local pushed = scrollDownButton:GetPushedTexture()
-		-- 	pushed:SetTexture([[interface/buttons/arrow-down-down]])
-		-- 	pushed:SetTexCoord(0, 1.1, -0.05, 0.75)
-		-- 	pushed:SetAllPoints(highlight)
-
-		-- 	local disabled = scrollDownButton:GetDisabledTexture()
-		-- 	disabled:SetTexture([[interface/buttons/arrow-down-disabled]])
-		-- 	disabled:SetTexCoord(-0.1, 1, -0.1, 0.65)
-		-- 	disabled:SetAllPoints(highlight)
-		-- end
+		for _, child in ipairs({scrollbar:GetChildren()}) do
+			if child.Begin then
+				child:Hide()
+			end
+		end
 	end,
 
 	fix_editbox = function(frame, width, height, max)
@@ -500,18 +455,18 @@ core.util = {
 		-- InputBoxTemplate (InputBoxInstructionsTemplate)
 		--   Layers
 		--     BACKGROUND
-		local left = frame.Left or (frame:GetName() and _G[frame:GetName().."Left"])
+		local left = frame.Left or frame.left or (frame:GetName() and _G[frame:GetName().."Left"])
 		if left then left:Hide() end
-		local right = frame.Right or (frame:GetName() and _G[frame:GetName().."Right"])
+		local right = frame.Right or frame.right or (frame:GetName() and _G[frame:GetName().."Right"])
 		if right then right:Hide() end
-		local middle = frame.Middle or frame.Mid  or (frame:GetName() and _G[frame:GetName().."Mid"])
+		local middle = frame.Middle or frame.Mid or (frame:GetName() and (_G[frame:GetName().."Mid"] or _G[frame:GetName().."Middle"]))
 		if middle then middle:Hide() end
-	
+
 		---------------------------------
 
 		if search_icon then search_icon:Hide() end
 	
-		core.util.gen_backdrop(frame)
+		core.util.gen_backdrop(frame, unpack(core.config.frame_background_transparent))
 		
 		frame:SetWidth(width or frame:GetWidth())
 		frame:SetHeight(22)
@@ -892,12 +847,13 @@ end)
 local login_frame = CreateFrame("Frame")
 login_frame:RegisterEvent("PLAYER_LOGIN")
 login_frame:RegisterEvent("UI_SCALE_CHANGED")
-login_frame:SetScript("OnEvent", function(self, event)
+login_frame:RegisterEvent("ADDON_LOADED")
+login_frame:SetScript("OnEvent", function(self, event, addon)
 	
 	if event == "UI_SCALE_CHANGED" then
 		UIParent:SetScale(core.config.ui_scale)
 		WorldFrame:SetScale(core.config.ui_scale)
-	else
+	elseif event == "PLAYER_LOGIN" then
 		UIParent:SetScale(core.config.ui_scale)
 		WorldFrame:SetScale(core.config.ui_scale)
 
@@ -944,8 +900,20 @@ login_frame:SetScript("OnEvent", function(self, event)
 		SetCVar("nameplateSelfBottomInset", 0.4)
 
 		SetCVar("deselectOnClick", 1)
+	elseif event == "ADDON_LOADED" and addon == "Blizzard_NamePlates" then
+		hooksecurefunc(NamePlateDriverFrame, "UpdateNamePlateOptions", function()
+			C_NamePlate.SetNamePlateEnemySize(125, 25)
+			C_NamePlate.SetNamePlateFriendlySize(1, 1)
+		end)
 	end
 end)
+
+if C_AddOns.IsAddOnLoaded("Blizzard_NamePlates") then
+	hooksecurefunc(NamePlateDriverFrame, "UpdateNamePlateOptions", function()
+		C_NamePlate.SetNamePlateEnemySize(125, 25)
+		C_NamePlate.SetNamePlateFriendlySize(1, 1)
+	end)
+end
 
 -- widgets
 
@@ -966,8 +934,8 @@ hooksecurefunc(UIWidgetTemplateStatusBarMixin, "Setup", function(self, widgetInf
 	end
 end)
 
-if not IsAddOnLoaded("Blizzard_DebugTools") then
-	LoadAddOn("Blizzard_DebugTools")
+if not C_AddOns.IsAddOnLoaded("Blizzard_DebugTools") then
+	C_AddOns.LoadAddOn("Blizzard_DebugTools")
 end
 
 local game_fonts = {
@@ -1353,6 +1321,17 @@ hooksecurefunc(TableAttributeLineMixin, "Initialize", function(self)
 end)
 
 ExtraAbilityContainer:ClearAllPoints()
+
+hooksecurefunc(GameTooltip, "SetUnitAura", function(self, unit, slotNumber, auraType)
+	local auraData = C_UnitAuras.GetAuraDataByIndex(unit, slotNumber, auraType)
+
+	local name = auraData.sourceUnit and UnitName(auraData.sourceUnit)
+	if name then
+		self:AddLine(" ")
+		self:AddDoubleLine(name, auraData.spellId, .3, 1, .3, 1, .3, .3)
+		self:Show()
+	end
+end)
 
 -- mock libstub
 

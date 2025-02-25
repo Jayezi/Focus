@@ -12,7 +12,7 @@ cfg.bars = {
 			margin = 2,
 		},
     },
-	Action = {
+	MainMenuBar = {
 		cooldown_size = core.config.font_size_med,
 		buttons = {
 			size = 36,

@@ -406,23 +406,23 @@ end
 
 local post_create_aura = function(buffs, button)
 
-	button.cd:SetReverse(true)
-	button.cd:SetFrameLevel(button:GetFrameLevel())
-	button.cd:SetHideCountdownNumbers(false)
-	button.cd:SetDrawEdge(false)
-	core.util.fix_string(button.cd:GetRegions(), buffs.cdsize)
+	button.Cooldown:SetReverse(true)
+	button.Cooldown:SetFrameLevel(button:GetFrameLevel())
+	button.Cooldown:SetHideCountdownNumbers(false)
+	button.Cooldown:SetDrawEdge(false)
+	core.util.fix_string(button.Cooldown:GetRegions(), buffs.cdsize)
 	
 	if buffs.squashed then
-		button.icon:SetTexCoord(0.1, 0.9, 0.3, 0.7)
+		button.Icon:SetTexCoord(0.1, 0.9, 0.3, 0.7)
 	else
-		button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+		button.Icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 	end
-	core.util.set_inside(button.cd, button)
-	core.util.set_inside(button.icon, button)
+	core.util.set_inside(button.Cooldown, button)
+	core.util.set_inside(button.Icon, button)
 
 	local y, x = strsplit("_", buffs.cdposition)
 
-	local timer = button.cd:GetRegions()
+	local timer = button.Cooldown:GetRegions()
 	timer:ClearAllPoints()
 
 	if x then
@@ -453,30 +453,30 @@ local post_create_aura = function(buffs, button)
 		end
 	end
 	
-	button.overlay:SetDrawLayer("BACKGROUND")
-	button.overlay:SetTexture(core.media.textures.blank)
-	button.overlay:SetPoint("TOPLEFT")
-    button.overlay:SetPoint("BOTTOMRIGHT")
-	button.overlay:SetTexCoord(0, 1, 0, 1)
+	button.Overlay:SetDrawLayer("BACKGROUND")
+	button.Overlay:SetTexture(core.media.textures.blank)
+	button.Overlay:SetPoint("TOPLEFT")
+    button.Overlay:SetPoint("BOTTOMRIGHT")
+	button.Overlay:SetTexCoord(0, 1, 0, 1)
 
-	button.overlay.oldHide = button.overlay.Hide
-	button.overlay.Hide = function(self) self:SetVertexColor(0, 0, 0) end
+	button.Overlay.oldHide = button.Overlay.Hide
+	button.Overlay.Hide = function(self) self:SetVertexColor(0, 0, 0) end
 
-	button.count:ClearAllPoints()
-	button.count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
-	button.count:SetJustifyH("RIGHT")
-	button.count:SetJustifyV("TOP")
-	button.count:SetFont(core.config.default_font, buffs.countsize, core.config.font_flags)
+	button.Count:ClearAllPoints()
+	button.Count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
+	button.Count:SetJustifyH("RIGHT")
+	button.Count:SetJustifyV("TOP")
+	button.Count:SetFont(core.config.default_font, buffs.countsize, core.config.font_flags)
 end
 
 local post_update_aura = function(self, unit, button, _, _, _, _, debuffType)
 	
 	button:SetMouseClickEnabled(false)
 	if (not button.isDebuff or string.find(unit, "nameplate")) and debuffType == nil then
-		button.overlay:Hide()
+		button.Overlay:Hide()
 	end
 	if button.isDebuff and unit == "target" then
-		button.icon:SetDesaturated(not button.isPlayer)
+		button.Icon:SetDesaturated(not button.isPlayer)
 	end
 	if self.squashed then button:SetHeight(button:GetWidth() / 2) end
 end
@@ -487,6 +487,8 @@ lib.gen_auras = function(base, w, cfg, name)
 	local auras = CreateFrame("Frame", base:GetName()..name, base.Health)
 	
 	auras.size = cfg[1]
+	auras.width = cfg[1]
+	auras.height = cfg[1]
 	auras.initialAnchor = cfg[3]
 	auras["growth-x"] = cfg[4]
 	auras["growth-y"] = cfg[5]
@@ -503,12 +505,13 @@ lib.gen_auras = function(base, w, cfg, name)
 	local aura_h = auras.size
 	if auras.squashed then
 		aura_h = auras.size / 2
+		auras.height = aura_h
 		auras["spacing-y"] = -aura_h + 1
 	end
 	auras:SetSize(num_per_row * (auras.size + 1) - 1, cfg[2] * (aura_h + 1) - 1)
 	
-	auras.PostCreateIcon = post_create_aura
-	auras.PostUpdateIcon = post_update_aura
+	auras.PostCreateButton = post_create_aura
+	auras.PostUpdateButton = post_update_aura
 
 	return auras
 end

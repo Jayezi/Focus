@@ -83,7 +83,7 @@ local create_player_style = function(base)
 	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
 	base:Tag(hp_string, "[focus:color][focus:hp:curr/max state]")
 	
-	local altp_string = core.util.gen_string(base.AlternativePower, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "BOTTOM", "CENTER")
+	local altp_string = core.util.gen_string(base.AlternativePower, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "CENTER", "BOTTOM")
 	altp_string:SetPoint("CENTER")
 	base:Tag(altp_string, "[focus:color][focus:altp:perc]")
 
@@ -729,13 +729,13 @@ oUF:Factory(function(self)
 
 		oUF:RegisterStyle("FocusUnitsPlayer", create_player_style)
 		oUF:SetActiveStyle("FocusUnitsPlayer")
-		oUF:Spawn("player"):SetPoint("TOPRIGHT", mover)
+		oUF:Spawn("player", "oUF_FocusUnitsPlayer"):SetPoint("TOPRIGHT", mover)
 	end
 
 	if cfg.enabled.pet then
 		oUF:RegisterStyle("FocusUnitsPet", create_pet_style)
 		oUF:SetActiveStyle("FocusUnitsPet")
-		oUF:Spawn("pet")
+		oUF:Spawn("pet", "oUF_FocusUnitsPet")
 	end
 
 	if cfg.enabled.target then
@@ -743,13 +743,13 @@ oUF:Factory(function(self)
 
 		oUF:RegisterStyle("FocusUnitsTarget", create_target_style)
 		oUF:SetActiveStyle("FocusUnitsTarget")
-		oUF:Spawn("target"):SetPoint("TOPLEFT", mover)
+		oUF:Spawn("target", "oUF_FocusUnitsTarget"):SetPoint("TOPLEFT", mover)
 	end
 
 	if cfg.enabled.targettarget then
 		oUF:RegisterStyle("FocusUnitsTargetTarget", create_targettarget_style)
 		oUF:SetActiveStyle("FocusUnitsTargetTarget")
-		oUF:Spawn("targettarget")
+		oUF:Spawn("targettarget", "oUF_FocusUnitsTargetTarget")
 	end
 
 	if cfg.enabled.focus then
@@ -757,7 +757,7 @@ oUF:Factory(function(self)
 
 		oUF:RegisterStyle("FocusUnitsFocus", create_focus_style)
 		oUF:SetActiveStyle("FocusUnitsFocus")
-		oUF:Spawn("focus"):SetPoint("TOPLEFT", mover)
+		oUF:Spawn("focus", "oUF_FocusUnitsFocus"):SetPoint("TOPLEFT", mover)
 	end
 
 	if cfg.enabled.boss then
@@ -822,19 +822,16 @@ oUF:Factory(function(self)
 		oUF:RegisterStyle("FocusUnitsParty", create_party_style)
 		oUF:SetActiveStyle("FocusUnitsParty")
    
-		local party = oUF:SpawnHeader(
-			"oUF_FocusUnitsParty", nil,	"custom [@raid1,exists] hide; [group:party,nogroup:raid] show; hide",
-			"showPlayer", true,
-			"showSolo", true,
-			"showParty", true,
-			"point", "BOTTOM",
-			"yoffset", -1,
-			"xoffset", 0,
-			"oUF-initialConfigFunction", ([[
-				self:SetWidth(%d)
-				self:SetHeight(%d)
-			]]):format(w, h)
-		)
+		local attributes = {}
+		attributes.showPlayer = true
+		attributes.showSolo = true
+		attributes.showParty = true
+		attributes.point = "BOTTOM"
+		attributes.yoffset = -1
+		attributes.xoffset = 0
+		attributes["oUF-initialConfigFunction"] = format("self:SetWidth(%d); self:SetHeight(%d);", w, h)
+
+		local party = oUF:SpawnHeader("oUF_FocusUnitsParty", nil, "custom [@raid1,exists] hide; [group:party,nogroup:raid] show; hide", attributes)
 		party:SetPoint("BOTTOMLEFT", mover)
 	end
 
@@ -847,16 +844,15 @@ oUF:Factory(function(self)
 
 		oUF:RegisterStyle("FocusUnitsTank", create_tank_style)
 		oUF:SetActiveStyle("FocusUnitsTank")
-		local tank = oUF:SpawnHeader("oUF_FocusUnitsTank", nil, "raid",
-			"showRaid", true,
-			"groupFilter", "MAINTANK",
-			"yoffset", 1,
-			"xoffset", 0,
-			"oUF-initialConfigFunction", ([[
-				self:SetWidth(%d)
-				self:SetHeight(%d)
-			]]):format(w, h)
-		)
+
+		local attributes = {}
+		attributes.showRaid = true
+		attributes.groupFilter = "MAINTANK"
+		attributes.yoffset = 1
+		attributes.xoffset = 0
+		attributes["oUF-initialConfigFunction"] = format("self:SetWidth(%d); self:SetHeight(%d);", w, h)
+		
+		local tank = oUF:SpawnHeader("oUF_FocusUnitsTank", nil, "raid", attributes)
 		tank:SetPoint("TOPLEFT", mover)
 	end
  
@@ -877,26 +873,24 @@ oUF:Factory(function(self)
 		oUF:RegisterStyle("FocusUnitsMinimalRaid", create_raid_style(role))
 		oUF:SetActiveStyle("FocusUnitsMinimalRaid")
    
-		local raid_mythic = oUF:SpawnHeader("oUF_FocusUnitsRaidMythic", nil, "custom [@raid21,exists] hide; [@raid1,exists] show; hide",
-			"showPlayer", true,
-			"showSolo", true,
-			"showRaid", true,
-			"point", "LEFT",
-			"yoffset", 0,
-			"xoffset", -1,
-			"columnSpacing", -1,
-			"columnAnchorPoint", "TOP",
-			"groupFilter", "1,2,3,4",
-			"groupBy", "GROUP",
-			"groupingOrder", "1,2,3,4",
-			"sortMethod", "INDEX",
-			"maxColumns", 4,
-			"unitsPerColumn", 5,
-			"oUF-initialConfigFunction", ([[
-				self:SetWidth(%d)
-				self:SetHeight(%d)
-			]]):format(w, h)
-		)
+		local attributes = {}
+		attributes.showPlayer = true
+		attributes.showSolo = true
+		attributes.showRaid = true
+		attributes.point = "LEFT"
+		attributes.yoffset = 0
+		attributes.xoffset = -1
+		attributes.columnSpacing = -1
+		attributes.columnAnchorPoint = "TOP"
+		attributes.groupFilter = "1,2,3,4"
+		attributes.groupBy = "GROUP"
+		attributes.groupingOrder = "1,2,3,4"
+		attributes.sortMethod = "INDEX"
+		attributes.maxColumns = 4
+		attributes.unitsPerColumn = 5
+		attributes["oUF-initialConfigFunction"] = format("self:SetWidth(%d); self:SetHeight(%d);", w, h)
+
+		local raid_mythic = oUF:SpawnHeader("oUF_FocusUnitsRaidMythic", nil, "custom [@raid21,exists] hide; [@raid1,exists] show; hide", attributes)
 		raid_mythic:SetPoint("TOPLEFT", mover_mythic)
 
 		w = cfg.frames.raid.size[role].w
@@ -907,26 +901,24 @@ oUF:Factory(function(self)
 		oUF:RegisterStyle("FocusUnitsDetailedRaid", create_raid_style(role))
 		oUF:SetActiveStyle("FocusUnitsDetailedRaid")
 
-		local raid_full = oUF:SpawnHeader("oUF_FocusUnitsRaidFull", nil, "custom [@raid21,exists] show; hide",
-			"showPlayer", true,
-			"showSolo", true,
-			"showRaid", true,
-			"point", "LEFT",
-			"yoffset", 0,
-			"xoffset", -1,
-			"columnSpacing", -1,
-			"columnAnchorPoint", "TOP",
-			"groupFilter", "1,2,3,4,5,6,7,8",
-			"groupBy", "GROUP",
-			"groupingOrder", "1,2,3,4,5,6,7,8",
-			"sortMethod", "INDEX",
-			"maxColumns", 8,
-			"unitsPerColumn", 5,
-			"oUF-initialConfigFunction", ([[
-				self:SetWidth(%d)
-				self:SetHeight(%d)
-			]]):format(w, h)
-		)
+		attributes = {}
+		attributes.showPlayer = true
+		attributes.showSolo = true
+		attributes.showRaid = true
+		attributes.point = "LEFT"
+		attributes.yoffset = 0
+		attributes.xoffset = -1
+		attributes.columnSpacing = -1
+		attributes.columnAnchorPoint = "TOP"
+		attributes.groupFilter = "1,2,3,4,5,6,7,8"
+		attributes.groupBy = "GROUP"
+		attributes.groupingOrder = "1,2,3,4,5,6,7,8"
+		attributes.sortMethod = "INDEX"
+		attributes.maxColumns = 8
+		attributes.unitsPerColumn = 5
+		attributes["oUF-initialConfigFunction"] = format("self:SetWidth(%d); self:SetHeight(%d);", w, h)
+
+		local raid_full = oUF:SpawnHeader("oUF_FocusUnitsRaidFull", nil, "custom [@raid21,exists] show; hide", attributes)
 		raid_full:SetPoint("TOPLEFT", mover_full)
 	end
 end)

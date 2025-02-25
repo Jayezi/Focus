@@ -9,6 +9,7 @@ if true then
 		CompactPartyFrame.title:Hide()
 	else
 		hooksecurefunc("CompactPartyFrame_Generate", function()
+			print("CompactPartyFrame_Generate")
 			CompactPartyFrame.title:Hide()
 		end)
 	end
@@ -22,12 +23,16 @@ if true then
         if not string.find(frame:GetDebugName(), "CompactRaidFrame") and not string.find(frame:GetDebugName(), "CompactPartyFrame") then
             return
         end
-        frame:UnregisterAllEvents()
         frame:SetScript("OnEvent", nil)
         frame:SetScript("OnUpdate", nil)
+    end)
 
-		if InCombatLockdown() then return end
-        frame:EnableMouse(false)
+	hooksecurefunc("CompactUnitFrame_UpdateUnitEvents", function(frame)
+    	if frame:IsForbidden() then return end
+    	if not string.find(frame:GetDebugName(), "CompactRaidFrame") and not string.find(frame:GetDebugName(), "CompactPartyFrame") then
+    		return
+    	end
+        frame:UnregisterAllEvents()
     end)
 
     hooksecurefunc("CompactUnitFrame_UpdateVisible", function(frame)
@@ -47,27 +52,18 @@ if true then
     	if not string.find(frame:GetDebugName(), "CompactRaidFrame") and not string.find(frame:GetDebugName(), "CompactPartyFrame") then
     		return
     	end
-        frame:UnregisterAllEvents()
-        frame:SetScript("OnEvent", nil)
-        frame:SetScript("OnUpdate", nil)
-
+		frame.background:Hide()
 		if InCombatLockdown() then return end
         frame:EnableMouse(false)
     end)
 
-    hooksecurefunc("DefaultCompactUnitFrameSetup", function(frame)
-    	if frame:IsForbidden() then return end
-    	if not string.find(frame:GetDebugName(), "CompactRaidFrame") and not string.find(frame:GetDebugName(), "CompactPartyFrame") then
-    		return
-    	end
-        frame:UnregisterAllEvents()
-        frame:SetScript("OnEvent", nil)
-        frame:SetScript("OnUpdate", nil)
-    	frame:RegisterForClicks()
-
-		if InCombatLockdown() then return end
-        frame:EnableMouse(false)
-    end)
+	hooksecurefunc("CompactUnitFrame_UpdateInRange", function(frame)
+		if frame:IsForbidden() then return end
+        if not string.find(frame:GetDebugName(), "CompactRaidFrame") and not string.find(frame:GetDebugName(), "CompactPartyFrame") then
+            return
+        end
+        frame:SetAlpha(0)
+	end)
 
     return
 end
@@ -284,6 +280,7 @@ hooksecurefunc("CompactUnitFrame_UpdateName", function(frame)
 end)
 
 hooksecurefunc("CompactUnitFrame_UpdateHealthColor", function(frame)
+	print("CompactUnitFrame_UpdateHealthColor")
 	if frame:IsForbidden() then return end
 	frame.healthBar:SetStatusBarColor(unpack(core.config.frame_background))
 	frame.healthBar.background:SetColorTexture(frame.healthBar.r, frame.healthBar.g, frame.healthBar.b)

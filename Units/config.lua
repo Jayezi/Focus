@@ -24,7 +24,7 @@ cfg.enabled = {
     boss =          true,
     party =         true,
     raid =          true,
-    tank =          false,
+    tank =          true,
 }
 
 local powers = {
@@ -190,6 +190,7 @@ cfg.nameplate_colors = {
 	[179733] = {0.75, 0.25, 0.75},  -- Invigorating Fish Stick
 	[197671] = {0.75, 0.75, 0.25},	-- Volatile Infuser
 	[199549] = {0.75, 0.75, 0.25},	-- Flamesworn Herald
+	[199547] = {0.75, 0.75, 0.25},  -- Frostforged Zealot
 }
 
 cfg.pet_buff_whitelist = {
@@ -284,9 +285,11 @@ cfg.player_buff_whitelist = {
 	[272733] = true,		-- In The Rhythm
 	[193534] = true,		-- Steady Focus
 	[320224] = true,		-- Podtender
-	[257946] = true,		-- Thrill of the Hunt
+	-- [257946] = true,		-- Thrill of the Hunt
 	[268877] = true,		-- Beast Cleave
 	[194594] = true,		-- Lock and Load
+	[378747] = true,		-- Dire Pack
+	[260242] = true,		-- Precise Shot
 	
 	-- Monk
 	[137639] = true, 		-- Storm, Earth, and Fire

@@ -44,27 +44,29 @@ local style_buff = function(button)
 
 	-----------------------------
 
-	icon:SetTexCoord(.1, .9, .1, .9)
+	--icon:SetTexCoord(.1, .9, .1, .9)
 	core.util.set_inside(icon, button)
-	icon:SetDrawLayer("BACKGROUND", -7)
+	--icon:SetDrawLayer("BACKGROUND", -7)
 	button.icon = icon
 
-	if not border then
-		border = button:CreateTexture()
-		button.bg = border
-	end
-	border:SetTexture(core.media.textures.blank)
-	border:SetTexCoord(0, 1, 0, 1)
-	border:SetDrawLayer("BACKGROUND", -8)
-	border:SetAllPoints(button)
+	-- if not border then
+	-- 	border = button:CreateTexture()
+	-- 	button.bg = border
+	-- end
+	if border then
+		border:SetTexture(core.media.textures.blank)
+		border:SetTexCoord(0, 1, 0, 1)
+		border:SetDrawLayer("BACKGROUND", -8)
+		border:SetAllPoints(button)
 
-	if not is_debuff then
-		border:SetVertexColor(unpack(core.config.frame_border))
+		if not is_debuff then
+			border:SetVertexColor(unpack(core.config.frame_border))
+		end
 	end
 
-	core.util.fix_string(duration)
-	duration:ClearAllPoints()
-	duration:SetPoint(unpack(cfg.duration_pos))
+	-- core.util.fix_string(duration)
+	-- duration:ClearAllPoints()
+	-- duration:SetPoint(unpack(cfg.duration_pos))
 
 	if count then
 		core.util.fix_string(count)
