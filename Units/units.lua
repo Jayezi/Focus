@@ -71,9 +71,9 @@ local create_player_style = function(base)
 	base.AdditionalPower.colorPower = true
 
 	-- alternate power
-	base.AlternativePower = core.util.gen_statusbar(base, player_cfg.alt_power.size.w, player_cfg.alt_power.size.h)
-	base.AlternativePower:SetPoint(core.util.to_tl_anchor(base.AlternativePower, player_cfg.alt_power.pos))
-	base.AlternativePower:GetStatusBarTexture():SetAlpha(0.5)
+	-- base.AlternativePower = core.util.gen_statusbar(base, player_cfg.alt_power.size.w, player_cfg.alt_power.size.h)
+	-- base.AlternativePower:SetPoint(core.util.to_tl_anchor(base.AlternativePower, player_cfg.alt_power.pos))
+	-- base.AlternativePower:GetStatusBarTexture():SetAlpha(0.5)
 
 	base:SetHeight(base.stack_height)
 
@@ -83,9 +83,9 @@ local create_player_style = function(base)
 	hp_string:SetPoint("BOTTOMRIGHT", base, "TOPRIGHT", -1, 1)
 	base:Tag(hp_string, "[focus:color][focus:hp:curr/max state]")
 	
-	local altp_string = core.util.gen_string(base.AlternativePower, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "CENTER", "BOTTOM")
-	altp_string:SetPoint("CENTER")
-	base:Tag(altp_string, "[focus:color][focus:altp:perc]")
+	-- local altp_string = core.util.gen_string(base.AlternativePower, core.config.font_size_med, nil, core.media.fonts.gotham_ultra, "CENTER", "BOTTOM")
+	-- altp_string:SetPoint("CENTER")
+	-- base:Tag(altp_string, "[focus:color][focus:altp:perc]")
 
 	local hp_perc_string = core.util.gen_string(base.Health, core.config.font_size_lrg, nil, core.media.fonts.gotham_ultra, "LEFT", "TOP")
 	hp_perc_string:SetPoint("TOPLEFT", base, "BOTTOMLEFT", 1, 10)

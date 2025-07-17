@@ -352,6 +352,6 @@ end)
 -- 	end
 -- end)
 
-hooksecurefunc("ActionButton_SetupOverlayGlow", function(button)
-	Local.styles.ActionBarButtonSpellActivationAlert(button.SpellActivationAlert)
-end)
+-- hooksecurefunc("ActionButton_SetupOverlayGlow", function(button)
+-- 	Local.styles.ActionBarButtonSpellActivationAlert(button.SpellActivationAlert)
+-- end)

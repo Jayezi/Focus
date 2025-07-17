@@ -819,13 +819,6 @@ combatlog_checker:SetScript("OnClick", function(self, button)
 	end
 end)
 
-local tooltip_parent = core.util.get_mover_frame("Tooltip")
-tooltip_parent:SetPoint("BOTTOMRIGHT", UIParent, -10, 10)
-
--- hooksecurefunc("GameTooltip_SetDefaultAnchor", function(self)
--- 	self:SetOwner(tooltip_parent, "ANCHOR_TOPRIGHT", 0, -tooltip_parent:GetHeight())
--- end)
-
 hooksecurefunc("EmbeddedItemTooltip_UpdateSize", function(button)
 	button.IconBorder:SetTexture(core.media.textures.blank)
 	button.IconBorder:SetDrawLayer("BORDER")
@@ -900,6 +893,10 @@ login_frame:SetScript("OnEvent", function(self, event, addon)
 		SetCVar("nameplateSelfBottomInset", 0.4)
 
 		SetCVar("deselectOnClick", 1)
+
+		C_CVar.RegisterCVar("addonProfilerEnabled", 1)
+		C_CVar.SetCVar("addonProfilerEnabled", 0)
+
 	elseif event == "ADDON_LOADED" and addon == "Blizzard_NamePlates" then
 		hooksecurefunc(NamePlateDriverFrame, "UpdateNamePlateOptions", function()
 			C_NamePlate.SetNamePlateEnemySize(125, 25)
@@ -1325,11 +1322,13 @@ ExtraAbilityContainer:ClearAllPoints()
 hooksecurefunc(GameTooltip, "SetUnitAura", function(self, unit, slotNumber, auraType)
 	local auraData = C_UnitAuras.GetAuraDataByIndex(unit, slotNumber, auraType)
 
-	local name = auraData.sourceUnit and UnitName(auraData.sourceUnit)
-	if name then
-		self:AddLine(" ")
-		self:AddDoubleLine(name, auraData.spellId, .3, 1, .3, 1, .3, .3)
-		self:Show()
+	if auraData then
+		local name = auraData.sourceUnit and UnitName(auraData.sourceUnit)
+		if name then
+			self:AddLine(" ")
+			self:AddDoubleLine(name, auraData.spellId, .3, 1, .3, 1, .3, .3)
+			self:Show()
+		end
 	end
 end)
 

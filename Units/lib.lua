@@ -506,7 +506,6 @@ lib.gen_auras = function(base, w, cfg, name)
 	if auras.squashed then
 		aura_h = auras.size / 2
 		auras.height = aura_h
-		auras["spacing-y"] = -aura_h + 1
 	end
 	auras:SetSize(num_per_row * (auras.size + 1) - 1, cfg[2] * (aura_h + 1) - 1)
 	

@@ -167,6 +167,21 @@ styles.ActionButtonSpellFXTemplate = function(button)
 	styles.ActionButtonCooldownFlashTemplate(cooldownFlash)
 end
 
+styles.FlyoutButtonTemplate = function(button)
+	if button.styled.FlyoutButtonTemplate then return end
+	button.styled.FlyoutButtonTemplate = true
+
+	-- Layers
+
+	-- ARTWORK 1
+	local borderShadow = button.BorderShadow
+
+	-- OVERLAY 2
+	local arrow = button.Arrow
+
+	borderShadow:SetTexture()
+end
+
 styles.AutoCastOverlayTemplate = function(frame)
 
 	-- Layers
@@ -212,7 +227,8 @@ styles.ActionButtonTemplate = function(button, bar_cfg)
 
 	-- ARTWORK 1
 	local flash = button.Flash -- $parentFlash
-	local flyoutBorderShadow = button.FlyoutBorderShadow -- $parentFlyoutBorderShadow
+	-- TODO: removed?
+	--local flyoutBorderShadow = button.FlyoutBorderShadow -- $parentFlyoutBorderShadow
 
 	-- OVERLAY
 	local name = button.Name -- $parentName
@@ -235,12 +251,15 @@ styles.ActionButtonTemplate = function(button, bar_cfg)
 	local textOverlayContainerHotKey = textOverlayContainer.HotKey -- $parentHotKey
 	local textOverlayContainerCount = textOverlayContainer.Count -- $parentCount
 
-	local flyoutArrowContainer = button.FlyoutArrowContainer
+	-- TODO: now a region
+	--local flyoutArrowContainer = button.FlyoutArrowContainer
+	local flyoutArrowContainer = button.Arrow
 	-- >> Layers
 	-- >> ARTWORK 2
-	local flyoutArrowContainerFlyoutArrowNormal = flyoutArrowContainer.FlyoutArrowNormal
-	local flyoutArrowContainerFlyoutArrowPushed = flyoutArrowContainer.FlyoutArrowPushed
-	local flyoutArrowContainerFlyoutArrowHighlight = flyoutArrowContainer.FlyoutArrowHighlight
+	-- TODO: removed
+	-- local flyoutArrowContainerFlyoutArrowNormal = flyoutArrowContainer.FlyoutArrowNormal
+	-- local flyoutArrowContainerFlyoutArrowPushed = flyoutArrowContainer.FlyoutArrowPushed
+	-- local flyoutArrowContainerFlyoutArrowHighlight = flyoutArrowContainer.FlyoutArrowHighlight
 
 	local autoCastOverlay = button.AutoCastOverlay -- (AutoCastOverlayTemplate)
 
@@ -266,7 +285,8 @@ styles.ActionButtonTemplate = function(button, bar_cfg)
 	flash:SetVertexColor(unpack(core.config.color.flash))
 	flash:SetAllPoints(icon)
 
-	flyoutBorderShadow:SetTexture()
+	-- TODO: removed?
+	--flyoutBorderShadow:SetTexture()
 
 	core.util.fix_string(textOverlayContainerHotKey, core.config.font_size_med)
 	textOverlayContainerHotKey:ClearAllPoints()
@@ -317,6 +337,7 @@ styles.ActionButtonTemplate = function(button, bar_cfg)
 	-- end)
 
 	styles.ActionButtonSpellFXTemplate(button)
+	styles.FlyoutButtonTemplate(button)
 end
 
 styles.QuickKeybindButtonTemplate = function(button)

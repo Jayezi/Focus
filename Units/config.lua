@@ -159,7 +159,7 @@ cfg.frames = {
 			target = 1,
 			non_target = 0.6
 		},
-		mark = {size = 30},
+		mark = {size = 50},
 	},
 }
 
@@ -191,6 +191,10 @@ cfg.nameplate_colors = {
 	[197671] = {0.75, 0.75, 0.25},	-- Volatile Infuser
 	[199549] = {0.75, 0.75, 0.25},	-- Flamesworn Herald
 	[199547] = {0.75, 0.75, 0.25},  -- Frostforged Zealot
+	
+	[231531] = {0.75, 0.25, 0.75},  -- Territorial Bombshell
+	
+	[237967] = {0.25, 0.75, 0.25},  -- Bomb
 }
 
 cfg.pet_buff_whitelist = {
@@ -247,6 +251,7 @@ cfg.player_buff_whitelist = {
 	[303570] = true,		-- Razor Coral
 	[315763] = true,		-- Void Titanshard
 	[10060] = true,			-- Power Infusion
+	[1219661] = true,		-- Junkmaestro's Mega Magnet
  
 	-- Paladin
 	[132403] = true,		-- Shield of the Righteous
@@ -289,7 +294,8 @@ cfg.player_buff_whitelist = {
 	[268877] = true,		-- Beast Cleave
 	[194594] = true,		-- Lock and Load
 	[378747] = true,		-- Dire Pack
-	[260242] = true,		-- Precise Shot
+	[260242] = true,		-- Precise Shots
+	[389020] = true,		-- Bulletstorm
 	
 	-- Monk
 	[137639] = true, 		-- Storm, Earth, and Fire
@@ -385,4 +391,6 @@ cfg.debuff_blacklist = {
 
 	[287967] = true,		-- V.I.G.O.R Cooldown
 	[284645] = true,		-- Topaz of Brilliant Sunlight
+	
+	[472710] = true,		-- Shell Cover
 }
