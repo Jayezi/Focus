@@ -373,15 +373,16 @@ lib.gen_summon = function(base)
 	base.SummonIndicator = summon
 end
 
-local aura_filter = function(element, _, _, _, _, _, debuffType, _, _, caster, _, _, spellID)
-	if element.sources and not element.sources[caster] then
+local aura_filter = function(element, unit, data)
+
+	if element.sources and not element.sources[data.sourceUnit] then
 		return false
 	end
 
 	local spells = element.whitelist or element.blacklist
 
 	if spells then
-		local found = spells[spellID]
+		local found = spells[data.spellId]
 		if element.whitelist then
 			return found
 		else
@@ -395,13 +396,13 @@ end
 lib.apply_whitelist_to = function(element, spells, units)
 	element.whitelist = spells
 	element.sources = units
-	element.CustomFilter = aura_filter
+	element.FilterAura = aura_filter
 end
 
 lib.apply_blacklist_to = function(element, spells, units)
 	element.blacklist = spells
 	element.sources = units
-	element.CustomFilter = aura_filter
+	element.FilterAura = aura_filter
 end
 
 local post_create_aura = function(buffs, button)
@@ -469,10 +470,10 @@ local post_create_aura = function(buffs, button)
 	button.Count:SetFont(core.config.default_font, buffs.countsize, core.config.font_flags)
 end
 
-local post_update_aura = function(self, unit, button, _, _, _, _, debuffType)
+local post_update_aura = function(self, button, unit, data, position)
 	
 	button:SetMouseClickEnabled(false)
-	if (not button.isDebuff or string.find(unit, "nameplate")) and debuffType == nil then
+	if (not data.isHarmful or string.find(unit, "nameplate")) and data.dispelName == nil then
 		button.Overlay:Hide()
 	end
 	if button.isDebuff and unit == "target" then

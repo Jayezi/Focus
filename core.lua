@@ -10,6 +10,7 @@
 local _, addon = ...
 local core = {}
 addon.core = core
+addon.oUF = oUF
 
 local UIParent = UIParent
 local CreateFrame = CreateFrame
@@ -894,9 +895,6 @@ login_frame:SetScript("OnEvent", function(self, event, addon)
 
 		SetCVar("deselectOnClick", 1)
 
-		C_CVar.RegisterCVar("addonProfilerEnabled", 1)
-		C_CVar.SetCVar("addonProfilerEnabled", 0)
-
 	elseif event == "ADDON_LOADED" and addon == "Blizzard_NamePlates" then
 		hooksecurefunc(NamePlateDriverFrame, "UpdateNamePlateOptions", function()
 			C_NamePlate.SetNamePlateEnemySize(125, 25)
@@ -1332,12 +1330,3 @@ hooksecurefunc(GameTooltip, "SetUnitAura", function(self, unit, slotNumber, aura
 	end
 end)
 
--- mock libstub
-
-if not LibStub then
-	LibStub = {}
-	LibStub.libs = {}
-	LibStub.minors = {}
-	LibStub.minor = 0
-	setmetatable(LibStub, { __call = function() return nil end })
-end

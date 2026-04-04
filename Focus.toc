@@ -1,9 +1,8 @@
 ## Interface: 90105
 ## Title: Focus
-## Author: Jayeasy
+## Author: jonnymetal
 ## SavedVariables: FocusFramePositions, FocusStatsRealmGold, FocusBindsLayouts
-## X-oUF: ElvUF
-## OptionalDeps: LibStub
+## RequiredDeps: oUF
 
 core.lua
 Skin\lib.lua
@@ -13,10 +12,6 @@ Bars\styles.lua
 Bars\bars.lua
 
 Raid\raid.lua
-
-Libs\LibDispel\LibDispel.lua
-Libs\oUF\oUF.xml
-Libs\oUF_Plugins\oUF_AuraWatch.lua
 
 Units\config.lua
 Units\tags.lua

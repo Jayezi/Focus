@@ -3,7 +3,7 @@ if not addon.raid.enabled then return end
 local core = addon.core
 
 -- disable raid/party frames
-if true then
+if false then
 	
 	if CompactPartyFrame then
 		CompactPartyFrame.title:Hide()

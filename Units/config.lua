@@ -58,8 +58,8 @@ local indicators = {
 
 cfg.frames = {
 	player = {
-		size = {w = 350, h = 40},
-		pos = {"TOPRIGHT", UIParent, "BOTTOM", -200, 400},
+		size = {w = 350, h = 50},
+		pos = {"TOPRIGHT", UIParent, "BOTTOM", -200, 300},
 		cast = {
 			size = {w = 350, h = 30},
 			pos = {"BOTTOM", UIParent, "BOTTOM", 0, 460},
@@ -75,14 +75,14 @@ cfg.frames = {
 		mark = {size = 40},
 	},
 	pet = {
-		size = {w = 220, h = 30},
+		size = {w = 220, h = 35},
 		power = {
 			h = 8
 		},
 		mark = {size = 20},
 	},
 	target = {
-		size = {w = 350, h = 40},
+		size = {w = 350, h = 50},
 		pos = {"TOPLEFT", UIParent, "BOTTOM", 200, 400},
 		cast = {
 			size = {w = 500, h = 40},
@@ -94,7 +94,7 @@ cfg.frames = {
 		mark = {size = 40},
 	},
 	targettarget = {
-		size = {w = 220, h = 30},
+		size = {w = 220, h = 35},
 	},
 	focus = {
 		size = {w = 260, h = 40},
@@ -180,21 +180,20 @@ cfg.auras = {
 	detailed = 			{30, 	1, 		"TOPRIGHT",		"LEFT", 		"DOWN", 		3, 			12, 		12,		"CENTER",		false},
 }
 
+local green = {0.25, 0.75, 0.25}
+local purple = {0.75, 0.25, 0.75}
+local yellow = {0.75, 0.75, 0.25}
+local aqua = {0.25, 0.75, 0.75}
+
 -- override color on specific units to help see them
 cfg.nameplate_colors = {
-	[120651] = {0.25, 0.75, 0.25},	-- Explosive
-	[177891] = {0.75, 0.25, 0.75},	-- Mawforged Summoner
-	[179963] = {0.75, 0.75, 0.25},	-- Terror Orb
-	[184140] = {0.75, 0.75, 0.25},	-- Xy Acolyte
-	[183033] = {0.75, 0.75, 0.25},	-- Grim Reflection
-	[179733] = {0.75, 0.25, 0.75},  -- Invigorating Fish Stick
-	[197671] = {0.75, 0.75, 0.25},	-- Volatile Infuser
-	[199549] = {0.75, 0.75, 0.25},	-- Flamesworn Herald
-	[199547] = {0.75, 0.75, 0.25},  -- Frostforged Zealot
-	
-	[231531] = {0.75, 0.25, 0.75},  -- Territorial Bombshell
-	
-	[237967] = {0.25, 0.75, 0.25},  -- Bomb
+	[179733] = purple,  -- Invigorating Fish Stick
+
+	[241800] = green, -- Managorged Titan
+
+	[245705] = aqua, -- Voidwarden
+	[245255] = yellow, -- Artoshion
+	[245222] = yellow, -- Pargoth
 }
 
 cfg.pet_buff_whitelist = {
@@ -252,6 +251,9 @@ cfg.player_buff_whitelist = {
 	[315763] = true,		-- Void Titanshard
 	[10060] = true,			-- Power Infusion
 	[1219661] = true,		-- Junkmaestro's Mega Magnet
+	[1239675] = true,		-- Latent Energy
+	[466904] = true,		-- Harrier's Cry
+	[1218713] = true,		-- Explosive Adrenaline
  
 	-- Paladin
 	[132403] = true,		-- Shield of the Righteous
@@ -296,6 +298,7 @@ cfg.player_buff_whitelist = {
 	[378747] = true,		-- Dire Pack
 	[260242] = true,		-- Precise Shots
 	[389020] = true,		-- Bulletstorm
+	[474293] = true,		-- Moving Target
 	
 	-- Monk
 	[137639] = true, 		-- Storm, Earth, and Fire

@@ -315,12 +315,12 @@ local create_nameplate_style = function(base)
 	
 	base.Buffs = lib.gen_auras(base, w, cfg.auras.nameplate_buff, "Buffs")
 	base.Buffs:SetPoint("TOPRIGHT", base.Castbar.Icon, "TOPLEFT", -2, 1)
-	base.Buffs.CustomFilter = function(element, _, _, _, _, _, debuffType, _, _, caster, _, _, spellID)
-		if debuffType == "" or debuffType == "Magic" then
+	base.Buffs.FilterAura = function(element, unit, data)
+		if data.dispelName == "" or data.dispelName == "Magic" then -- enrage or magic
 			return true
 		end
 
-		if cfg.nameplate_buff_whitelist[spellID] then
+		if cfg.nameplate_buff_whitelist[data.spellId] then
 			return true
 		end
 	
@@ -330,7 +330,7 @@ local create_nameplate_style = function(base)
 	-- mark
 	base.RaidTargetIndicator = base.Health:CreateTexture(nil, "OVERLAY")
 	base.RaidTargetIndicator:SetSize(nameplate_cfg.mark.size, nameplate_cfg.mark.size)
-	base.RaidTargetIndicator:SetPoint("CENTER", base.Health, "BOTTOM")
+	base.RaidTargetIndicator:SetPoint("CENTER", base.Health, "CENTER")
 end
 
 local create_focus_style = function(base)
@@ -573,9 +573,9 @@ local create_raid_style = function(spec_role)
 			base:Tag(name_string, "[focus:color][name]")
 			
 			-- auras
-			base.Debuffs = lib.gen_auras(base, raid_cfg.size[spec_role].w, cfg.auras.minimal, "Debuffs")
-			base.Debuffs:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -1, -1)
-			lib.apply_whitelist_to(base.Debuffs, cfg.debuff_whitelist)
+			--base.Debuffs = lib.gen_auras(base, raid_cfg.size[spec_role].w, cfg.auras.minimal, "Debuffs")
+			--base.Debuffs:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -1, -1)
+			--lib.apply_whitelist_to(base.Debuffs, cfg.debuff_whitelist)
 			
 			-- base.AuraWatch = lib.gen_indicators(base, raid_cfg.indicators)
 			
@@ -632,9 +632,9 @@ local create_raid_style = function(spec_role)
 			base:Tag(hp_string, "[focus:color][focus:hp:group]")
 			
 			-- auras
-			base.Debuffs = lib.gen_auras(base, raid_cfg.size[spec_role].w, cfg.auras.detailed, "Debuffs")
-			base.Debuffs:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -1, -1)
-			lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
+			--base.Debuffs = lib.gen_auras(base, raid_cfg.size[spec_role].w, cfg.auras.detailed, "Debuffs")
+			--base.Debuffs:SetPoint("TOPRIGHT", base.Health, "TOPRIGHT", -1, -1)
+			--lib.apply_blacklist_to(base.Debuffs, cfg.debuff_blacklist)
 			
 			-- base.AuraWatch = lib.gen_indicators(base, raid_cfg.indicators)
 			
@@ -778,7 +778,7 @@ oUF:Factory(function(self)
 		end
 
 		core.settings:add_action("Test Boss", function()
-			oUF_FocusUnitsBoss1.unit = "target"
+			oUF_FocusUnitsBoss1.unit = "player"
 			oUF_FocusUnitsBoss1.Hide = function() end
 			oUF_FocusUnitsBoss1:Show()
 		
@@ -786,7 +786,7 @@ oUF:Factory(function(self)
 			oUF_FocusUnitsBoss2.Hide = function() end
 			oUF_FocusUnitsBoss2:Show()
 			
-			oUF_FocusUnitsBoss3.unit = "pet"
+			oUF_FocusUnitsBoss3.unit = "player"
 			oUF_FocusUnitsBoss3.Hide = function() end
 			oUF_FocusUnitsBoss3:Show()
 			
@@ -798,15 +798,15 @@ oUF:Factory(function(self)
 			oUF_FocusUnitsBoss5.Hide = function() end
 			oUF_FocusUnitsBoss5:Show()
 
-			oUF_FocusUnitsBoss6.unit = "mouseover"
+			oUF_FocusUnitsBoss6.unit = "player"
 			oUF_FocusUnitsBoss6.Hide = function() end
 			oUF_FocusUnitsBoss6:Show()
 
-			oUF_FocusUnitsBoss7.unit = "target"
+			oUF_FocusUnitsBoss7.unit = "player"
 			oUF_FocusUnitsBoss7.Hide = function() end
 			oUF_FocusUnitsBoss7:Show()
 
-			oUF_FocusUnitsBoss8.unit = "focus"
+			oUF_FocusUnitsBoss8.unit = "player"
 			oUF_FocusUnitsBoss8.Hide = function() end
 			oUF_FocusUnitsBoss8:Show()
 		end)
@@ -831,7 +831,18 @@ oUF:Factory(function(self)
 		attributes.xoffset = 0
 		attributes["oUF-initialConfigFunction"] = format("self:SetWidth(%d); self:SetHeight(%d);", w, h)
 
-		local party = oUF:SpawnHeader("oUF_FocusUnitsParty", nil, "custom [@raid1,exists] hide; [group:party,nogroup:raid] show; hide", attributes)
+		local party = oUF:SpawnHeader(
+			"oUF_FocusUnitsParty", 
+			nil, 
+			"custom [@raid1,exists] hide; [group:party,nogroup:raid] show; hide", 
+			"showPlayer", true,
+			"showSolo", true,
+			"showParty", true,
+			"point", "BOTTOM",
+			"yoffset", -1,
+			"xoffset", 0,
+			"oUF-initialConfigFunction", format("self:SetWidth(%d); self:SetHeight(%d);", w, h))
+
 		party:SetPoint("BOTTOMLEFT", mover)
 	end
 
@@ -844,15 +855,17 @@ oUF:Factory(function(self)
 
 		oUF:RegisterStyle("FocusUnitsTank", create_tank_style)
 		oUF:SetActiveStyle("FocusUnitsTank")
-
-		local attributes = {}
-		attributes.showRaid = true
-		attributes.groupFilter = "MAINTANK"
-		attributes.yoffset = 1
-		attributes.xoffset = 0
-		attributes["oUF-initialConfigFunction"] = format("self:SetWidth(%d); self:SetHeight(%d);", w, h)
 		
-		local tank = oUF:SpawnHeader("oUF_FocusUnitsTank", nil, "raid", attributes)
+		local tank = oUF:SpawnHeader(
+			"oUF_FocusUnitsTank", 
+			nil, 
+			"raid", 
+			"showRaid", true,
+			"groupFilter", "MAINTANK",
+			"yoffset", 1,
+			"xoffset", 0,
+			"oUF-initialConfigFunction", format("self:SetWidth(%d); self:SetHeight(%d);", w, h))
+
 		tank:SetPoint("TOPLEFT", mover)
 	end
  
@@ -872,25 +885,27 @@ oUF:Factory(function(self)
 
 		oUF:RegisterStyle("FocusUnitsMinimalRaid", create_raid_style(role))
 		oUF:SetActiveStyle("FocusUnitsMinimalRaid")
-   
-		local attributes = {}
-		attributes.showPlayer = true
-		attributes.showSolo = true
-		attributes.showRaid = true
-		attributes.point = "LEFT"
-		attributes.yoffset = 0
-		attributes.xoffset = -1
-		attributes.columnSpacing = -1
-		attributes.columnAnchorPoint = "TOP"
-		attributes.groupFilter = "1,2,3,4"
-		attributes.groupBy = "GROUP"
-		attributes.groupingOrder = "1,2,3,4"
-		attributes.sortMethod = "INDEX"
-		attributes.maxColumns = 4
-		attributes.unitsPerColumn = 5
-		attributes["oUF-initialConfigFunction"] = format("self:SetWidth(%d); self:SetHeight(%d);", w, h)
 
-		local raid_mythic = oUF:SpawnHeader("oUF_FocusUnitsRaidMythic", nil, "custom [@raid21,exists] hide; [@raid1,exists] show; hide", attributes)
+		local raid_mythic = oUF:SpawnHeader(
+			"oUF_FocusUnitsRaidMythic", 
+			nil, 
+			"custom [@raid21,exists] hide; [@raid1,exists] show; hide",
+			"showPlayer", true,
+			"showSolo", true,
+			"showRaid", true,
+			"point", "LEFT",
+			"yoffset", 0,
+			"xoffset", -1,
+			"columnSpacing", -1,
+			"columnAnchorPoint", "TOP",
+			"groupFilter", "1,2,3,4",
+			"groupBy", "GROUP",
+			"groupingOrder", "1,2,3,4",
+			"sortMethod", "INDEX",
+			"maxColumns", 4,
+			"unitsPerColumn", 5,
+			"oUF-initialConfigFunction", format("self:SetWidth(%d); self:SetHeight(%d);", w, h))
+
 		raid_mythic:SetPoint("TOPLEFT", mover_mythic)
 
 		w = cfg.frames.raid.size[role].w
@@ -901,24 +916,26 @@ oUF:Factory(function(self)
 		oUF:RegisterStyle("FocusUnitsDetailedRaid", create_raid_style(role))
 		oUF:SetActiveStyle("FocusUnitsDetailedRaid")
 
-		attributes = {}
-		attributes.showPlayer = true
-		attributes.showSolo = true
-		attributes.showRaid = true
-		attributes.point = "LEFT"
-		attributes.yoffset = 0
-		attributes.xoffset = -1
-		attributes.columnSpacing = -1
-		attributes.columnAnchorPoint = "TOP"
-		attributes.groupFilter = "1,2,3,4,5,6,7,8"
-		attributes.groupBy = "GROUP"
-		attributes.groupingOrder = "1,2,3,4,5,6,7,8"
-		attributes.sortMethod = "INDEX"
-		attributes.maxColumns = 8
-		attributes.unitsPerColumn = 5
-		attributes["oUF-initialConfigFunction"] = format("self:SetWidth(%d); self:SetHeight(%d);", w, h)
+		local raid_full = oUF:SpawnHeader(
+			"oUF_FocusUnitsRaidFull",
+			nil,
+			"custom [@raid21,exists] show; hide",
+			"showPlayer", true,
+			"showSolo", true,
+			"showRaid", true,
+			"point", "LEFT",
+			"yoffset", 0,
+			"xoffset", -1,
+			"columnSpacing", -1,
+			"columnAnchorPoint", "TOP",
+			"groupFilter", "1,2,3,4,5,6,7,8",
+			"groupBy", "GROUP",
+			"groupingOrder", "1,2,3,4,5,6,7,8",
+			"sortMethod", "INDEX",
+			"maxColumns", 8,
+			"unitsPerColumn", 5,
+			"oUF-initialConfigFunction", format("self:SetWidth(%d); self:SetHeight(%d);", w, h))
 
-		local raid_full = oUF:SpawnHeader("oUF_FocusUnitsRaidFull", nil, "custom [@raid21,exists] show; hide", attributes)
 		raid_full:SetPoint("TOPLEFT", mover_full)
 	end
 end)
